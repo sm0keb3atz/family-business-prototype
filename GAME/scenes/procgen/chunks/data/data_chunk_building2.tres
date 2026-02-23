@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MapChunkData" load_steps=3 format=3 uid="uid://c8ee67pjkw3iu"]
+
+[ext_resource type="PackedScene" uid="uid://bxhdrhyd3xlda" path="res://GAME/scenes/procgen/chunks/chunk_building2.tscn" id="1_kihg7"]
+[ext_resource type="Script" uid="uid://dj7gpne14uxtk" path="res://GAME/scripts/procgen/map_chunk_data.gd" id="2_henxe"]
+
+[resource]
+script = ExtResource("2_henxe")
+chunk_scene = ExtResource("1_kihg7")
+socket_top = "building"
+socket_bottom = "building"
+metadata/_custom_type_script = "uid://dj7gpne14uxtk"

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponDataResource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://GAME/scripts/resources/weapon_data_resource.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://GAME/scenes/projectiles/bullet_base.tscn" id="2_bullet"]
+
+[resource]
+script = ExtResource("1_script")
+damage = 15
+fire_rate = 0.2
+reload_time = 1.5
+magazine_size = 12
+reserve_ammo = 60
+bullet_scene = ExtResource("2_bullet")
+recoil_strength = 5.0
+spread_degrees = 3.0
+automatic = false

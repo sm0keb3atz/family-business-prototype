@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://ddhoor2pv7gyt"
+path="res://.godot/imported/9mm Single.wav-8dc9fb0fb2d5adec1fa84de7c6193079.sample"
+
+[deps]
+
+source_file="res://GAME/assets/audio/weapons/glock/9mm Single.wav"
+dest_files=["res://.godot/imported/9mm Single.wav-8dc9fb0fb2d5adec1fa84de7c6193079.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

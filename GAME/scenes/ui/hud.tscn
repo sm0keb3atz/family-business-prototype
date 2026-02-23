@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://d30d1v3o1bu8i"]
+
+[ext_resource type="Texture2D" uid="uid://dgf2olh1cwum4" path="res://GAME/assets/ui/newhud.png" id="1_al4ug"]
+
+[node name="Hud" type="TextureRect" unique_id=330519341]
+texture_filter = 1
+offset_right = 40.0
+offset_bottom = 40.0
+texture = ExtResource("1_al4ug")

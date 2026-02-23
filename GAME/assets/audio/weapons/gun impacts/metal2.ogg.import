@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://4obdyoeaf65g"
+path="res://.godot/imported/metal2.ogg-fc3ff2fe513ae2130f6c3c89dad63456.oggvorbisstr"
+
+[deps]
+
+source_file="res://GAME/assets/audio/weapons/gun impacts/metal2.ogg"
+dest_files=["res://.godot/imported/metal2.ogg-fc3ff2fe513ae2130f6c3c89dad63456.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

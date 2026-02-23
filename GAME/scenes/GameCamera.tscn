@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://c7w8x4k2j8n1"]
+
+[ext_resource type="Script" uid="uid://bmh404c1n8ggy" path="res://GAME/scripts/GameCamera.gd" id="1_script"]
+
+[node name="GameCamera" type="Node2D" unique_id=1567695678]
+script = ExtResource("1_script")
+lerp_speed = 3.0
+trauma_reduction_rate = 1.7
+max_x = 30.0
+max_y = 30.0
+cutout_radius = 600.0
+edge_softness = 0.7
+bob_frequency = 20.0
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1777422475]
+ignore_rotation = false
+zoom = Vector2(2, 2)
+position_smoothing_enabled = true
+position_smoothing_speed = 10.0

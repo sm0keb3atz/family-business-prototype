@@ -1,0 +1,31 @@
+[gd_scene load_steps=8 format=3 uid="uid://d3cw146v5v5k0"]
+
+[ext_resource type="Script" uid="uid://ilnkk0hvmmxs" path="res://GAME/scripts/procgen/chunk_generator.gd" id="1_vukw2"]
+[ext_resource type="Script" uid="uid://dj7gpne14uxtk" path="res://GAME/scripts/procgen/map_chunk_data.gd" id="2_eikxg"]
+[ext_resource type="Resource" uid="uid://tvxgpryo7ndj" path="res://GAME/scenes/procgen/chunks/data/data_road_straight.tres" id="3_87yt1"]
+[ext_resource type="Resource" uid="uid://bhw3yihgodhvs" path="res://GAME/scenes/procgen/chunks/data/data_road_cross.tres" id="4_32xvn"]
+[ext_resource type="Resource" uid="uid://gnj4r707mw5n" path="res://GAME/scenes/procgen/chunks/data/data_road_horizontal.tres" id="5_eikxg"]
+[ext_resource type="Resource" uid="uid://dy6yeibfpv14a" path="res://GAME/scenes/procgen/chunks/data/data_chunk_building.tres" id="6_87yt1"]
+[ext_resource type="Script" uid="uid://ckwasyhhev30v" path="res://GAME/scripts/procgen/debug_camera.gd" id="7_32xvn"]
+
+[node name="WfcChunkTest" type="Node2D" node_paths=PackedStringArray("chunk_container")]
+script = ExtResource("1_vukw2")
+available_chunks = Array[ExtResource("2_eikxg")]([ExtResource("3_87yt1"), ExtResource("4_32xvn"), ExtResource("5_eikxg"), ExtResource("6_87yt1")])
+chunk_container = NodePath("Chunks")
+
+[node name="Background" type="ColorRect" parent="."]
+z_index = -10
+offset_left = -5000.0
+offset_top = -5000.0
+offset_right = 15000.0
+offset_bottom = 15000.0
+color = Color(0.1, 0.4, 0.1, 1)
+
+[node name="Chunks" type="Node2D" parent="."]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(2400, 2400)
+zoom = Vector2(0.5, 0.5)
+process_callback = 0
+position_smoothing_enabled = true
+script = ExtResource("7_32xvn")

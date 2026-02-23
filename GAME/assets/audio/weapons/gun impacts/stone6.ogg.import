@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://c4tpkx6y4beh6"
+path="res://.godot/imported/stone6.ogg-cfbe59e04df53e58fbc87cbb63260858.oggvorbisstr"
+
+[deps]
+
+source_file="res://GAME/assets/audio/weapons/gun impacts/stone6.ogg"
+dest_files=["res://.godot/imported/stone6.ogg-cfbe59e04df53e58fbc87cbb63260858.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

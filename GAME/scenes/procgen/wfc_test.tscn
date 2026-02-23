@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://wk0dobj4lygo"]
+
+[ext_resource type="Script" uid="uid://s3q0t7igujy2" path="res://GAME/scripts/procgen/wfc_test_runner.gd" id="1_runner"]
+[ext_resource type="PackedScene" uid="uid://wfcsample123" path="res://GAME/scenes/procgen/wfc_samples.tscn" id="2_samples"]
+[ext_resource type="TileSet" uid="uid://b5lo6l4xvqa7w" path="res://GAME/resources/tilesets/maintileset.tres" id="3_tileset"]
+
+[node name="WFCTestRunner" type="Node2D" node_paths=PackedStringArray("target_layer")]
+script = ExtResource("1_runner")
+samples_scene = ExtResource("2_samples")
+target_layer = NodePath("GeneratedMap")
+map_width = 25
+map_height = 25
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(571, 211)
+zoom = Vector2(0.5, 0.5)
+
+[node name="GeneratedMap" type="TileMapLayer" parent="."]
+tile_set = ExtResource("3_tileset")

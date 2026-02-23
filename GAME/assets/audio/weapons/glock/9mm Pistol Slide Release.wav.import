@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://cprab13nv4vnv"
+path="res://.godot/imported/9mm Pistol Slide Release.wav-84f420318939fa0291f2c4587ff22a0a.sample"
+
+[deps]
+
+source_file="res://GAME/assets/audio/weapons/glock/9mm Pistol Slide Release.wav"
+dest_files=["res://.godot/imported/9mm Pistol Slide Release.wav-84f420318939fa0291f2c4587ff22a0a.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

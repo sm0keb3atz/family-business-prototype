@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://bb4dycrwgubw0"]
+
+[ext_resource type="TileSet" uid="uid://b5lo6l4xvqa7w" path="res://GAME/resources/tilesets/maintileset.tres" id="1_dd1qy"]
+
+[node name="Structures" type="Node2D" unique_id=1081790255]
+z_index = -1
+
+[node name="BuildingsBase" type="TileMapLayer" parent="." unique_id=439274966]
+tile_set = ExtResource("1_dd1qy")
+
+[node name="BuildingsTop" type="TileMapLayer" parent="." unique_id=995131736]

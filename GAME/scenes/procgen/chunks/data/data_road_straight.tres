@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="MapChunkData" load_steps=3 format=3 uid="uid://tvxgpryo7ndj"]
+
+[ext_resource type="PackedScene" uid="uid://bbccnepjxwasv" path="res://GAME/scenes/procgen/chunks/chunk_road_straight.tscn" id="1_6ksqu"]
+[ext_resource type="Script" uid="uid://dj7gpne14uxtk" path="res://GAME/scripts/procgen/map_chunk_data.gd" id="1_53lja"]
+
+[resource]
+script = ExtResource("1_53lja")
+chunk_scene = ExtResource("1_6ksqu")
+metadata/_custom_type_script = "uid://dj7gpne14uxtk"

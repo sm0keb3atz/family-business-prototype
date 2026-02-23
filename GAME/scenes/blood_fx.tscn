@@ -1,0 +1,154 @@
+[gd_scene format=3 uid="uid://ct0ujxynmym3y"]
+
+[ext_resource type="Texture2D" uid="uid://m3xy4k6fjqc" path="res://GAME/assets/sprites/vfx/blood/Blood.png" id="1_qihl1"]
+[ext_resource type="Texture2D" uid="uid://vng6t3q530kn" path="res://GAME/assets/sprites/vfx/blood/1_100x100px.png" id="2_qihl1"]
+[ext_resource type="Script" uid="uid://dk6o3slfgbuv6" path="res://GAME/scripts/vfx/blood_fx.gd" id="3_blood"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d5vb2"]
+atlas = ExtResource("1_qihl1")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_re00v"]
+atlas = ExtResource("1_qihl1")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wxex8"]
+atlas = ExtResource("1_qihl1")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5cso7"]
+atlas = ExtResource("1_qihl1")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nyw3i"]
+atlas = ExtResource("1_qihl1")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mv4qh"]
+atlas = ExtResource("1_qihl1")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ab0s4"]
+atlas = ExtResource("1_qihl1")
+region = Rect2(192, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d0h6l"]
+atlas = ExtResource("1_qihl1")
+region = Rect2(224, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_e7fvc"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d5vb2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_re00v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wxex8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5cso7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nyw3i")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mv4qh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ab0s4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d0h6l")
+}],
+"loop": false,
+"name": &"default",
+"speed": 30.0
+}]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_6hukj"]
+particles_animation = true
+particles_anim_h_frames = 6
+particles_anim_v_frames = 4
+particles_anim_loop = false
+
+[sub_resource type="Gradient" id="Gradient_j04y2"]
+offsets = PackedFloat32Array(0.0038022813, 1)
+colors = PackedColorArray(1.3526223, 0, 0.23051836, 1, 0.47622022, 0, 0.046662368, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_jsn24"]
+gradient = SubResource("Gradient_j04y2")
+
+[sub_resource type="Curve" id="Curve_sbhps"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_e012e"]
+curve = SubResource("Curve_sbhps")
+
+[sub_resource type="Curve" id="Curve_yej55"]
+_limits = [-1.0, 1.0, 0.0, 1.0]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.7, 1.4901161e-08), 0.0, 0.0, 0, 0]
+point_count = 2
+metadata/_snap_enabled = true
+metadata/_snap_count = 13
+
+[sub_resource type="CurveTexture" id="CurveTexture_bxus1"]
+curve = SubResource("Curve_yej55")
+
+[sub_resource type="Curve" id="Curve_2jp87"]
+_data = [Vector2(0, 0.8), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+metadata/_snap_enabled = true
+
+[sub_resource type="CurveTexture" id="CurveTexture_5t2hd"]
+curve = SubResource("Curve_2jp87")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_cplel"]
+particle_flag_disable_z = true
+angle_min = -502.0
+angle_max = 255.40001
+spread = 5.0
+initial_velocity_min = 400.0
+initial_velocity_max = 600.0
+gravity = Vector3(0, 0, 0)
+linear_accel_curve = SubResource("CurveTexture_bxus1")
+damping_min = 600.0
+damping_max = 1800.0001
+damping_curve = SubResource("CurveTexture_e012e")
+scale_min = 0.29999998
+scale_max = 0.7
+scale_curve = SubResource("CurveTexture_5t2hd")
+scale_over_velocity_min = 318.03998
+scale_over_velocity_max = 666.67
+color_ramp = SubResource("GradientTexture1D_jsn24")
+anim_speed_max = 2.55
+turbulence_noise_strength = 2.5
+turbulence_initial_displacement_min = -33.0
+turbulence_initial_displacement_max = 73.700005
+
+[node name="BloodFx" type="Node2D" unique_id=1032283511]
+texture_filter = 1
+script = ExtResource("3_blood")
+
+[node name="ShotSpray" type="Node2D" parent="." unique_id=945837044]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="ShotSpray" unique_id=2127288431]
+modulate = Color(0.64705884, 0, 0.08627451, 1)
+rotation = 1.5707964
+sprite_frames = SubResource("SpriteFrames_e7fvc")
+frame = 7
+frame_progress = 1.0
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="ShotSpray" unique_id=84493680]
+material = SubResource("CanvasItemMaterial_6hukj")
+emitting = false
+amount = 20
+texture = ExtResource("2_qihl1")
+lifetime = 20.0
+one_shot = true
+explosiveness = 1.0
+fixed_fps = 40
+process_material = SubResource("ParticleProcessMaterial_cplel")

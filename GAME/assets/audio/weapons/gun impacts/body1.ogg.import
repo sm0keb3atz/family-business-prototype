@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://bybunnevyv1fa"
+path="res://.godot/imported/body1.ogg-a45fafa3d09dd9332525da7a87316041.oggvorbisstr"
+
+[deps]
+
+source_file="res://GAME/assets/audio/weapons/gun impacts/body1.ogg"
+dest_files=["res://.godot/imported/body1.ogg-a45fafa3d09dd9332525da7a87316041.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

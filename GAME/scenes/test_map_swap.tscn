@@ -1,0 +1,216 @@
+[gd_scene format=4 uid="uid://ctstmap123"]
+
+[ext_resource type="Script" uid="uid://debyafhbeb0s7" path="res://GAME/scripts/map_manager.gd" id="1_manager"]
+[ext_resource type="Script" uid="uid://d3vo4fw0uy67h" path="res://GAME/scripts/door_trigger.gd" id="2_trigger"]
+[ext_resource type="TileSet" uid="uid://b5lo6l4xvqa7w" path="res://GAME/resources/tilesets/maintileset.tres" id="3_eanrc"]
+[ext_resource type="PackedScene" uid="uid://b5mjmb4g3lyim" path="res://GAME/scenes/map/map.scn" id="3_er7ei"]
+[ext_resource type="Texture2D" uid="uid://ctg0qy2x8x6uv" path="res://GAME/assets/tilesets/Condo_Door_48x48_4.png" id="4_frjx3"]
+[ext_resource type="PackedScene" uid="uid://ca7t6y2ynjken" path="res://GAME/scenes/characters/player.tscn" id="5_f5m07"]
+[ext_resource type="PackedScene" uid="uid://bmjfqp5tv548i" path="res://GAME/scenes/characters/npc.tscn" id="5_mpri2"]
+[ext_resource type="Script" uid="uid://b6c56sc2m1g5a" path="res://GAME/scripts/MapInitializer.gd" id="6_frjx3"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
+size = Vector2(96, 26)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mwopj"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(336, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_laogi"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(384, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_d6j03"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(432, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bw2yt"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(480, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bkg3u"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(528, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p67um"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(576, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2ukbv"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(624, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_u56v5"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(0, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_keafp"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(0, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5x4y0"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(48, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lctse"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(96, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xx3f4"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(144, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qvrrj"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(192, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wgspj"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(240, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yfira"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(288, 0, 48, 105)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_6r7xm"]
+atlas = ExtResource("4_frjx3")
+region = Rect2(336, 0, 48, 105)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_mpri2"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mwopj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_laogi")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_d6j03")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bw2yt")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bkg3u")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p67um")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2ukbv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_u56v5")
+}],
+"loop": false,
+"name": &"door_close",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_keafp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5x4y0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lctse")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xx3f4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qvrrj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wgspj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yfira")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_6r7xm")
+}],
+"loop": false,
+"name": &"door_open",
+"speed": 10.0
+}]
+
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_mpri2"]
+vertices = PackedVector2Array(2117, -1868.2188, 2742.539, -1869.0469, 4659.4688, -1866.9531, 4370.2266, -1086.7891, 3171, -1323.75, 5494.1016, -2688.7422, 5498.8906, -360.03125, 5048.5, -1869.3203, 5045.508, -2173, 4368.7734, -766.0469, 932, -362.96094, 3310.2188, -764.9531, 3171, -765.14844, 2702.6328, -717.3594, 4662.7266, -2173, 4663.539, -2249.1094, 2738.4531, -2244.8906, 2117, -2249.2188, 3308.7813, -1091.2109, 4659.547, -1874.5469, 932, -2665.25, 1334.8203, -2245.7813, 1336.1797, -1864.7813, 1940.9531, -1354.9922, 1342, -1362.6406, 1342, -766.3594, 2491.0313, -758.0781, 2579.9063, -713.6406, 2794.9688, -764.03125)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3, 4), PackedInt32Array(5, 6, 7, 8), PackedInt32Array(7, 6, 9, 3, 2), PackedInt32Array(9, 6, 10, 11), PackedInt32Array(12, 11, 10, 13), PackedInt32Array(8, 14, 15, 5), PackedInt32Array(16, 1, 0, 17), PackedInt32Array(18, 11, 12, 4), PackedInt32Array(2, 19, 7), PackedInt32Array(20, 5, 15, 16, 17), PackedInt32Array(20, 17, 21), PackedInt32Array(10, 20, 21, 22), PackedInt32Array(3, 18, 4), PackedInt32Array(0, 4, 23, 22), PackedInt32Array(22, 23, 24), PackedInt32Array(10, 22, 24, 25), PackedInt32Array(10, 25, 26, 27), PackedInt32Array(13, 28, 12), PackedInt32Array(10, 27, 13)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(882, -2715, 882, -313, 5549, -310, 5544, -2739), PackedVector2Array(3121, -815, 2783, -814, 2690, -767, 2591, -764, 2503, -808, 1392, -816, 1392, -1312, 1940, -1305, 3121, -1275), PackedVector2Array(4319, -816, 3360, -815, 3359, -1041, 4320, -1037), PackedVector2Array(4610, -1917, 2792, -1919, 2789, -2195, 4613, -2199), PackedVector2Array(4998, -1920, 4701, -1924, 4704, -2123, 4996, -2123), PackedVector2Array(2067, -1918, 1386, -1915, 1385, -2196, 2067, -2199)])
+source_geometry_group_name = &""
+agent_radius = 50.0
+
+[node name="PrototypeMap" type="Node2D" unique_id=1024755768]
+y_sort_enabled = true
+
+[node name="MapManager" type="Node" parent="." unique_id=816788286 groups=["map_manager"]]
+script = ExtResource("1_manager")
+
+[node name="Exterior" type="Node2D" parent="." unique_id=929174303]
+z_index = -1
+y_sort_enabled = true
+
+[node name="DoorToInterior" type="Area2D" parent="Exterior" unique_id=106877095 node_paths=PackedStringArray("spawn_point", "door_node")]
+z_index = 1
+position = Vector2(2952, -810)
+script = ExtResource("2_trigger")
+spawn_point = NodePath("../../Interior/SpawnPoint")
+door_node = NodePath("../BuildingDoor1")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Exterior/DoorToInterior" unique_id=667553450]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="SpawnPoint" type="Marker2D" parent="Exterior" unique_id=57227611]
+z_index = 1
+position = Vector2(2958, -743)
+
+[node name="Map" parent="Exterior" unique_id=769079878 instance=ExtResource("3_er7ei")]
+
+[node name="BuildingDoor1" type="AnimatedSprite2D" parent="Exterior" unique_id=1303187391]
+z_index = 1
+position = Vector2(2952, -872)
+sprite_frames = SubResource("SpriteFrames_mpri2")
+animation = &"door_open"
+
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="Exterior" unique_id=575016145]
+navigation_polygon = SubResource("NavigationPolygon_mpri2")
+
+[node name="Interior" type="Node2D" parent="." unique_id=505746236]
+z_index = -1
+y_sort_enabled = true
+
+[node name="DoorToExterior" type="Area2D" parent="Interior" unique_id=1736740845 node_paths=PackedStringArray("spawn_point", "door_node")]
+top_level = true
+position = Vector2(507, 562)
+script = ExtResource("2_trigger")
+leads_to_interior = false
+spawn_point = NodePath("../../Exterior/SpawnPoint")
+door_node = NodePath("../../Exterior/BuildingDoor1")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interior/DoorToExterior" unique_id=756164672]
+shape = SubResource("RectangleShape2D_door")
+
+[node name="SpawnPoint" type="Marker2D" parent="Interior" unique_id=568013558]
+position = Vector2(506, 508)
+
+[node name="TileMapLayer" type="TileMapLayer" parent="Interior" unique_id=1827242283]
+tile_map_data = PackedByteArray("AAAEAAIACAA3AFQAAAAEAAMACAA3AFUAAAAFAAIACAA4AFQAAAAFAAMACAA4AFUAAAAGAAIACAA3AFQAAAAGAAMACAA3AFUAAAAHAAIACAA4AFQAAAAHAAMACAA4AFUAAAAIAAIACAA3AFQAAAAIAAMACAA3AFUAAAAJAAIACAA4AFQAAAAJAAMACAA4AFUAAAAKAAIACAA3AFQAAAAKAAMACAA3AFUAAAALAAIACAA4AFQAAAALAAMACAA4AFUAAAAMAAIACAA3AFQAAAAMAAMACAA3AFUAAAANAAIACAA4AFQAAAANAAMACAA4AFUAAAAOAAIACAA3AFQAAAAOAAMACAA3AFUAAAAPAAIACAA4AFQAAAAPAAMACAA4AFUAAAAQAAIACAA3AFQAAAAQAAMACAA3AFUAAAARAAIACAA5AFIAAAARAAMACAA5AFMAAAARAAQACAA5AFQAAAARAAUACAA5AFQAAAARAAYACAA5AFQAAAARAAcACAA5AFQAAAARAAgACAA5AFQAAAARAAkACAA5AFQAAAARAAoACAA5AFQAAAARAAsACAA5AFQAAAAOAAwACAA3AFcAAAAPAAwACAA3AFcAAAAQAAwACAA4AFcAAAARAAwACAA5AFcAAAANAAwACAA3AFcAAAAMAAwACAA3AFcAAAALAAwACAA3AFcAAAAKAAwACAAXAAMAAAAJAAwACAA3AFcAAAAIAAwACAA3AFcAAAAHAAwACAA3AFcAAAAGAAwACAA3AFcAAAAFAAwACAA3AFcAAAAEAAwACAA3AFcAAAADAAsACAA2AFQAAAADAAoACAA2AFQAAAADAAkACAA2AFQAAAADAAgACAA2AFQAAAADAAcACAA2AFQAAAADAAYACAA2AFQAAAADAAUACAA2AFQAAAADAAQACAA2AFQAAAADAAIACAA2AFIAAAADAAMACAA2AFMAAAADAAwACAA2AFcAAAAEAAQACAAiACkAAAAEAAUACAAiACoAAAAFAAQACAAjACkAAAAFAAUACAAjACoAAAAGAAQACAAkACkAAAAGAAUACAAkACoAAAAEAAYACAAiACkAAAAEAAcACAAiACoAAAAFAAYACAAjACkAAAAFAAcACAAjACoAAAAGAAYACAAkACkAAAAGAAcACAAkACoAAAAEAAgACAAiACkAAAAEAAkACAAiACoAAAAFAAgACAAjACkAAAAFAAkACAAjACoAAAAGAAgACAAkACkAAAAGAAkACAAkACoAAAAEAAoACAAiACkAAAAEAAsACAAiACoAAAAFAAoACAAjACkAAAAFAAsACAAjACoAAAAGAAoACAAkACkAAAAGAAsACAAkACoAAAAHAAQACAAiACkAAAAHAAUACAAiACoAAAAIAAQACAAjACkAAAAIAAUACAAjACoAAAAJAAQACAAkACkAAAAJAAUACAAkACoAAAAHAAYACAAiACkAAAAHAAcACAAiACoAAAAIAAYACAAjACkAAAAIAAcACAAjACoAAAAJAAYACAAkACkAAAAJAAcACAAkACoAAAAHAAgACAAiACkAAAAHAAkACAAiACoAAAAIAAgACAAjACkAAAAIAAkACAAjACoAAAAJAAgACAAkACkAAAAJAAkACAAkACoAAAAHAAoACAAiACkAAAAHAAsACAAiACoAAAAIAAoACAAjACkAAAAIAAsACAAjACoAAAAJAAoACAAkACkAAAAJAAsACAAkACoAAAAKAAQACAAiACkAAAAKAAUACAAiACoAAAALAAQACAAjACkAAAALAAUACAAjACoAAAAMAAQACAAkACkAAAAMAAUACAAkACoAAAAKAAYACAAiACkAAAAKAAcACAAiACoAAAALAAYACAAjACkAAAALAAcACAAjACoAAAAMAAYACAAkACkAAAAMAAcACAAkACoAAAAKAAgACAAiACkAAAAKAAkACAAiACoAAAALAAgACAAjACkAAAALAAkACAAjACoAAAAMAAgACAAkACkAAAAMAAkACAAkACoAAAAKAAoACAAiACkAAAAKAAsACAAiACoAAAALAAoACAAjACkAAAALAAsACAAjACoAAAAMAAoACAAkACkAAAAMAAsACAAkACoAAAANAAQACAAiACkAAAANAAUACAAiACoAAAAOAAQACAAjACkAAAAOAAUACAAjACoAAAAPAAQACAAkACkAAAAPAAUACAAkACoAAAANAAYACAAiACkAAAANAAcACAAiACoAAAAOAAYACAAjACkAAAAOAAcACAAjACoAAAAPAAYACAAkACkAAAAPAAcACAAkACoAAAANAAgACAAiACkAAAANAAkACAAiACoAAAAOAAgACAAjACkAAAAOAAkACAAjACoAAAAPAAgACAAkACkAAAAPAAkACAAkACoAAAANAAoACAAiACkAAAANAAsACAAiACoAAAAOAAoACAAjACkAAAAOAAsACAAjACoAAAAPAAoACAAkACkAAAAPAAsACAAkACoAAAAQAAQACAAiACkAAAAQAAUACAAiACoAAAAQAAYACAAiACkAAAAQAAcACAAiACoAAAAQAAgACAAiACkAAAAQAAkACAAiACoAAAAQAAoACAAiACkAAAAQAAsACAAiACoAAAA=")
+tile_set = ExtResource("3_eanrc")
+
+[node name="Exterior2" type="Node2D" parent="." unique_id=1339251942]
+z_index = -1
+
+[node name="Player" parent="." unique_id=1668827685 instance=ExtResource("5_f5m07")]
+z_as_relative = false
+position = Vector2(2235, -627)
+
+[node name="Npc" parent="." unique_id=298926992 instance=ExtResource("5_mpri2")]
+z_as_relative = false
+position = Vector2(2126, -698)
+
+[node name="MapInitializer" type="Node" parent="." unique_id=2054873289]
+script = ExtResource("6_frjx3")

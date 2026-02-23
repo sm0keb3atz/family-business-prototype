@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://bx8vkulw5w15r"]
+
+[ext_resource type="Script" uid="uid://h8y1wuecrd28" path="res://GAME/scripts/projectiles/bullet_base.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://oaxuj5utkmvr" path="res://GAME/assets/sprites/weapons/trace_01_rotated.png" id="2_qgv5b"]
+[ext_resource type="AudioStream" uid="uid://bybunnevyv1fa" path="res://GAME/assets/audio/weapons/gun impacts/body1.ogg" id="3_body1"]
+[ext_resource type="AudioStream" uid="uid://brydkh1fu5c07" path="res://GAME/assets/audio/weapons/gun impacts/stone1.ogg" id="4_stone1"]
+[ext_resource type="AudioStream" uid="uid://bpr82oq2axns" path="res://GAME/assets/audio/weapons/gun impacts/body2.ogg" id="5_body2"]
+[ext_resource type="AudioStream" uid="uid://oh6pk8jd6olx" path="res://GAME/assets/audio/weapons/gun impacts/stone2.ogg" id="6_stone2"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 4.0
+
+[node name="BulletBase" type="Area2D" unique_id=1025988182]
+texture_filter = 1
+collision_layer = 8
+collision_mask = 5
+script = ExtResource("1_script")
+speed = 2000.0
+body_impact_sounds = Array[AudioStream]([ExtResource("3_body1"), ExtResource("5_body2")])
+stone_impact_sounds = Array[AudioStream]([ExtResource("4_stone1"), ExtResource("6_stone2")])
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=296084005]
+shape = SubResource("CircleShape2D_1")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=451531669]
+modulate = Color(1.353256, 1.3514942, 0.7547807, 1)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("2_qgv5b")
