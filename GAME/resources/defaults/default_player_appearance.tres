@@ -1,14 +1,15 @@
-[gd_resource type="Resource" script_class="AppearanceResource" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="AppearanceResource" format=3]
 
-[ext_resource type="Script" path="res://GAME/scripts/resources/appearance_resource.gd" id="1_appearance"]
+[ext_resource type="Script" uid="uid://btk1xdkmqkci0" path="res://GAME/scripts/resources/appearance_resource.gd" id="1_appearance"]
 [ext_resource type="Texture2D" uid="uid://knbqd6kdslb" path="res://GAME/assets/sprites/ChracterAssets/Bodys/Body_48x48_01.png" id="2_body"]
-[ext_resource type="Texture2D" uid="uid://dtbwvoauvorpl" path="res://GAME/assets/sprites/ChracterAssets/Outfits/Outfit_01_48x48_01.png" id="3_outfit"]
-[ext_resource type="Texture2D" uid="uid://s32p8umtg82q" path="res://GAME/assets/sprites/ChracterAssets/Hairstyles/Hairstyle_01_48x48_01.png" id="4_hair"]
+[ext_resource type="Texture2D" uid="uid://dtbwvoauvorpl" path="res://GAME/assets/sprites/ChracterAssets/Outfits/male/Outfit_01_48x48_01.png" id="3_outfit"]
+[ext_resource type="Texture2D" uid="uid://s32p8umtg82q" path="res://GAME/assets/sprites/ChracterAssets/Hairstyles/male/Hairstyle_01_48x48_01.png" id="4_hair"]
 [ext_resource type="Texture2D" uid="uid://ch61rqgvc0q7j" path="res://GAME/assets/sprites/ChracterAssets/Accessories/Backpacks/Accessory_03_Backpack_48x48_01.png" id="5_backpack"]
 [ext_resource type="Texture2D" uid="uid://brod7bkjvfuyk" path="res://GAME/assets/sprites/ChracterAssets/Accessories/FacialHair/Accessory_13_Beard_48x48_01.png" id="6_beard"]
 [ext_resource type="Texture2D" uid="uid://dclxnvu1h0isc" path="res://GAME/assets/sprites/ChracterAssets/Accessories/FacialHair/Accessory_12_Mustache_48x48_01.png" id="7_mustache"]
 [ext_resource type="Texture2D" uid="uid://c7fkf5u85rwfw" path="res://GAME/assets/sprites/ChracterAssets/Accessories/Accessory_15_Glasses_48x48_01.png" id="8_glasses"]
 [ext_resource type="Texture2D" uid="uid://vr4mwf154xkq" path="res://GAME/assets/sprites/ChracterAssets/Accessories/Hats/Accessory_04_Snapback_48x48_01.png" id="9_hat"]
+
 
 [resource]
 script = ExtResource("1_appearance")
