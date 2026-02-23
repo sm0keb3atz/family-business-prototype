@@ -1,0 +1,44 @@
+[gd_resource type="BehaviorTree" format=3 uid="uid://b1qnqq3mh3j5u"]
+
+[ext_resource type="Script" uid="uid://cdnx2c1goie3r" path="res://GAME/scripts/ai/bt_condition_was_shot.gd" id="1_cond"]
+[ext_resource type="Script" uid="uid://2hkxhgxhprt8" path="res://GAME/scripts/ai/bt_action_flee.gd" id="2_flee"]
+[ext_resource type="Script" uid="uid://b3v652ujjh31s" path="res://GAME/scripts/ai/bt_action_follow_path.gd" id="3_path"]
+[ext_resource type="Script" uid="uid://c85wj4n6ht8ve" path="res://GAME/scripts/ai/bt_action_wait_random.gd" id="4_wait"]
+[ext_resource type="Script" uid="uid://dj5s67moij08n" path="res://GAME/scripts/ai/bt_action_chat_nearby.gd" id="5_chat"]
+
+[sub_resource type="BlackboardPlan" id="BlackboardPlan_customer"]
+
+[sub_resource type="BTCondition" id="cond_1"]
+script = ExtResource("1_cond")
+
+[sub_resource type="BTAction" id="flee_1"]
+script = ExtResource("2_flee")
+
+[sub_resource type="BTSequence" id="flee_seq"]
+children = [SubResource("cond_1"), SubResource("flee_1")]
+
+[sub_resource type="BTAction" id="path_1"]
+script = ExtResource("3_path")
+
+[sub_resource type="BTAction" id="chat_1"]
+script = ExtResource("5_chat")
+chat_chance = 0.2
+
+[sub_resource type="BTAction" id="wait_1"]
+script = ExtResource("4_wait")
+min_duration = 0.3
+max_duration = 1.5
+
+[sub_resource type="BTSequence" id="walk_cycle"]
+children = [SubResource("path_1"), SubResource("chat_1"), SubResource("wait_1")]
+
+[sub_resource type="BTRepeat" id="walk_loop"]
+forever = true
+children = [SubResource("walk_cycle")]
+
+[sub_resource type="BTDynamicSelector" id="root_sel"]
+children = [SubResource("flee_seq"), SubResource("walk_loop")]
+
+[resource]
+blackboard_plan = SubResource("BlackboardPlan_customer")
+root_task = SubResource("root_sel")

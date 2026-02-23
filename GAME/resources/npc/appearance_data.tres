@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="NPCAppearanceResource" load_steps=2 format=3 uid="uid://rfa2l2r2c0k7"]
+
+[ext_resource type="Script" uid="uid://bd0djngc6eu6c" path="res://GAME/scripts/resources/npc_appearance_resource.gd" id="1_v6q4e"]
+
+[resource]
+script = ExtResource("1_v6q4e")
+hairstyles_male_dir = "res://GAME/assets/sprites/ChracterAssets/Hairstyles/male"
+outfits_male_dir = "res://GAME/assets/sprites/ChracterAssets/Outfits/male"
+hairstyles_female_dir = "res://GAME/assets/sprites/ChracterAssets/Hairstyles/female"
+outfits_female_dir = "res://GAME/assets/sprites/ChracterAssets/Outfits/female"
+outfits_dealer_dir = "res://GAME/assets/sprites/ChracterAssets/Outfits/dealer"
+outfits_police_dir = "res://GAME/assets/sprites/ChracterAssets/Outfits/police"
+bodies_dir = "res://GAME/assets/sprites/ChracterAssets/Bodys"

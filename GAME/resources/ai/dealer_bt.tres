@@ -1,0 +1,34 @@
+[gd_resource type="BehaviorTree" format=3 uid="uid://djrt6v1dys2m5"]
+
+[ext_resource type="Script" uid="uid://cdnx2c1goie3r" path="res://GAME/scripts/ai/bt_condition_was_shot.gd" id="1_cond"]
+[ext_resource type="Script" uid="uid://2hkxhgxhprt8" path="res://GAME/scripts/ai/bt_action_flee.gd" id="2_flee"]
+[ext_resource type="Script" uid="uid://dinjl8bhuot8o" path="res://GAME/scripts/ai/bt_action_wander.gd" id="3_wander"]
+[ext_resource type="Script" uid="uid://c85wj4n6ht8ve" path="res://GAME/scripts/ai/bt_action_wait_random.gd" id="4_wait"]
+
+[sub_resource type="BlackboardPlan" id="BlackboardPlan_dealer"]
+
+[sub_resource type="BTCondition" id="cond_1"]
+script = ExtResource("1_cond")
+
+[sub_resource type="BTAction" id="flee_1"]
+script = ExtResource("2_flee")
+
+[sub_resource type="BTSequence" id="flee_seq"]
+children = [SubResource("cond_1"), SubResource("flee_1")]
+
+[sub_resource type="BTAction" id="wander_1"]
+script = ExtResource("3_wander")
+wander_radius = 200.0
+
+[sub_resource type="BTAction" id="wait_1"]
+script = ExtResource("4_wait")
+
+[sub_resource type="BTSequence" id="wander_seq"]
+children = [SubResource("wander_1"), SubResource("wait_1")]
+
+[sub_resource type="BTDynamicSelector" id="root_sel"]
+children = [SubResource("flee_seq"), SubResource("wander_seq")]
+
+[resource]
+blackboard_plan = SubResource("BlackboardPlan_dealer")
+root_task = SubResource("root_sel")

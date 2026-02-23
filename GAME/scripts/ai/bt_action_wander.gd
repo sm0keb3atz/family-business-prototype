@@ -36,6 +36,11 @@ func _tick(_delta: float) -> Status:
 	if not _target_set:
 		return FAILURE
 
+	# Pause movement while interacting with the player
+	if blackboard.get_var(&"is_interacting", false):
+		npc.movement_component.move(Vector2.ZERO)
+		return RUNNING
+
 	if npc.nav_agent.is_navigation_finished():
 		# Arrived — stop moving
 		npc.movement_component.move(Vector2.ZERO)
@@ -48,7 +53,7 @@ func _tick(_delta: float) -> Status:
 	var direction: Vector2 = (next_pos - npc.global_position).normalized()
 	var desired_velocity: Vector2 = direction * npc.stats.move_speed
 	
-	# Send to nav agent for avoidance calculation
+	# Send to nav agent for avoidance
 	npc.nav_agent.set_velocity(desired_velocity)
 
 	# Store direction on blackboard for other tasks if needed

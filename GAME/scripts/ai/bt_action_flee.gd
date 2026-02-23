@@ -82,7 +82,7 @@ func _tick(delta: float) -> Status:
 	var boost_speed = npc.stats.move_speed * sprint_speed_multiplier
 	var desired_velocity = direction * boost_speed
 	
-	# Send to nav agent for avoidance calculation
+	# Send to nav agent for avoidance
 	npc.nav_agent.set_velocity(desired_velocity)
 
 	blackboard.set_var(direction_var, direction)
