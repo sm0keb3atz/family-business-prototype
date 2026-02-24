@@ -5,6 +5,8 @@
 [ext_resource type="Script" uid="uid://b3v652ujjh31s" path="res://GAME/scripts/ai/bt_action_follow_path.gd" id="3_path"]
 [ext_resource type="Script" uid="uid://c85wj4n6ht8ve" path="res://GAME/scripts/ai/bt_action_wait_random.gd" id="4_wait"]
 [ext_resource type="Script" uid="uid://dj5s67moij08n" path="res://GAME/scripts/ai/bt_action_chat_nearby.gd" id="5_chat"]
+[ext_resource type="Script" uid="uid://bseobl0qulstk" path="res://GAME/scripts/ai/bt_action_approach_player.gd" id="6_approach"]
+[ext_resource type="Script" uid="uid://cp0bpo7qu50oy" path="res://GAME/scripts/ai/bt_condition_is_solicited.gd" id="7_solicited"]
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_customer"]
 
@@ -16,6 +18,15 @@ script = ExtResource("2_flee")
 
 [sub_resource type="BTSequence" id="flee_seq"]
 children = [SubResource("cond_1"), SubResource("flee_1")]
+
+[sub_resource type="BTCondition" id="check_solicited"]
+script = ExtResource("7_solicited")
+
+[sub_resource type="BTAction" id="approach_1"]
+script = ExtResource("6_approach")
+
+[sub_resource type="BTSequence" id="solicited_seq"]
+children = [SubResource("check_solicited"), SubResource("approach_1")]
 
 [sub_resource type="BTAction" id="path_1"]
 script = ExtResource("3_path")
@@ -37,7 +48,7 @@ forever = true
 children = [SubResource("walk_cycle")]
 
 [sub_resource type="BTDynamicSelector" id="root_sel"]
-children = [SubResource("flee_seq"), SubResource("walk_loop")]
+children = [SubResource("flee_seq"), SubResource("solicited_seq"), SubResource("walk_loop")]
 
 [resource]
 blackboard_plan = SubResource("BlackboardPlan_customer")

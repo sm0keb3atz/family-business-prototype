@@ -1,0 +1,143 @@
+[gd_scene format=3 uid="uid://shopui123"]
+
+[ext_resource type="Script" uid="uid://me65s2pw1sus" path="res://GAME/scripts/ui/shop_ui.gd" id="1_shopui"]
+[ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="2_i864g"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hmc4t"]
+texture = ExtResource("2_i864g")
+texture_margin_left = 3.0
+texture_margin_top = 4.0
+texture_margin_right = 3.0
+texture_margin_bottom = 4.0
+region_rect = Rect2(32, 32, 96, 64)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0y6s5"]
+texture = ExtResource("2_i864g")
+texture_margin_left = 2.0
+texture_margin_top = 3.0
+texture_margin_right = 2.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(32, 128, 32, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_85s6u"]
+texture = ExtResource("2_i864g")
+texture_margin_left = 2.0
+texture_margin_top = 3.0
+texture_margin_right = 2.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(32, 128, 32, 32)
+
+[node name="ShopUI" type="CanvasLayer" unique_id=1033782327]
+layer = 100
+script = ExtResource("1_shopui")
+
+[node name="Control" type="Control" parent="." unique_id=180465646]
+texture_filter = 1
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="Control" unique_id=938798529]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.060000002)
+
+[node name="PanelContainer" type="PanelContainer" parent="Control" unique_id=1704053351]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -194.0
+offset_top = 305.0
+offset_right = 206.0
+offset_bottom = 532.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_hmc4t")
+
+[node name="MarginContainer" type="MarginContainer" parent="Control/PanelContainer" unique_id=1692146999]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/PanelContainer/MarginContainer" unique_id=1452257029]
+layout_mode = 2
+
+[node name="DealerNameLabel" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=829941935]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Dealer Name"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=1677192629]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=408507317]
+layout_mode = 2
+alignment = 1
+
+[node name="DrugNameLabel" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=640524652]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Weed"
+
+[node name="PriceLabel" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=146113792]
+unique_name_in_owner = true
+layout_mode = 2
+text = "$10 / g"
+
+[node name="StockLabel" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=1291344188]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Stock: 50g"
+horizontal_alignment = 1
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=874548148]
+layout_mode = 2
+alignment = 1
+
+[node name="Btn5g" type="Button" parent="Control/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=1656290639]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxTexture_0y6s5")
+text = "Buy 5g"
+
+[node name="Btn10g" type="Button" parent="Control/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=588263676]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Buy 10g"
+
+[node name="Btn20g" type="Button" parent="Control/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=741416101]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Buy 20g"
+
+[node name="BtnMax" type="Button" parent="Control/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=1026318952]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Buy MAX"
+
+[node name="ErrorLabel" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=1359359669]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0, 0, 1)
+horizontal_alignment = 1
+
+[node name="CloseBtn" type="Button" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=1446156379]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxTexture_85s6u")
+text = "Close"

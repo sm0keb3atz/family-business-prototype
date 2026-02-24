@@ -20,8 +20,17 @@ class_name Player
 
 # Visuals
 @onready var appearance_nodes: Node2D = %Appearance
+@onready var player_ui: NpcUI = %PlayerUI
 
 var current_interactable: Node2D = null
+var _is_interacting: bool = false
+
+var inventory_component: InventoryComponent
+var inventory_ui: InventoryUI
+var shop_ui: ShopUI
+var solicitation_component: SolicitationComponent
+
+@export var solicitation_config: SolicitationConfigResource
 
 var available_weapons: Array = [
 	null, # Unarmed
@@ -34,9 +43,35 @@ func _ready() -> void:
 	_inject_dependencies()
 	_setup_connections()
 	_apply_appearance()
-	_apply_appearance()
+	_setup_inventory()
 	
 	_update_weapon()
+
+func _setup_inventory() -> void:
+	inventory_component = InventoryComponent.new()
+	inventory_component.name = "InventoryComponent"
+	add_child(inventory_component)
+	
+	var ui_scene = preload("res://GAME/scenes/ui/inventory_ui.tscn")
+	inventory_ui = ui_scene.instantiate()
+	get_tree().root.call_deferred("add_child", inventory_ui)
+	inventory_ui.setup(inventory_component)
+	
+	var shop_ui_scene = preload("res://GAME/scenes/ui/shop_ui.tscn")
+	shop_ui = shop_ui_scene.instantiate()
+	get_tree().root.call_deferred("add_child", shop_ui)
+	
+	var hud_scene = preload("res://GAME/scenes/ui/hud.tscn")
+	var hud = hud_scene.instantiate()
+	get_tree().root.call_deferred("add_child", hud)
+	
+	solicitation_component = SolicitationComponent.new()
+
+	solicitation_component.name = "SolicitationComponent"
+	if not solicitation_config:
+		solicitation_config = SolicitationConfigResource.new()
+	solicitation_component.config = solicitation_config
+	add_child(solicitation_component)
 
 func _inject_dependencies() -> void:
 	if movement_component:
@@ -97,9 +132,16 @@ func _apply_appearance() -> void:
 			node.texture = nodes_map[node_name]
 			node.visible = true
 
+func show_bark(text: String) -> void:
+	if player_ui:
+		player_ui.show_dialog_bubble(text)
+		# Hide bark after 2.5 seconds
+		get_tree().create_timer(2.5).timeout.connect(player_ui.hide_dialog_bubble)
+
 func interact() -> void:
 	print("Player: interact() called. current_interactable: ", current_interactable.name if current_interactable else "NONE")
 	if current_interactable and current_interactable.has_method("interact"):
+		_is_interacting = true
 		current_interactable.interact()
 
 # --- Damage Interface ---

@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1_stats")
-max_health = 300
+health_regen = 5.0
 move_speed = 200.0
 faction = &"civilian"

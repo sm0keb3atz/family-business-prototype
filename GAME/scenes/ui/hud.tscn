@@ -1,9 +1,44 @@
 [gd_scene format=3 uid="uid://d30d1v3o1bu8i"]
 
 [ext_resource type="Texture2D" uid="uid://dgf2olh1cwum4" path="res://GAME/assets/ui/newhud.png" id="1_al4ug"]
+[ext_resource type="Script" uid="uid://cgtlgcb34jpb6" path="res://GAME/scripts/ui/hud.gd" id="2_hud"]
 
-[node name="Hud" type="TextureRect" unique_id=330519341]
+[node name="HUDCanvas" type="CanvasLayer" unique_id=1040860233]
+layer = 100
+script = ExtResource("2_hud")
+
+[node name="Hud" type="TextureRect" parent="." unique_id=1575764786]
 texture_filter = 1
 offset_right = 40.0
 offset_bottom = 40.0
 texture = ExtResource("1_al4ug")
+
+[node name="HealthBar" type="ProgressBar" parent="Hud" unique_id=1584514550]
+layout_mode = 0
+offset_left = 111.0
+offset_top = 862.0
+offset_right = 311.0
+offset_bottom = 889.0
+theme_override_colors/font_color = Color(0, 0, 0, 0)
+value = 100.0
+
+[node name="XPBar" type="ProgressBar" parent="Hud" unique_id=1943781171]
+layout_mode = 0
+offset_left = 126.0
+offset_top = 897.0
+offset_right = 326.0
+offset_bottom = 924.0
+theme_override_colors/font_color = Color(0, 0, 0, 0)
+max_value = 1000.0
+
+[node name="MoneyLabel" type="Label" parent="Hud" unique_id=935028863]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 971.0
+offset_right = 234.0
+offset_bottom = 999.0
+theme_override_colors/font_color = Color(0.2, 0.8, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 20
+text = "$0"

@@ -219,6 +219,7 @@ position = Vector2(2126, -698)
 
 [node name="MapInitializer" type="Node" parent="." unique_id=2054873289]
 script = ExtResource("8_32me2")
+fade_speed = 10.0
 
 [node name="NpcSpawner" type="Node2D" parent="." unique_id=278041881 node_paths=PackedStringArray("dealer_points_container", "police_points_container", "customer_points_container", "path_points_container")]
 script = ExtResource("9_i66ib")

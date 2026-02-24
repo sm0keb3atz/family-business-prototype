@@ -12,6 +12,7 @@ enum Gender { MALE, FEMALE }
 
 enum Role { CUSTOMER, DEALER, POLICE }
 @export var role: Role = Role.CUSTOMER
+@export var dealer_tier: DealerTierResource
 
 # --- Components ---
 @onready var movement_component: MovementComponent = %MovementComponent
@@ -51,6 +52,32 @@ func _ready() -> void:
 	_inject_dependencies()
 	_setup_connections()
 	_setup_bt()
+	if role == Role.DEALER:
+		var tier = dealer_tier
+		if not tier:
+			tier = DealerTierResource.new()
+			var drug = preload("res://GAME/scripts/resources/drug_definition_resource.gd").new()
+			drug.id = "weed"
+			drug.display_name = "Weed"
+			drug.base_price = 10
+			tier.allowed_drugs.append(drug)
+			
+		var shop_comp = DealerShopComponent.new()
+		shop_comp.name = "DealerShopComponent"
+		shop_comp.tier_config = tier
+		add_child(shop_comp)
+	
+	_update_ui_icon()
+
+func _update_ui_icon() -> void:
+	if not npc_ui: return
+	
+	if role == Role.DEALER:
+		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Dealer_Icon.png"))
+	elif role == Role.CUSTOMER and blackboard and blackboard.get_var(&"is_solicited", false):
+		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Customer_Icon.png"))
+	else:
+		npc_ui.hide_type_icon()
 
 func _randomize_gender_and_appearance() -> void:
 	if not appearance_data:
@@ -140,6 +167,13 @@ func _setup_connections() -> void:
 func _physics_process(delta: float) -> void:
 	if _hitstun_duration > 0:
 		_hitstun_duration -= delta
+	
+	# If solicited but player is too far, give up
+	if blackboard and blackboard.get_var(&"is_solicited", false):
+		var player = get_tree().get_first_node_in_group("player")
+		if player and global_position.distance_to(player.global_position) > 800.0:
+			blackboard.set_var(&"is_solicited", false)
+			_update_ui_icon()
 
 func _on_velocity_computed(safe_velocity: Vector2) -> void:
 	if movement_component:
@@ -161,6 +195,9 @@ func _setup_bt() -> void:
 			blackboard.set_var(&"was_shot", false)
 			blackboard.set_var(&"damage_source_position", Vector2.ZERO)
 			blackboard.set_var(&"is_interacting", false)
+			blackboard.set_var(&"is_solicited", false)
+			blackboard.set_var(&"requested_grams", 0)
+			blackboard.set_var(&"offered_payout", 0)
 
 # --- Damage Interface ---
 # Called by BulletBase when a projectile hits this body.
@@ -195,18 +232,77 @@ func interact() -> void:
 		animation_component.last_direction = dir
 		animation_component.update_animation(Vector2.ZERO) # Force idle facing player
 
+	if role == Role.DEALER and has_node("DealerShopComponent"):
+		if player and player.shop_ui:
+			var shop_comp = get_node("DealerShopComponent")
+			player.shop_ui.open_shop(shop_comp, player)
+		return
+
+	if blackboard and blackboard.get_var(&"is_solicited", false):
+		_handle_solicited_interaction(player)
+		return
+
 	if npc_ui:
 		npc_ui.show_dialog_bubble("Hey there! Can't talk right now.")
 
+func _handle_solicited_interaction(player: Player) -> void:
+	var grams = blackboard.get_var(&"requested_grams", 0)
+	var payout = blackboard.get_var(&"offered_payout", 0)
+	
+	if Input.is_action_just_pressed("ui_accept"): # Dealing with Space/Enter
+		var inv = player.inventory_component
+		var found_drug_id = ""
+		for k in inv.drugs.keys():
+			if str(k).to_lower() == "weed":
+				found_drug_id = k
+				break
+				
+		if found_drug_id != "" and inv.has_drug(found_drug_id, grams):
+			inv.remove_drug(found_drug_id, grams)
+			player.progression.money += payout
+			if npc_ui:
+				npc_ui.show_dialog_bubble("Thanks man.")
+			
+			# Reset state so client returns to path
+			blackboard.set_var(&"is_solicited", false)
+			_is_interacting = false
+			blackboard.set_var(&"is_interacting", false)
+			if player:
+				player._is_interacting = false
+			_update_ui_icon()
+		else:
+			if npc_ui:
+				npc_ui.show_dialog_bubble("You don't have enough!")
+			
+			# Exit solicitation if player can't fulfill
+			await get_tree().create_timer(1.5).timeout
+			if is_instance_valid(self):
+				blackboard.set_var(&"is_solicited", false)
+				_is_interacting = false
+				blackboard.set_var(&"is_interacting", false)
+				if player:
+					player._is_interacting = false
+				_update_ui_icon()
+				if npc_ui:
+					npc_ui.hide_dialog_bubble()
+	else:
+		if npc_ui:
+			npc_ui.show_dialog_bubble("I need " + str(grams) + "g. Give you $" + str(payout) + ".\n(Press Space)")
+
+
 func _on_interact_area_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player") and body.has_method("interact"):
-		body.current_interactable = self
+		# Only allow interaction if we are a dealer OR a solicited customer
+		var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false))
+		if can_interact:
+			body.current_interactable = self
 
 func _on_interact_area_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		# Always clear interaction state when player walks away
 		if body.get("current_interactable") == self:
 			body.current_interactable = null
+			body._is_interacting = false
 		_is_interacting = false
 		if blackboard:
 			blackboard.set_var(&"is_interacting", false)

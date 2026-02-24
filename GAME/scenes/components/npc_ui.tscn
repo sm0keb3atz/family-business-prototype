@@ -34,6 +34,67 @@ region_rect = Rect2(0, 0, 16, 16)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t8wwd"]
 
+[sub_resource type="Animation" id="Animation_6aty4"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TypeIcon:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(3, 3)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("TypeIcon:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(-10, -52)]
+}
+
+[sub_resource type="Animation" id="Animation_vbcip"]
+resource_name = "icon"
+loop_mode = 2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TypeIcon:scale")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(-0.02, 1),
+"transitions": PackedFloat32Array(1.8025013, 0.75785834),
+"update": 0,
+"values": [Vector2(3, 3), Vector2(3.5, 3.5)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("TypeIcon:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-10, -52), Vector2(-9.999997, -59.000004)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_jlibx"]
+_data = {
+&"RESET": SubResource("Animation_6aty4"),
+&"icon": SubResource("Animation_vbcip")
+}
+
 [node name="NpcUI" type="Control" unique_id=436824968]
 texture_filter = 1
 layout_mode = 3
@@ -58,9 +119,11 @@ show_percentage = false
 [node name="TypeIcon" type="TextureRect" parent="." unique_id=1687686337]
 layout_mode = 0
 offset_left = -10.0
-offset_top = -32.0
+offset_top = -52.0
 offset_right = 14.0
-offset_bottom = -8.0
+offset_bottom = -28.0
+scale = Vector2(3, 3)
+pivot_offset = Vector2(11, 11)
 mouse_filter = 2
 texture = ExtResource("5_icon")
 expand_mode = 1
@@ -74,9 +137,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -18.0
-offset_top = -32.0
+offset_top = -25.0
 offset_right = 18.0
-offset_bottom = -11.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
@@ -84,3 +147,6 @@ theme_override_font_sizes/font_size = 8
 theme_override_styles/normal = SubResource("StyleBoxTexture_jlibx")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_t8wwd")
 text = "HELLO"
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=36777957]
+libraries/ = SubResource("AnimationLibrary_jlibx")

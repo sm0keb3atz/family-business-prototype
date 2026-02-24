@@ -4,6 +4,7 @@ class_name NpcUI
 @onready var health_bar = $HealthBar
 @onready var type_icon = $TypeIcon
 @onready var dialog_bubble = $DialogBubble
+@onready var animation_player = $AnimationPlayer
 
 func _ready():
 	# Initially hide everything or just dialog bubble
@@ -28,6 +29,20 @@ func update_health(current_health: float, max_health: float):
 func set_type_icon(texture: Texture2D):
 	if type_icon:
 		type_icon.texture = texture
+
+func show_type_icon(texture: Texture2D = null):
+	if texture:
+		set_type_icon(texture)
+	if type_icon:
+		type_icon.show()
+	if animation_player and animation_player.has_animation("icon"):
+		animation_player.play("icon")
+
+func hide_type_icon():
+	if type_icon:
+		type_icon.hide()
+	if animation_player:
+		animation_player.stop()
 
 func show_dialog_bubble(text: String):
 	if dialog_bubble:

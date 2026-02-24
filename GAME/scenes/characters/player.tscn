@@ -30,6 +30,8 @@
 [ext_resource type="Script" uid="uid://ow62v08jqpy7" path="res://GAME/scripts/components/blood_effect_component.gd" id="22_blood"]
 [ext_resource type="Texture2D" uid="uid://c58vx5odegx14" path="res://GAME/assets/sprites/vfx/blood/MEDIUM SMOKE.png" id="30_lhb23"]
 [ext_resource type="Script" uid="uid://c2n2tdyt831ei" path="res://GAME/scripts/components/footstep_component.gd" id="32_footstep"]
+[ext_resource type="PackedScene" uid="uid://c8dq05a415v6" path="res://GAME/scenes/components/npc_ui.tscn" id="33_npcui"]
+
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_dd8jp"]
 radius = 24.0
@@ -413,3 +415,8 @@ scale = Vector2(0.8, 0.8)
 sprite_frames = SubResource("SpriteFrames_1fsej")
 frame = 7
 frame_progress = 1.0
+
+[node name="PlayerUI" parent="." unique_id=12837468 instance=ExtResource("33_npcui")]
+unique_name_in_owner = true
+offset_top = -25.0
+offset_bottom = -25.0
