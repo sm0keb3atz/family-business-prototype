@@ -75,6 +75,17 @@ func complete_deal() -> void:
 	if found_drug_id != "" and inv.has_drug(found_drug_id, requested_grams):
 		inv.remove_drug(found_drug_id, requested_grams)
 		player_node.progression.money += offered_payout
+		
+		# XP and Indicators
+		var sale_xp = int(requested_grams * 5)
+		player_node.progression.xp += sale_xp
+		
+		if player_node.get("player_ui"):
+			var pui = player_node.player_ui
+			pui.spawn_indicator("money_up", "+$" + str(offered_payout))
+			pui.spawn_indicator("product", "-" + str(requested_grams) + "g")
+			pui.spawn_indicator("xp", "+" + str(sale_xp) + " XP")
+			
 		if target_npc.npc_ui:
 			target_npc.npc_ui.show_dialog_bubble("Thanks man.")
 		

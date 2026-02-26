@@ -36,11 +36,13 @@ func open_shop(dealer: DealerShopComponent, player: Player) -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	error_label.text = ""
 	_refresh_ui()
+	AudioManager.play_ui_menu()
 
 func close_shop() -> void:
 	main_control.hide()
 	get_tree().paused = false
 	current_dealer = null
+	AudioManager.play_ui_menu()
 
 func _process(_delta: float) -> void:
 	if main_control.visible and current_dealer:
@@ -82,6 +84,15 @@ func _attempt_buy(amount: int) -> void:
 	current_dealer.buy(amount)
 	current_player.progression.money -= cost
 	current_player.inventory_component.add_drug(drug.id, amount)
+	
+	# Audio Feedback
+	AudioManager.play_transaction()
+	
+	var pui = current_player.get("player_ui")
+	if pui:
+		pui.spawn_indicator("money_down", "-$" + str(cost))
+		pui.spawn_indicator("product", "+" + str(amount) + "g")
+		
 	error_label.text = "Bought " + str(amount) + "g of " + drug.display_name + "!"
 	_refresh_ui()
 

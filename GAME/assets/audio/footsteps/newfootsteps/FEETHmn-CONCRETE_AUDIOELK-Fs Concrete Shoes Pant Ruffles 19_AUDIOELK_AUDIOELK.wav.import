@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://difvleku2wy5s"
+path="res://.godot/imported/FEETHmn-CONCRETE_AUDIOELK-Fs Concrete Shoes Pant Ruffles 19_AUDIOELK_AUDIOELK.wav-b7752491631b27525eccb4d95509e385.sample"
+
+[deps]
+
+source_file="res://GAME/assets/audio/footsteps/newfootsteps/FEETHmn-CONCRETE_AUDIOELK-Fs Concrete Shoes Pant Ruffles 19_AUDIOELK_AUDIOELK.wav"
+dest_files=["res://.godot/imported/FEETHmn-CONCRETE_AUDIOELK-Fs Concrete Shoes Pant Ruffles 19_AUDIOELK_AUDIOELK.wav-b7752491631b27525eccb4d95509e385.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

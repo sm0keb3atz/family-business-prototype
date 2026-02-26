@@ -25,6 +25,7 @@ enum Role { CUSTOMER, DEALER, POLICE }
 @onready var npc_ui: NpcUI = %NpcUI
 @onready var interact_area: Area2D = %InteractArea
 @onready var hit_flash_component: HitFlashComponent = %HitFlashComponent
+@onready var footstep_component: FootstepComponent = %FootstepComponent
 
 
 
@@ -78,6 +79,13 @@ func _update_ui_icon() -> void:
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Customer_Icon.png"))
 	else:
 		npc_ui.hide_type_icon()
+	
+	# Proactive check: if we just became interactable and player is already here, register!
+	var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false))
+	if can_interact and interact_area:
+		for body in interact_area.get_overlapping_bodies():
+			if body.is_in_group("player"):
+				_on_interact_area_body_entered(body)
 
 func _randomize_gender_and_appearance() -> void:
 	if not appearance_data:
@@ -153,9 +161,20 @@ func _inject_dependencies() -> void:
 		nav_agent.max_neighbors = 3
 		nav_agent.time_horizon_agents = 0.5
 
+	if footstep_component:
+		footstep_component.animation_player = %AnimationPlayer
+		footstep_component.body_sprite = %Appearance/Body
+		footstep_component.dust_sprite = get_node_or_null("Footsteps")
+		var fs_audio = get_node_or_null("%FootstepAudio") # Try to find unique or relative
+		if not fs_audio:
+			fs_audio = get_node_or_null("FootstepAudio")
+		footstep_component.footstep_audio = fs_audio
+		footstep_component.on_screen_notifier = get_node_or_null("VisibleOnScreenNotifier2D")
+
 func _setup_connections() -> void:
 	if health_component:
 		health_component.health_changed.connect(_on_health_changed)
+		health_component.damage_taken.connect(_on_damage_taken)
 		health_component.died.connect(_on_died)
 	if nav_agent:
 		nav_agent.velocity_computed.connect(_on_velocity_computed)
@@ -239,6 +258,7 @@ func interact() -> void:
 		return
 
 	if blackboard and blackboard.get_var(&"is_solicited", false):
+		AudioManager.play_ui_menu()
 		_handle_solicited_interaction(player)
 		return
 
@@ -260,6 +280,19 @@ func _handle_solicited_interaction(player: Player) -> void:
 		if found_drug_id != "" and inv.has_drug(found_drug_id, grams):
 			inv.remove_drug(found_drug_id, grams)
 			player.progression.money += payout
+			
+			# XP and Indicators
+			var sale_xp = int(grams * 5) # Example: 5 XP per gram
+			player.progression.xp += sale_xp
+			
+			var pui = player.get("player_ui")
+			if pui:
+				pui.spawn_indicator("money_up", "+$" + str(payout))
+				pui.spawn_indicator("product", "-" + str(grams) + "g")
+				pui.spawn_indicator("xp", "+" + str(sale_xp) + " XP")
+			
+			AudioManager.play_transaction()
+			
 			if npc_ui:
 				npc_ui.show_dialog_bubble("Thanks man.")
 			
@@ -267,7 +300,7 @@ func _handle_solicited_interaction(player: Player) -> void:
 			blackboard.set_var(&"is_solicited", false)
 			_is_interacting = false
 			blackboard.set_var(&"is_interacting", false)
-			if player:
+			if player and player.get("current_interactable") == self:
 				player._is_interacting = false
 			_update_ui_icon()
 		else:
@@ -280,7 +313,7 @@ func _handle_solicited_interaction(player: Player) -> void:
 				blackboard.set_var(&"is_solicited", false)
 				_is_interacting = false
 				blackboard.set_var(&"is_interacting", false)
-				if player:
+				if player and player.get("current_interactable") == self:
 					player._is_interacting = false
 				_update_ui_icon()
 				if npc_ui:
@@ -291,18 +324,22 @@ func _handle_solicited_interaction(player: Player) -> void:
 
 
 func _on_interact_area_body_entered(body: Node2D) -> void:
-	if body.is_in_group("player") and body.has_method("interact"):
+	if body.is_in_group("player") and body.has_method("register_interactable"):
 		# Only allow interaction if we are a dealer OR a solicited customer
 		var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false))
 		if can_interact:
-			body.current_interactable = self
+			body.register_interactable(self)
+			# Hide all distracting bubbles when in range to make "E" more responsive
+			if npc_ui:
+				npc_ui.hide_dialog_bubble()
+			if body.get("player_ui"):
+				body.player_ui.hide_dialog_bubble()
 
 func _on_interact_area_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		# Always clear interaction state when player walks away
-		if body.get("current_interactable") == self:
-			body.current_interactable = null
-			body._is_interacting = false
+		if body.has_method("unregister_interactable"):
+			body.unregister_interactable(self)
 		_is_interacting = false
 		if blackboard:
 			blackboard.set_var(&"is_interacting", false)
@@ -313,6 +350,10 @@ func _on_interact_area_body_exited(body: Node2D) -> void:
 func _on_health_changed(current: int, maximum: int) -> void:
 	if npc_ui:
 		npc_ui.update_health(float(current), float(maximum))
+
+func _on_damage_taken(amount: int) -> void:
+	if npc_ui:
+		npc_ui.spawn_indicator("damage", str(amount))
 
 func _on_died() -> void:
 	queue_free()

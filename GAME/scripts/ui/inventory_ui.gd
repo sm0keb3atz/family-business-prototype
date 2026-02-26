@@ -26,6 +26,8 @@ func toggle_inventory() -> void:
 		layer = 120
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 		refresh_ui()
+	
+	AudioManager.play_ui_menu()
 
 func refresh_ui() -> void:
 	for child in drugs_list.get_children():

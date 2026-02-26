@@ -5,6 +5,7 @@ class_name FootstepComponent
 @export var body_sprite: Sprite2D
 @export var dust_sprite: AnimatedSprite2D
 @export var footstep_audio: AudioStreamPlayer2D
+@export var on_screen_notifier: VisibleOnScreenNotifier2D
 
 var footstep_sounds: Array[AudioStream] = []
 
@@ -20,13 +21,14 @@ func _ready() -> void:
 		dust_sprite.visible = false
 
 func _load_footstep_sounds() -> void:
-	var dir = DirAccess.open("res://GAME/assets/audio/footsteps")
+	var path = "res://GAME/assets/audio/footsteps/newfootsteps"
+	var dir = DirAccess.open(path)
 	if dir:
 		dir.list_dir_begin()
 		var file_name = dir.get_next()
 		while file_name != "":
-			if not dir.current_is_dir() and file_name.ends_with(".ogg") and not file_name.ends_with(".import"):
-				var sound = load("res://GAME/assets/audio/footsteps/" + file_name)
+			if not dir.current_is_dir() and (file_name.ends_with(".ogg") or file_name.ends_with(".wav")) and not file_name.ends_with(".import"):
+				var sound = load(path + "/" + file_name)
 				if sound:
 					footstep_sounds.append(sound)
 			file_name = dir.get_next()
@@ -61,6 +63,10 @@ func _process(_delta: float) -> void:
 				_trigger_footstep()
 
 func _trigger_footstep() -> void:
+	# Only play if we are on screen (important for NPCs)
+	if on_screen_notifier and not on_screen_notifier.is_on_screen():
+		return
+
 	if dust_sprite:
 		dust_sprite.visible = true
 		dust_sprite.frame = 0

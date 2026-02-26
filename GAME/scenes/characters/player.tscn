@@ -32,7 +32,6 @@
 [ext_resource type="Script" uid="uid://c2n2tdyt831ei" path="res://GAME/scripts/components/footstep_component.gd" id="32_footstep"]
 [ext_resource type="PackedScene" uid="uid://c8dq05a415v6" path="res://GAME/scenes/components/npc_ui.tscn" id="33_npcui"]
 
-
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_dd8jp"]
 radius = 24.0
 height = 75.0
@@ -408,9 +407,9 @@ volume_db = -10.0
 max_distance = 1000.0
 
 [node name="Footsteps" type="AnimatedSprite2D" parent="." unique_id=572036716]
-modulate = Color(0.7162962, 0.7162962, 0.7162962, 0.7764706)
+modulate = Color(1, 1, 1, 0.14400001)
 z_index = -1
-position = Vector2(0, 34)
+position = Vector2(0, 39)
 scale = Vector2(0.8, 0.8)
 sprite_frames = SubResource("SpriteFrames_1fsej")
 frame = 7
@@ -418,5 +417,8 @@ frame_progress = 1.0
 
 [node name="PlayerUI" parent="." unique_id=12837468 instance=ExtResource("33_npcui")]
 unique_name_in_owner = true
-offset_top = -25.0
-offset_bottom = -25.0
+offset_top = -38.0
+offset_bottom = -38.0
+
+[node name="AudioListener2D" type="AudioListener2D" parent="." unique_id=1234567892]
+current = true

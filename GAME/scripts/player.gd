@@ -23,6 +23,7 @@ class_name Player
 @onready var player_ui: NpcUI = %PlayerUI
 
 var current_interactable: Node2D = null
+var _available_interactables: Array[Node2D] = []
 var _is_interacting: bool = false
 
 var inventory_component: InventoryComponent
@@ -80,6 +81,7 @@ func _inject_dependencies() -> void:
 	
 	if health_component:
 		health_component.setup(stats)
+		health_component.damage_taken.connect(_on_damage_taken)
 	
 	if animation_component:
 		animation_component.animation_player = %AnimationPlayer
@@ -138,7 +140,29 @@ func show_bark(text: String) -> void:
 		# Hide bark after 2.5 seconds
 		get_tree().create_timer(2.5).timeout.connect(player_ui.hide_dialog_bubble)
 
+func register_interactable(node: Node2D) -> void:
+	if not _available_interactables.has(node):
+		_available_interactables.append(node)
+
+func unregister_interactable(node: Node2D) -> void:
+	_available_interactables.erase(node)
+	if current_interactable == node:
+		current_interactable = null
+		_is_interacting = false
+
 func interact() -> void:
+	# Always pick the closest one when several are in range
+	if not _available_interactables.is_empty():
+		var closest_node = null
+		var min_dist = 1e10
+		for node in _available_interactables:
+			if not is_instance_valid(node): continue
+			var d = global_position.distance_to(node.global_position)
+			if d < min_dist:
+				min_dist = d
+				closest_node = node
+		current_interactable = closest_node
+
 	print("Player: interact() called. current_interactable: ", current_interactable.name if current_interactable else "NONE")
 	if current_interactable and current_interactable.has_method("interact"):
 		_is_interacting = true
@@ -153,6 +177,10 @@ func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO, hit_direc
 		blood_effect_component.spawn_blood(source_position, hit_direction)
 
 # --- Weapon Selection ---
+func _on_damage_taken(amount: int) -> void:
+	if player_ui:
+		player_ui.spawn_indicator("damage", str(amount))
+
 func _on_weapon_next() -> void:
 	current_weapon_index = (current_weapon_index + 1) % available_weapons.size()
 	_update_weapon()

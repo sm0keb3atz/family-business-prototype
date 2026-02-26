@@ -37,6 +37,7 @@ func solicit() -> void:
 	if not player is Player: return
 	
 	player.show_bark(barks.pick_random())
+	AudioManager.play_random_solicitation()
 	
 	var npcs = get_tree().get_nodes_in_group("npc")
 	for npc in npcs:
@@ -59,4 +60,10 @@ func _convert_to_customer(npc: Node2D) -> void:
 		
 		if npc.npc_ui:
 			npc.npc_ui.show_dialog_bubble("Hey! Over here!")
+		
+		# Play gender-specific customer voice line (Spatial) with a natural delay
+		var delay = randf_range(0.3, 0.6)
+		get_tree().create_timer(delay).timeout.connect(
+			func(): if is_instance_valid(npc): AudioManager.play_customer_dialog(npc.gender, npc.global_position)
+		)
 

@@ -6,6 +6,13 @@ class_name NpcUI
 @onready var dialog_bubble = $DialogBubble
 @onready var animation_player = $AnimationPlayer
 
+var FLOATING_INDICATOR = load("res://GAME/scenes/components/floating_indicator.tscn")
+const WEED_ICON = preload("res://GAME/assets/icons/WeedBaggie.png")
+const MONEY_ICON = preload("res://GAME/assets/icons/money.png")
+
+var _last_indicator_index: int = 0
+var _last_spawn_time: int = 0
+
 func _ready():
 	# Initially hide everything or just dialog bubble
 	if dialog_bubble:
@@ -53,3 +60,54 @@ func show_dialog_bubble(text: String):
 func hide_dialog_bubble():
 	if dialog_bubble:
 		dialog_bubble.hide()
+
+func spawn_indicator(type: String, value: String, custom_icon: Texture2D = null):
+	var indicator = FLOATING_INDICATOR.instantiate()
+	
+	# Detect if multiple are spawning at once (within 100ms)
+	var now = Time.get_ticks_msec()
+	if now - _last_spawn_time > 100:
+		_last_indicator_index = 0
+	else:
+		_last_indicator_index += 1
+	_last_spawn_time = now
+	
+	# Tiered angles and distances to create a perfect fan that never overlaps
+	var angles = [0.0, -0.4, 0.4, -0.7, 0.7]
+	var distances = [90.0, 120.0, 100.0, 130.0, 110.0]
+	
+	var use_angle = angles[_last_indicator_index % angles.size()]
+	var use_dist = distances[_last_indicator_index % distances.size()]
+		
+	add_child(indicator)
+	
+	# Position closer to character center for "move away" effect
+	indicator.position = Vector2(0, -10)
+	
+	if indicator.has_method("set_forced_angle"):
+		indicator.set_forced_angle(use_angle - PI/2.0)
+	if indicator.has_method("set_forced_distance"):
+		indicator.set_forced_distance(use_dist)
+	
+	var color = Color.WHITE
+	var use_icon = custom_icon
+	
+	match type:
+		"damage":
+			color = Color.RED
+		"xp":
+			color = Color(0.0, 0.8, 1.0) # More Vibrant Cyan-Blue
+		"money_up":
+			color = Color.GREEN
+			if not use_icon:
+				use_icon = MONEY_ICON
+		"money_down":
+			color = Color.RED
+			if not use_icon:
+				use_icon = MONEY_ICON
+		"product":
+			color = Color.WHITE
+			if not use_icon:
+				use_icon = WEED_ICON
+				
+	indicator.setup(value, color, use_icon)

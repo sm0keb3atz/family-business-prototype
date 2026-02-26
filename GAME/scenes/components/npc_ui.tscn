@@ -1,36 +1,42 @@
 [gd_scene format=3 uid="uid://c8dq05a415v6"]
 
 [ext_resource type="Script" uid="uid://dj0ymnux0kxqh" path="res://GAME/scripts/components/npc_ui.gd" id="1_npcui"]
-[ext_resource type="Texture2D" uid="uid://bq2oct5kr6jnd" path="res://GAME/assets/ui/Progress Bar/PGBO.png" id="3_over"]
-[ext_resource type="Texture2D" uid="uid://c3jtjefjiueac" path="res://GAME/assets/ui/Progress Bar/PGBF1.png" id="3_yhwbg"]
-[ext_resource type="Texture2D" uid="uid://bpp232avmhnig" path="res://GAME/assets/ui/emote__.png" id="5_6aty4"]
+[ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="2_6aty4"]
+[ext_resource type="Texture2D" uid="uid://yqxjmwvqw76w" path="res://GAME/assets/ui/Chat-1.png" id="5_6aty4"]
 [ext_resource type="Texture2D" uid="uid://b24n6tw30v2jn" path="res://GAME/assets/icons/Customer_Icon.png" id="5_icon"]
+[ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="5_vbcip"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_6aty4"]
-texture = ExtResource("3_over")
-texture_margin_left = 11.0
-texture_margin_top = 11.0
-texture_margin_right = 11.0
-texture_margin_bottom = 17.0
-expand_margin_left = 10.0
-expand_margin_top = 10.0
-expand_margin_right = 10.0
-expand_margin_bottom = 16.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vbcip"]
-texture = ExtResource("3_yhwbg")
+texture = ExtResource("2_6aty4")
 texture_margin_left = 3.0
 texture_margin_top = 3.0
-texture_margin_right = 3.0
+texture_margin_right = 2.0
 texture_margin_bottom = 3.0
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
+region_rect = Rect2(448, 204, 32, 8)
+modulate_color = Color(0.24840015, 0.24840018, 0.24840015, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vbcip"]
+texture = ExtResource("2_6aty4")
+texture_margin_left = 1.0
+texture_margin_top = 1.0
+texture_margin_right = 1.0
+texture_margin_bottom = 1.0
+region_rect = Rect2(512, 143, 32, 3)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_jlibx"]
+content_margin_left = 10.0
+content_margin_right = 5.0
+content_margin_bottom = 15.0
 texture = ExtResource("5_6aty4")
-texture_margin_left = 2.0
-texture_margin_top = 2.0
-texture_margin_right = 2.0
-texture_margin_bottom = 5.0
-region_rect = Rect2(0, 0, 16, 16)
+texture_margin_left = 6.0
+texture_margin_top = 4.0
+texture_margin_right = 6.0
+texture_margin_bottom = 10.0
+region_rect = Rect2(80, 208, 48, 21)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t8wwd"]
 
@@ -103,13 +109,13 @@ mouse_filter = 2
 script = ExtResource("1_npcui")
 
 [node name="HealthBar" type="ProgressBar" parent="." unique_id=714929858]
-modulate = Color(1.353256, 1.353256, 1.353256, 1)
+modulate = Color(1.3528494, 1.3528494, 1.3528494, 0.70000005)
 layout_mode = 0
 offset_left = -40.0
-offset_top = -9.0
+offset_top = -10.0
 offset_right = 240.0
-offset_bottom = 19.0
-scale = Vector2(0.3, 0.1)
+offset_bottom = 18.0
+scale = Vector2(0.3, 0.2)
 mouse_filter = 2
 theme_override_styles/background = SubResource("StyleBoxTexture_6aty4")
 theme_override_styles/fill = SubResource("StyleBoxTexture_vbcip")
@@ -117,6 +123,7 @@ value = 100.0
 show_percentage = false
 
 [node name="TypeIcon" type="TextureRect" parent="." unique_id=1687686337]
+modulate = Color(1.196256, 1.0761228, 0.98937523, 0.837)
 layout_mode = 0
 offset_left = -10.0
 offset_top = -52.0
@@ -130,20 +137,23 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="DialogBubble" type="Label" parent="." unique_id=811389242]
+modulate = Color(1, 1, 1, 0.8)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -18.0
+offset_left = -83.0
 offset_top = -25.0
-offset_right = 18.0
-offset_bottom = -4.0
+offset_right = -25.0
+offset_bottom = 8.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 8
+theme_override_constants/line_spacing = 3
+theme_override_fonts/font = ExtResource("5_vbcip")
+theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = SubResource("StyleBoxTexture_jlibx")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_t8wwd")
 text = "HELLO"
