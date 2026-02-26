@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://dg0d0dn34pyei"]
+
+[ext_resource type="Shader" uid="uid://gphle3t4421n" path="res://GAME/assets/shaders/pulse.gdshader" id="1_shader"]
+[ext_resource type="Script" uid="uid://byr8tixn64lrf" path="res://GAME/scripts/vfx/solicitation_pulse.gd" id="2_script"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_pulse"]
+shader = ExtResource("1_shader")
+shader_parameter/radius = 0.3490000165775
+shader_parameter/thickness = 0.0
+shader_parameter/color = Color(0.21176471, 0.54901963, 0.9882353, 0.6509804)
+shader_parameter/feather = 0.070000003325
+shader_parameter/secondary_radius_offset = 0.19600000931
+shader_parameter/chromatic_aberration = 0.0310000014725
+shader_parameter/scanline_intensity = 0.758000036005
+shader_parameter/noise_intensity = 0.0150000007125
+shader_parameter/refraction_strength = 0.70800003363
+shader_parameter/glitch_intensity = 0.1310000062225
+
+[node name="SolicitationPulse" type="ColorRect" unique_id=1624761402]
+material = SubResource("ShaderMaterial_pulse")
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2
+script = ExtResource("2_script")
+pulse_color = Color(0.21209751, 0.54781777, 0.98803645, 0.651)
+thickness = 0.0
+duration = 0.7
+fade_power = 3.0

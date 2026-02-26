@@ -4,6 +4,8 @@ class_name SolicitationComponent
 @export var config: SolicitationConfigResource
 var cooldown_timer: float = 0.0
 
+var pulse_scene = preload("res://GAME/scenes/vfx/SolicitationPulse.tscn")
+
 var barks: Array[String] = [
 	"Yo i got that fire!",
 	"Who needs some green?",
@@ -38,6 +40,11 @@ func solicit() -> void:
 	
 	player.show_bark(barks.pick_random())
 	AudioManager.play_random_solicitation()
+	
+	# Visual Pulse
+	var pulse = pulse_scene.instantiate()
+	get_tree().root.add_child(pulse)
+	pulse.start_pulse(player.global_position, config.radius)
 	
 	var npcs = get_tree().get_nodes_in_group("npc")
 	for npc in npcs:
