@@ -122,6 +122,21 @@ theme_override_styles/fill = SubResource("StyleBoxTexture_vbcip")
 value = 100.0
 show_percentage = false
 
+[node name="ArrestBar" type="ProgressBar" parent="." unique_id=714929859]
+visible = false
+modulate = Color(0, 0.6, 1, 0.8)
+layout_mode = 0
+offset_left = -40.0
+offset_top = -18.0
+offset_right = 240.0
+offset_bottom = 10.0
+scale = Vector2(0.3, 0.2)
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxTexture_6aty4")
+theme_override_styles/fill = SubResource("StyleBoxTexture_vbcip")
+value = 50.0
+show_percentage = false
+
 [node name="TypeIcon" type="TextureRect" parent="." unique_id=1687686337]
 modulate = Color(1.196256, 1.0761228, 0.98937523, 0.837)
 layout_mode = 0

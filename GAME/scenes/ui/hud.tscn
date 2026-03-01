@@ -96,3 +96,20 @@ theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("6_o4n1q")
 theme_override_font_sizes/font_size = 20
 text = "$0"
+
+[node name="HeatBar" type="ProgressBar" parent="Hud" unique_id=123456789]
+layout_mode = 0
+offset_left = 1600.0
+offset_top = 40.0
+offset_right = 1850.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(0, 0, 0, 0)
+value = 0.0
+
+[node name="StarsContainer" type="HBoxContainer" parent="Hud" unique_id=987654321]
+layout_mode = 0
+offset_left = 1600.0
+offset_top = 70.0
+offset_right = 1850.0
+offset_bottom = 110.0
+alignment = 2

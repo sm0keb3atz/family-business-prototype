@@ -10,10 +10,12 @@ class_name BulletBase
 @export var stone_impact_sounds: Array[AudioStream] = []
 
 var direction: Vector2 = Vector2.ZERO
+var shooter: Node2D
 
-func initialize(p_direction: Vector2, p_damage: int) -> void:
+func initialize(p_direction: Vector2, p_damage: int, p_shooter: Node2D = null) -> void:
 	direction = p_direction.normalized()
 	damage = p_damage
+	shooter = p_shooter
 	rotation = direction.angle()
 
 func _ready() -> void:
@@ -37,7 +39,10 @@ func _on_area_entered(area: Area2D) -> void:
 		_on_body_entered(parent)
 
 func _on_body_entered(body: Node) -> void:
-	if body.is_in_group("player"): # Don't hit shooter if player
+	if body == shooter:
+		return
+		
+	if body.is_in_group("player") and shooter and shooter.is_in_group("player"): # Don't hit shooter if player
 		return
 		
 	# Play Impact Sound

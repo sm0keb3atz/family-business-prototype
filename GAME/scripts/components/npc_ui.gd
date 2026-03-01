@@ -5,6 +5,7 @@ class_name NpcUI
 @onready var type_icon = $TypeIcon
 @onready var dialog_bubble = $DialogBubble
 @onready var animation_player = $AnimationPlayer
+@onready var arrest_bar = get_node_or_null("ArrestBar")
 
 var FLOATING_INDICATOR = load("res://GAME/scenes/components/floating_indicator.tscn")
 const WEED_ICON = preload("res://GAME/assets/icons/WeedBaggie.png")
@@ -21,6 +22,8 @@ func _ready():
 		type_icon.hide()
 	if health_bar:
 		health_bar.hide()
+	if arrest_bar:
+		arrest_bar.hide()
 
 
 func update_health(current_health: float, max_health: float):
@@ -31,6 +34,14 @@ func update_health(current_health: float, max_health: float):
 			health_bar.show()
 		else:
 			health_bar.hide()
+
+func update_arrest_progress(value: float):
+	if arrest_bar:
+		arrest_bar.value = value * 100.0
+		if value > 0:
+			arrest_bar.show()
+		else:
+			arrest_bar.hide()
 
 
 func set_type_icon(texture: Texture2D):

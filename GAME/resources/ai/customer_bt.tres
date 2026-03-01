@@ -24,6 +24,7 @@ script = ExtResource("7_solicited")
 
 [sub_resource type="BTAction" id="approach_1"]
 script = ExtResource("6_approach")
+distance_threshold = 60.0
 
 [sub_resource type="BTSequence" id="solicited_seq"]
 children = [SubResource("check_solicited"), SubResource("approach_1")]

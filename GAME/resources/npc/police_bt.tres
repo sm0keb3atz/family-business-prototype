@@ -1,0 +1,107 @@
+[gd_resource type="BehaviorTree" format=3 uid="uid://dxb0568i3p5h2"]
+
+[ext_resource type="Script" uid="uid://ddl14mwwpmwky" path="res://GAME/scripts/ai/bt_condition_wanted_stars.gd" id="1_wstars"]
+[ext_resource type="Script" uid="uid://bc6tsys45t3cq" path="res://GAME/scripts/ai/bt_action_ensure_weapon_drawn.gd" id="2_weap"]
+[ext_resource type="Script" uid="uid://bdgnlc6c32ikv" path="res://GAME/scripts/ai/bt_action_set_aggro_target.gd" id="3_aggro"]
+[ext_resource type="Script" uid="uid://cry2beh2v5t32" path="res://GAME/scripts/ai/bt_action_check_line_of_sight.gd" id="4_los"]
+[ext_resource type="Script" uid="uid://bddgitc3rx1pq" path="res://GAME/scripts/ai/bt_action_shoot_target.gd" id="5_shoot"]
+[ext_resource type="Script" uid="uid://dlo7t6eisp47u" path="res://GAME/scripts/ai/bt_action_move_to_last_known.gd" id="6_lastk"]
+[ext_resource type="Script" uid="uid://dinjl8bhuot8o" path="res://GAME/scripts/ai/bt_action_wander.gd" id="7_wand"]
+[ext_resource type="Script" uid="uid://c3bglftf0mqwq" path="res://GAME/scripts/ai/bt_action_check_arrest_range.gd" id="8_arr_rng"]
+[ext_resource type="Script" uid="uid://bujabljva1iy8" path="res://GAME/scripts/ai/bt_action_slow_player.gd" id="9_slow"]
+[ext_resource type="Script" uid="uid://btl2x5bo05mig" path="res://GAME/scripts/ai/bt_action_handle_arrest_outcome.gd" id="10_arr_out"]
+[ext_resource type="Script" uid="uid://c85wj4n6ht8ve" path="res://GAME/scripts/ai/bt_action_wait_random.gd" id="11_wait"]
+[ext_resource type="Script" uid="uid://b3v652ujjh31s" path="res://GAME/scripts/ai/bt_action_follow_path.gd" id="12_path"]
+[ext_resource type="Script" uid="uid://bseobl0qulstk" path="res://GAME/scripts/ai/bt_action_approach_player.gd" id="13_appr"]
+[ext_resource type="Script" uid="uid://dek303whn6v5q" path="res://GAME/scripts/ai/bt_condition_is_searching.gd" id="14_cond_srch"]
+[ext_resource type="Script" uid="uid://fv50dbbm3h1c" path="res://GAME/scripts/ai/bt_action_search_area.gd" id="15_act_srch"]
+
+[sub_resource type="BlackboardPlan" id="BbPlan_police"]
+
+[sub_resource type="BTCondition" id="cond_combat"]
+script = ExtResource("1_wstars")
+required_stars = 2
+
+[sub_resource type="BTAction" id="act_draw"]
+script = ExtResource("2_weap")
+
+[sub_resource type="BTAction" id="act_aggro"]
+script = ExtResource("3_aggro")
+
+[sub_resource type="BTAction" id="act_chk_los"]
+script = ExtResource("4_los")
+
+[sub_resource type="BTAction" id="act_shoot"]
+script = ExtResource("5_shoot")
+
+[sub_resource type="BTSequence" id="seq_shoot"]
+children = [SubResource("act_chk_los"), SubResource("act_shoot")]
+
+[sub_resource type="BTAction" id="act_mv_lk"]
+script = ExtResource("6_lastk")
+
+[sub_resource type="BTCondition" id="cond_is_searching"]
+script = ExtResource("14_cond_srch")
+
+[sub_resource type="BTAction" id="act_do_search"]
+script = ExtResource("15_act_srch")
+search_radius = 400.0
+
+[sub_resource type="BTSequence" id="seq_search"]
+children = [SubResource("cond_is_searching"), SubResource("act_do_search")]
+
+[sub_resource type="BTAction" id="act_search"]
+script = ExtResource("7_wand")
+
+[sub_resource type="BTDynamicSelector" id="sel_combat_act"]
+children = [SubResource("seq_shoot"), SubResource("act_mv_lk"), SubResource("seq_search"), SubResource("act_search")]
+
+[sub_resource type="BTSequence" id="seq_combat"]
+children = [SubResource("cond_combat"), SubResource("act_draw"), SubResource("act_aggro"), SubResource("sel_combat_act")]
+
+[sub_resource type="BTCondition" id="cond_arrest"]
+script = ExtResource("1_wstars")
+comparison = "=="
+
+[sub_resource type="BTAction" id="act_aggro_arr"]
+script = ExtResource("3_aggro")
+
+[sub_resource type="BTAction" id="act_arr_rng"]
+script = ExtResource("8_arr_rng")
+
+[sub_resource type="BTAction" id="act_slow"]
+script = ExtResource("9_slow")
+
+[sub_resource type="BTAction" id="act_arr_out"]
+script = ExtResource("10_arr_out")
+
+[sub_resource type="BTSequence" id="seq_do_arrest"]
+children = [SubResource("act_arr_rng"), SubResource("act_slow"), SubResource("act_arr_out")]
+
+[sub_resource type="BTAction" id="act_appr"]
+script = ExtResource("13_appr")
+distance_threshold = 100.0
+
+[sub_resource type="BTDynamicSelector" id="sel_arrest_act"]
+children = [SubResource("seq_do_arrest"), SubResource("act_appr")]
+
+[sub_resource type="BTSequence" id="seq_arrest"]
+children = [SubResource("cond_arrest"), SubResource("act_aggro_arr"), SubResource("sel_arrest_act")]
+
+[sub_resource type="BTAction" id="act_patrol_mv"]
+script = ExtResource("12_path")
+
+[sub_resource type="BTAction" id="act_patrol_wt"]
+script = ExtResource("11_wait")
+min_duration = 1.0
+max_duration = 3.0
+
+[sub_resource type="BTSequence" id="seq_patrol"]
+children = [SubResource("act_patrol_mv"), SubResource("act_patrol_wt")]
+
+[sub_resource type="BTDynamicSelector" id="root_sel"]
+children = [SubResource("seq_combat"), SubResource("seq_arrest"), SubResource("seq_patrol")]
+
+[resource]
+blackboard_plan = SubResource("BbPlan_police")
+root_task = SubResource("root_sel")

@@ -17,6 +17,7 @@ class_name Player
 @onready var blood_effect_component: BloodEffectComponent = %BloodEffectComponent
 @onready var footstep_component: FootstepComponent = %FootstepComponent
 @onready var state_machine: StateMachine = %StateMachine
+@onready var arrest_component: ArrestComponent = %ArrestComponent
 
 # Visuals
 @onready var appearance_nodes: Node2D = %Appearance
@@ -47,6 +48,9 @@ func _ready() -> void:
 	_setup_inventory()
 	
 	_update_weapon()
+	
+	if arrest_component:
+		arrest_component.progress_changed.connect(_on_arrest_progress_changed)
 
 func _setup_inventory() -> void:
 	inventory_component = InventoryComponent.new()
@@ -151,6 +155,10 @@ func unregister_interactable(node: Node2D) -> void:
 		_is_interacting = false
 
 func interact() -> void:
+	if _is_interacting:
+		print("Player: Already interacting, ignoring request.")
+		return
+
 	# Always pick the closest one when several are in range
 	if not _available_interactables.is_empty():
 		var closest_node = null
@@ -193,3 +201,7 @@ func _update_weapon() -> void:
 	if weapon_holder_component:
 		var weapon_scene = available_weapons[current_weapon_index]
 		weapon_holder_component.equip_weapon(weapon_scene)
+
+func _on_arrest_progress_changed(value: float) -> void:
+	if player_ui:
+		player_ui.update_arrest_progress(value)

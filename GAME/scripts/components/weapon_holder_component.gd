@@ -15,12 +15,16 @@ func _handle_rotation() -> void:
     if not weapon_parent:
         return
         
-    var mouse_pos = get_viewport().get_mouse_position()
-    # Adjust for camera/viewport? 
-    # Godot's get_global_mouse_position() handles camera offset automatically for Node2D
-    var global_mouse_pos = weapon_parent.get_global_mouse_position()
+    var target_pos: Vector2
+    if owner.is_in_group("player"):
+        target_pos = weapon_parent.get_global_mouse_position()
+    elif owner.has_method("get_aggro_target") and owner.get_aggro_target():
+        target_pos = owner.get_aggro_target().global_position
+    else:
+        # Default to looking forward/current rotation if no clear target
+        return
     
-    weapon_parent.look_at(global_mouse_pos)
+    weapon_parent.look_at(target_pos)
     
     # Handle flipping
     var rot_degrees = weapon_parent.rotation_degrees
@@ -42,6 +46,8 @@ func equip_weapon(weapon_scene: PackedScene) -> void:
         return
 
     current_weapon = weapon_scene.instantiate()
+    if "shooter" in current_weapon:
+        current_weapon.shooter = owner
     
     if weapon_parent:
         weapon_parent.add_child(current_weapon)

@@ -8,8 +8,13 @@ class_name NPCSpawner
 
 @export_group("AI Trees")
 @export var dealer_bt: BehaviorTree
-@export var police_bt: BehaviorTree
+@export var police_bt: BehaviorTree = preload("res://GAME/resources/npc/police_bt.tres")
 @export var customer_bt: BehaviorTree
+
+@export_group("AI Stats")
+@export var dealer_stats: CharacterStatsResource = preload("res://GAME/resources/npc/dealer_stats.tres")
+@export var police_stats: CharacterStatsResource = preload("res://GAME/resources/npc/police_stats.tres")
+@export var customer_stats: CharacterStatsResource = preload("res://GAME/resources/npc/civilian_stats.tres")
 
 @export_group("Spawn Points")
 @export var dealer_points_container: Node2D
@@ -50,6 +55,7 @@ func _spawn_dealers() -> void:
 			dealer.global_position = point.global_position
 			dealer.appearance_data = appearance_data
 			dealer.behavior_tree = dealer_bt
+			dealer.stats = dealer_stats
 			dealer.role = NPC.Role.DEALER
 			dealer.gender = NPC.Gender.MALE
 			add_sibling(dealer)
@@ -94,6 +100,7 @@ func _do_spawn_police(pos: Vector2) -> void:
 	police.global_position = pos
 	police.appearance_data = appearance_data
 	police.behavior_tree = police_bt
+	police.stats = police_stats
 	police.role = NPC.Role.POLICE
 	police.gender = NPC.Gender.values().pick_random()
 	
@@ -111,6 +118,7 @@ func _do_spawn_customer(pos: Vector2) -> void:
 	customer.global_position = pos
 	customer.appearance_data = appearance_data
 	customer.behavior_tree = customer_bt
+	customer.stats = customer_stats
 	customer.role = NPC.Role.CUSTOMER
 	customer.gender = NPC.Gender.values().pick_random()
 	

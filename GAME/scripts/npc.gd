@@ -67,6 +67,11 @@ func _ready() -> void:
 		shop_comp.name = "DealerShopComponent"
 		shop_comp.tier_config = tier
 		add_child(shop_comp)
+	elif role == Role.POLICE:
+		var detect_comp = PoliceDetectionComponent.new()
+		detect_comp.name = "PoliceDetectionComponent"
+		detect_comp.detection_radius = 350.0 # Standard base radius
+		add_child(detect_comp)
 	
 	_update_ui_icon()
 
@@ -207,7 +212,11 @@ func _on_velocity_computed(safe_velocity: Vector2) -> void:
 func _setup_bt() -> void:
 	if bt_player:
 		if behavior_tree:
+			print("NPC: Setting BehaviorTree for ", name, " (Role: ", role, ") to ", behavior_tree.resource_path)
 			bt_player.behavior_tree = behavior_tree
+			bt_player.restart()
+		else:
+			print("NPC: No BehaviorTree assigned for ", name, ", using default.")
 		
 		blackboard = bt_player.get_blackboard()
 		if blackboard:
@@ -217,6 +226,10 @@ func _setup_bt() -> void:
 			blackboard.set_var(&"is_solicited", false)
 			blackboard.set_var(&"requested_grams", 0)
 			blackboard.set_var(&"offered_payout", 0)
+			blackboard.set_var(&"last_known_position", Vector2.ZERO)
+			blackboard.set_var(&"has_line_of_sight", false)
+			blackboard.set_var(&"is_searching", false)
+			blackboard.set_var(&"search_anchor", Vector2.ZERO)
 
 # --- Damage Interface ---
 # Called by BulletBase when a projectile hits this body.
@@ -281,6 +294,14 @@ func _handle_solicited_interaction(player: Player) -> void:
 			inv.remove_drug(found_drug_id, grams)
 			player.progression.money += payout
 			
+			# Apply Heat
+			# In a larger system, we'd lookup the actual resource. Using def values here.
+			var base_heat = 1.0
+			var risk_mult = 1.0
+			var sale_heat = base_heat * grams * risk_mult
+			if has_node("/root/HeatManager"):
+				get_node("/root/HeatManager").add_heat(sale_heat)
+			
 			# XP and Indicators
 			var sale_xp = int(grams * 5) # Example: 5 XP per gram
 			player.progression.xp += sale_xp
@@ -300,8 +321,14 @@ func _handle_solicited_interaction(player: Player) -> void:
 			blackboard.set_var(&"is_solicited", false)
 			_is_interacting = false
 			blackboard.set_var(&"is_interacting", false)
-			if player and player.get("current_interactable") == self:
-				player._is_interacting = false
+			
+			# CRITICAL: Force unregister from player to prevent re-interaction prompt
+			if player:
+				player.unregister_interactable(self)
+				if player.get("current_interactable") == self:
+					player._is_interacting = false
+					player.current_interactable = null
+			
 			_update_ui_icon()
 		else:
 			if npc_ui:
@@ -313,8 +340,14 @@ func _handle_solicited_interaction(player: Player) -> void:
 				blackboard.set_var(&"is_solicited", false)
 				_is_interacting = false
 				blackboard.set_var(&"is_interacting", false)
-				if player and player.get("current_interactable") == self:
-					player._is_interacting = false
+				
+				# CRITICAL: Force unregister from player to prevent re-interaction prompt
+				if player:
+					player.unregister_interactable(self)
+					if player.get("current_interactable") == self:
+						player._is_interacting = false
+						player.current_interactable = null
+				
 				_update_ui_icon()
 				if npc_ui:
 					npc_ui.hide_dialog_bubble()
@@ -356,4 +389,6 @@ func _on_damage_taken(amount: int) -> void:
 		npc_ui.spawn_indicator("damage", str(amount))
 
 func _on_died() -> void:
+	if has_node("/root/HeatManager"):
+		get_node("/root/HeatManager").on_kill(role)
 	queue_free()

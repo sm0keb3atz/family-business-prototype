@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://b4f265v0vlaic"]
+
+[ext_resource type="Texture2D" uid="uid://ctjsig54psliq" path="res://GAME/assets/ui/chracter creator ui.png" id="1_20msg"]
+[ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="2_0yvwx"]
+[ext_resource type="Texture2D" uid="uid://lrt8kdirorfv" path="res://GAME/assets/ui/chracter creator ui buttons.png" id="3_is7j0"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_mtvug"]
+texture = ExtResource("1_20msg")
+texture_margin_right = 1.0
+region_rect = Rect2(82, 61, 118, 86)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_n6ho2"]
+content_margin_bottom = 18.0
+texture = ExtResource("3_is7j0")
+region_rect = Rect2(176, 135, 19, 9)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_o3kb0"]
+texture = ExtResource("3_is7j0")
+region_rect = Rect2(176, 124, 19, 9)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lv5sd"]
+texture = ExtResource("3_is7j0")
+region_rect = Rect2(176, 146, 19, 9)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tgdj4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_x26me"]
+
+[node name="Control" type="Control" unique_id=1403373414]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="." unique_id=1450617308]
+texture_filter = 1
+layout_mode = 0
+offset_right = 1920.0
+offset_bottom = 1080.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_mtvug")
+
+[node name="Label" type="Label" parent="." unique_id=2036539280]
+texture_filter = 1
+layout_mode = 0
+offset_left = 333.0
+offset_top = 234.0
+offset_right = 559.0
+offset_bottom = 429.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_0yvwx")
+theme_override_font_sizes/font_size = 70
+text = "name:
+"
+
+[node name="Label2" type="Label" parent="." unique_id=453304898]
+texture_filter = 1
+layout_mode = 0
+offset_left = 333.0
+offset_top = 321.0
+offset_right = 559.0
+offset_bottom = 516.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_0yvwx")
+theme_override_font_sizes/font_size = 70
+text = "race
+"
+
+[node name="Button" type="Button" parent="." unique_id=913691485]
+texture_filter = 1
+layout_mode = 0
+offset_left = 1523.0
+offset_top = 907.0
+offset_right = 1871.0
+offset_bottom = 1002.0
+theme_override_fonts/font = ExtResource("2_0yvwx")
+theme_override_font_sizes/font_size = 70
+theme_override_styles/normal = SubResource("StyleBoxTexture_n6ho2")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_o3kb0")
+theme_override_styles/hover = SubResource("StyleBoxTexture_lv5sd")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_tgdj4")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_x26me")
+text = "PLAY"

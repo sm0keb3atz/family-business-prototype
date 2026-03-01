@@ -29,6 +29,7 @@ class_name WeaponBase
 @export var empty_mag_sound: AudioStream
 @export var shake_intensity: float = 0.7
 @export var shake_duration: float = 0.5 # No longer used but kept for data compatibility if needed
+var shooter: Node2D # The character firing this weapon
 
 var is_reloading: bool = false # Local tracking for animation state if needed
 
@@ -117,6 +118,9 @@ func fire() -> void:
 	_spawn_bullet()
 	_play_fire_effects()
 	recoil_component.apply_recoil()
+	
+	if shooter and shooter.is_in_group("player") and has_node("/root/HeatManager"):
+		get_node("/root/HeatManager").on_gunshot(global_position)
 
 func reload() -> void:
 	if is_reloading or not ammo_component.can_reload():
@@ -152,7 +156,7 @@ func _spawn_bullet() -> void:
 	dir = spread_component.get_spread_direction(dir)
 	
 	bullet.global_position = fire_point.global_position if fire_point else global_position
-	bullet.initialize(dir, weapon_data.damage)
+	bullet.initialize(dir, weapon_data.damage, shooter if shooter else owner)
 	
 	get_tree().current_scene.add_child(bullet)
 
@@ -181,13 +185,14 @@ func _play_fire_effects() -> void:
 		audio_stream_player_2d.stream = shoot_sound
 		audio_stream_player_2d.play()
 	
-	# Trigger Screen Shake
-	var cameras = get_tree().get_nodes_in_group("camera")
-	for cam in cameras:
-		if cam.has_method("add_trauma"):
-			cam.add_trauma(shake_intensity)
-		elif cam.has_method("shake"):
-			cam.shake(shake_intensity, shake_duration)
+	# Trigger Screen Shake (Only if player is the shooter)
+	if shooter and shooter.is_in_group("player"):
+		var cameras = get_tree().get_nodes_in_group("camera")
+		for cam in cameras:
+			if cam.has_method("add_trauma"):
+				cam.add_trauma(shake_intensity)
+			elif cam.has_method("shake"):
+				cam.shake(shake_intensity, shake_duration)
 		
 	# Only use manual effects/fallback if no animation handled it
 	if not animation_played:

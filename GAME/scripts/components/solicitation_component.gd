@@ -52,15 +52,20 @@ func solicit() -> void:
 			var dist = player.global_position.distance_to(npc.global_position)
 			if dist <= config.radius:
 				if randf() * 100.0 <= config.base_chance_percent:
-					_convert_to_customer(npc)
+					_convert_to_customer(npc, player)
 
-func _convert_to_customer(npc: Node2D) -> void:
+func _convert_to_customer(npc: Node2D, player: Player) -> void:
 	if npc is NPC and npc.blackboard:
 		print("Solicitation: Converting NPC ", npc.name, " to customer")
 		npc.blackboard.set_var(&"is_solicited", true)
 		npc.blackboard.set_var(&"requested_grams", randi_range(config.min_request_grams, config.max_request_grams))
 		var payout_per_gram = randi_range(config.min_payout_per_gram, config.max_payout_per_gram)
 		npc.blackboard.set_var(&"offered_payout", npc.blackboard.get_var(&"requested_grams") * payout_per_gram)
+		
+		# Initialize movement vars for ApproachPlayer action
+		npc.blackboard.set_var(&"target", player)
+		npc.blackboard.set_var(&"last_known_position", player.global_position)
+		npc.blackboard.set_var(&"has_line_of_sight", true)
 		
 		if npc.has_method("_update_ui_icon"):
 			npc._update_ui_icon()
