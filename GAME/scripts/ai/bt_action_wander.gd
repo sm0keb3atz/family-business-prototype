@@ -33,6 +33,12 @@ func _tick(_delta: float) -> Status:
 	if not npc or not npc.movement_component or not npc.nav_agent:
 		return FAILURE
 
+	# Police should never wander while wanted — force search behavior instead
+	if npc.role == NPC.Role.POLICE:
+		var hm: Node = npc.get_node_or_null("/root/HeatManager")
+		if hm and hm.wanted_stars >= 1:
+			return FAILURE
+
 	if not _target_set:
 		return FAILURE
 

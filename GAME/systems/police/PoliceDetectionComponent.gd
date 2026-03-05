@@ -57,13 +57,26 @@ func _update_radius_for_stars(stars: int) -> void:
 func _physics_process(delta: float) -> void:
 	if is_player_inside and is_instance_valid(player_ref):
 		# Check if player is armed
-		var is_armed = false
+		var is_armed: bool = false
 		if player_ref.weapon_holder_component and player_ref.weapon_holder_component.current_weapon:
 			is_armed = true
 			
 		if is_armed:
 			if has_node("/root/HeatManager"):
 				get_node("/root/HeatManager").add_heat(HeatConfig.ARMED_HEAT_RATE * delta)
+		
+		# When wanted, directly update THIS officer's blackboard so the BT reacts
+		# to the player being right here inside the detection area
+		var npc: NPC = get_parent() as NPC
+		if npc and npc.blackboard:
+			var hm: Node = get_node_or_null("/root/HeatManager")
+			if hm and hm.wanted_stars >= 1:
+				var vel: Vector2 = player_ref.velocity if player_ref is CharacterBody2D else Vector2.ZERO
+				npc.blackboard.set_var(&"last_known_position", player_ref.global_position)
+				npc.blackboard.set_var(&"last_known_velocity", vel)
+				npc.blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
+				npc.blackboard.set_var(&"has_line_of_sight", true)
+				npc.blackboard.set_var(&"is_searching", false)
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):

@@ -4,44 +4,64 @@ class_name BTActionMoveToLastKnown
 
 @export var tolerance: float = 20.0
 
+## Maximum seconds of projection for intercept prediction.
+const MAX_PREDICTION_TIME: float = 2.0
+## Maximum distance the projected intercept may extend from LKP.
+const MAX_PROJECTION_DIST: float = 400.0
+
 func _tick(delta: float) -> Status:
 	if not agent or not blackboard:
 		return FAILURE
 		
-	var nav_agent = agent.get_node_or_null("%NavigationAgent2D")
+	var nav_agent: NavigationAgent2D = agent.get_node_or_null("%NavigationAgent2D")
 	if not nav_agent:
 		return FAILURE
 		
 	if not blackboard.has_var(&"last_known_position"):
 		return FAILURE
 		
-	var last_known = blackboard.get_var(&"last_known_position", Vector2.ZERO)
+	var last_known: Vector2 = blackboard.get_var(&"last_known_position", Vector2.ZERO)
 	if last_known == Vector2.ZERO:
 		return FAILURE
 
 	# INTERCEPT LOGIC: Don't just go to where they WERE, go to where they are GOING
-	var lkv = blackboard.get_var(&"last_known_velocity", Vector2.ZERO)
-	var target_pos = last_known
+	var lkv: Vector2 = blackboard.get_var(&"last_known_velocity", Vector2.ZERO)
+	var target_pos: Vector2 = last_known
 	
 	if lkv.length() > 50.0:
 		# Calculate distance to LKP
-		var dist = agent.global_position.distance_to(last_known)
-		var time_to_reach = dist / agent.stats.move_speed
-		# Project player position ahead
-		target_pos = last_known + (lkv * time_to_reach * 0.8) # 80% confidence projection
+		var dist: float = agent.global_position.distance_to(last_known)
+		var time_to_reach: float = minf(dist / agent.stats.move_speed, MAX_PREDICTION_TIME)
+		# Project player position ahead, capped
+		var projection: Vector2 = lkv * time_to_reach * 0.8
+		if projection.length() > MAX_PROJECTION_DIST:
+			projection = projection.normalized() * MAX_PROJECTION_DIST
+		target_pos = last_known + projection
 
 	# FLANKING/SURROUND LOGIC: Each officer approaches from a slightly different angle
 	if not blackboard.has_var(&"approach_offset"):
 		# Persistence: Generate a perpendicular offset
-		var perp = Vector2(-lkv.y, lkv.x).normalized() if lkv != Vector2.ZERO else Vector2.UP
+		var perp: Vector2 = Vector2(-lkv.y, lkv.x).normalized() if lkv != Vector2.ZERO else Vector2.UP
 		if randf() < 0.5: perp = -perp
-		var offset = perp * randf_range(100.0, 300.0)
+		# Scale offset by distance — smaller when far away for tighter convergence
+		var dist: float = agent.global_position.distance_to(last_known)
+		var dist_factor: float = clampf(dist / 500.0, 0.3, 1.0)
+		var offset: Vector2 = perp * randf_range(60.0, 200.0) * dist_factor
 		blackboard.set_var(&"approach_offset", offset)
 	
-	var approach_target = target_pos + blackboard.get_var(&"approach_offset", Vector2.ZERO)
+	var approach_target: Vector2 = target_pos + blackboard.get_var(&"approach_offset", Vector2.ZERO)
+	
+	# Validate target against nav mesh (edge margin + leash)
+	var map: RID = nav_agent.get_navigation_map()
+	var result: Dictionary = NavTargetValidator.validate_target(map, approach_target, last_known)
+	if result.valid:
+		approach_target = result.point
+	else:
+		approach_target = NavigationServer2D.map_get_closest_point(map, last_known)
+	
 	nav_agent.target_position = approach_target
 	
-	var dist_to_target = agent.global_position.distance_to(approach_target)
+	var dist_to_target: float = agent.global_position.distance_to(approach_target)
 	
 	# Transition to search if we arrive at the intercept/flank point
 	if dist_to_target <= tolerance or nav_agent.is_navigation_finished():

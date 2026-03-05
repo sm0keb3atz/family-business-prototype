@@ -36,11 +36,17 @@ func _tick(delta: float) -> Status:
 		# Clear LOS
 		blackboard.set_var(&"has_line_of_sight", true)
 		blackboard.set_var(&"last_known_position", target.global_position)
-		blackboard.set_var(&"is_searching", false)
+		blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
+		
+		# Hysteresis: only clear is_searching if cooldown period expired
+		var search_cooldown_until: float = blackboard.get_var(&"search_cooldown_until", 0.0)
+		var now: float = Time.get_ticks_msec() / 1000.0
+		if now > search_cooldown_until:
+			blackboard.set_var(&"is_searching", false)
 		
 		# Shared Intel: Broadcast to all police
 		if agent.has_node("/root/HeatManager"):
-			var vel = target.velocity if target is CharacterBody2D else Vector2.ZERO
+			var vel: Vector2 = target.velocity if target is CharacterBody2D else Vector2.ZERO
 			agent.get_node("/root/HeatManager").broadcast_player_position(target.global_position, vel)
 			
 		return SUCCESS

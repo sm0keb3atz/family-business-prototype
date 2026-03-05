@@ -68,10 +68,14 @@ func _ready() -> void:
 		shop_comp.tier_config = tier
 		add_child(shop_comp)
 	elif role == Role.POLICE:
-		var detect_comp = PoliceDetectionComponent.new()
+		var detect_comp: PoliceDetectionComponent = PoliceDetectionComponent.new()
 		detect_comp.name = "PoliceDetectionComponent"
 		detect_comp.detection_radius = 350.0 # Standard base radius
 		add_child(detect_comp)
+		# Debug overlay for visual telemetry (toggle via PoliceDebugOverlay.DEBUG_POLICE)
+		var debug_overlay: PoliceDebugOverlay = PoliceDebugOverlay.new()
+		debug_overlay.name = "PoliceDebugOverlay"
+		add_child(debug_overlay)
 	
 	_update_ui_icon()
 
@@ -165,6 +169,11 @@ func _inject_dependencies() -> void:
 		nav_agent.neighbor_distance = 50.0
 		nav_agent.max_neighbors = 3
 		nav_agent.time_horizon_agents = 0.5
+		# Police get wider avoidance to prevent bunching during pursuits
+		if role == Role.POLICE:
+			nav_agent.neighbor_distance = 80.0
+			nav_agent.max_neighbors = 5
+			nav_agent.time_horizon_agents = 0.8
 
 	if footstep_component:
 		footstep_component.animation_player = %AnimationPlayer
@@ -204,9 +213,14 @@ func _on_velocity_computed(safe_velocity: Vector2) -> void:
 		if _hitstun_duration > 0 or _is_interacting:
 			movement_component.move_velocity(Vector2.ZERO)
 			return
-		movement_component.move_velocity(safe_velocity)
+		# Smooth velocity for less robotic movement
+		var smoothed: Vector2 = velocity.lerp(safe_velocity, 0.15)
+		# Snap to zero when nearly stopped to prevent animation flicker
+		if smoothed.length_squared() < 25.0: # < 5 px/s
+			smoothed = Vector2.ZERO
+		movement_component.move_velocity(smoothed)
 		if animation_component:
-			animation_component.update_animation(safe_velocity)
+			animation_component.update_animation(smoothed)
 
 
 func _setup_bt() -> void:
@@ -230,6 +244,9 @@ func _setup_bt() -> void:
 			blackboard.set_var(&"has_line_of_sight", false)
 			blackboard.set_var(&"is_searching", false)
 			blackboard.set_var(&"search_anchor", Vector2.ZERO)
+			blackboard.set_var(&"last_seen_time", 0.0)
+			blackboard.set_var(&"search_cooldown_until", 0.0)
+			blackboard.set_var(&"search_role", "")
 
 # --- Damage Interface ---
 # Called by BulletBase when a projectile hits this body.

@@ -134,14 +134,6 @@ func update_heat(delta: float) -> void:
 		var target_heat = 0.0
 		if wanted_stars == 1:
 			target_heat = HeatConfig.ONE_STAR_DECAY_TARGET
-			
-			# HEARTBEAT BROADCAST: Keep police informed of player location every 1.8 seconds at 1 star
-			_broadcast_timer += delta
-			if _broadcast_timer >= 1.8:
-				_broadcast_timer = 0.0
-				var player = get_tree().get_first_node_in_group("player")
-				if player:
-					broadcast_player_position(player.global_position, player.velocity if "velocity" in player else Vector2.ZERO)
 		
 		if heat_value > target_heat:
 			var new_heat = move_toward(heat_value, target_heat, HeatConfig.BASE_DECAY_RATE * delta)
@@ -149,9 +141,6 @@ func update_heat(delta: float) -> void:
 			
 			if wanted_stars == 1 and heat_value <= HeatConfig.ONE_STAR_DECAY_TARGET:
 				set_stars(0)
-	elif wanted_stars == 1 and is_player_detected:
-		# Reset broadcast timer if seen, so it doesn't fire immediately upon losing LOS
-		_broadcast_timer = 0.0
 
 func is_heat_locked() -> bool:
 	return star_lock
@@ -189,11 +178,17 @@ func broadcast_player_position(pos: Vector2, vel: Vector2 = Vector2.ZERO) -> voi
 	if pos == Vector2.ZERO:
 		return
 		
-	var npcs = get_tree().get_nodes_in_group("npc")
+	var npcs: Array[Node] = get_tree().get_nodes_in_group("npc")
+	var role_index: int = 0
+	var roles: Array[String] = ["tracker", "cutoff", "sweeper"]
 	for npc in npcs:
 		if npc is NPC and npc.role == NPC.Role.POLICE and npc.blackboard:
 			# Update last known position for all police
 			npc.blackboard.set_var(&"last_known_position", pos)
 			npc.blackboard.set_var(&"last_known_velocity", vel)
+			npc.blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
+			# Assign squad search roles so officers fan out
+			npc.blackboard.set_var(&"search_role", roles[role_index % roles.size()])
+			role_index += 1
 			# Found him! Stop searching and move to him
 			npc.blackboard.set_var(&"is_searching", false)

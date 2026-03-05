@@ -6,7 +6,6 @@
 [ext_resource type="Script" uid="uid://cry2beh2v5t32" path="res://GAME/scripts/ai/bt_action_check_line_of_sight.gd" id="4_los"]
 [ext_resource type="Script" uid="uid://bddgitc3rx1pq" path="res://GAME/scripts/ai/bt_action_shoot_target.gd" id="5_shoot"]
 [ext_resource type="Script" uid="uid://dlo7t6eisp47u" path="res://GAME/scripts/ai/bt_action_move_to_last_known.gd" id="6_lastk"]
-[ext_resource type="Script" uid="uid://dinjl8bhuot8o" path="res://GAME/scripts/ai/bt_action_wander.gd" id="7_wand"]
 [ext_resource type="Script" uid="uid://c3bglftf0mqwq" path="res://GAME/scripts/ai/bt_action_check_arrest_range.gd" id="8_arr_rng"]
 [ext_resource type="Script" uid="uid://bujabljva1iy8" path="res://GAME/scripts/ai/bt_action_slow_player.gd" id="9_slow"]
 [ext_resource type="Script" uid="uid://btl2x5bo05mig" path="res://GAME/scripts/ai/bt_action_handle_arrest_outcome.gd" id="10_arr_out"]
@@ -50,11 +49,8 @@ search_radius = 400.0
 [sub_resource type="BTSequence" id="seq_search"]
 children = [SubResource("cond_is_searching"), SubResource("act_do_search")]
 
-[sub_resource type="BTAction" id="act_search"]
-script = ExtResource("7_wand")
-
 [sub_resource type="BTDynamicSelector" id="sel_combat_act"]
-children = [SubResource("seq_shoot"), SubResource("act_mv_lk"), SubResource("seq_search"), SubResource("act_search")]
+children = [SubResource("seq_shoot"), SubResource("act_mv_lk"), SubResource("seq_search")]
 
 [sub_resource type="BTSequence" id="seq_combat"]
 children = [SubResource("cond_combat"), SubResource("act_draw"), SubResource("act_aggro"), SubResource("sel_combat_act")]
