@@ -247,6 +247,8 @@ func _setup_bt() -> void:
 			blackboard.set_var(&"last_seen_time", 0.0)
 			blackboard.set_var(&"search_cooldown_until", 0.0)
 			blackboard.set_var(&"search_role", "")
+			blackboard.set_var(&"confidence", 0.0)
+			blackboard.set_var(&"last_known_velocity", Vector2.ZERO)
 
 # --- Damage Interface ---
 # Called by BulletBase when a projectile hits this body.

@@ -14,6 +14,7 @@
 [ext_resource type="Script" uid="uid://bseobl0qulstk" path="res://GAME/scripts/ai/bt_action_approach_player.gd" id="13_appr"]
 [ext_resource type="Script" uid="uid://dek303whn6v5q" path="res://GAME/scripts/ai/bt_condition_is_searching.gd" id="14_cond_srch"]
 [ext_resource type="Script" uid="uid://fv50dbbm3h1c" path="res://GAME/scripts/ai/bt_action_search_area.gd" id="15_act_srch"]
+[ext_resource type="Script" uid="uid://bfkd7s84casol" path="res://GAME/scripts/ai/bt_decorator_commit_window.gd" id="16_commit"]
 
 [sub_resource type="BlackboardPlan" id="BbPlan_police"]
 
@@ -55,6 +56,11 @@ children = [SubResource("seq_shoot"), SubResource("act_mv_lk"), SubResource("seq
 [sub_resource type="BTSequence" id="seq_combat"]
 children = [SubResource("cond_combat"), SubResource("act_draw"), SubResource("act_aggro"), SubResource("sel_combat_act")]
 
+[sub_resource type="BTDecorator" id="commit_combat"]
+children = [SubResource("seq_combat")]
+script = ExtResource("16_commit")
+commit_key = &"_commit_until_combat"
+
 [sub_resource type="BTCondition" id="cond_arrest"]
 script = ExtResource("1_wstars")
 comparison = "=="
@@ -84,6 +90,12 @@ children = [SubResource("seq_do_arrest"), SubResource("act_appr")]
 [sub_resource type="BTSequence" id="seq_arrest"]
 children = [SubResource("cond_arrest"), SubResource("act_aggro_arr"), SubResource("sel_arrest_act")]
 
+[sub_resource type="BTDecorator" id="commit_arrest"]
+children = [SubResource("seq_arrest")]
+script = ExtResource("16_commit")
+min_commit_seconds = 2.0
+commit_key = &"_commit_until_arrest"
+
 [sub_resource type="BTAction" id="act_patrol_mv"]
 script = ExtResource("12_path")
 
@@ -96,7 +108,7 @@ max_duration = 3.0
 children = [SubResource("act_patrol_mv"), SubResource("act_patrol_wt")]
 
 [sub_resource type="BTDynamicSelector" id="root_sel"]
-children = [SubResource("seq_combat"), SubResource("seq_arrest"), SubResource("seq_patrol")]
+children = [SubResource("commit_combat"), SubResource("commit_arrest"), SubResource("seq_patrol")]
 
 [resource]
 blackboard_plan = SubResource("BbPlan_police")

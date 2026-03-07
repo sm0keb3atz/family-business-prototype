@@ -2,48 +2,22 @@
 
 [ext_resource type="Texture2D" uid="uid://dgf2olh1cwum4" path="res://GAME/assets/ui/newhud.png" id="1_al4ug"]
 [ext_resource type="Script" uid="uid://cgtlgcb34jpb6" path="res://GAME/scripts/ui/hud.gd" id="2_hud"]
-[ext_resource type="Texture2D" uid="uid://bq2oct5kr6jnd" path="res://GAME/assets/ui/Progress Bar/PGBO.png" id="3_iw68g"]
-[ext_resource type="Texture2D" uid="uid://dvxmhii421ipd" path="res://GAME/assets/ui/Progress Bar/PGBF4.png" id="4_o4n1q"]
-[ext_resource type="Texture2D" uid="uid://b22y33g7t4g7r" path="res://GAME/assets/ui/Progress Bar/PGBF2.png" id="5_1o6fb"]
+[ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="3_iw68g"]
+[ext_resource type="Texture2D" uid="uid://cmbmd3uuppjex" path="res://GAME/assets/ui/Progress Bar/04.png" id="4_o4n1q"]
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="6_o4n1q"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lqaif"]
-texture = ExtResource("3_iw68g")
-texture_margin_left = 11.0
-texture_margin_top = 11.0
-texture_margin_right = 11.0
-texture_margin_bottom = 17.0
-expand_margin_left = 10.0
-expand_margin_top = 10.0
-expand_margin_right = 10.0
-expand_margin_bottom = 16.0
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_w5jbv"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1o6fb"]
 texture = ExtResource("4_o4n1q")
-texture_margin_left = 3.0
-texture_margin_top = 3.0
-texture_margin_right = 3.0
-texture_margin_bottom = 3.0
-region_rect = Rect2(0, 0, 133, 14)
+texture_margin_left = 10.0
+texture_margin_right = 10.0
+region_rect = Rect2(51, 38, 42, 5)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vmk76"]
-texture = ExtResource("3_iw68g")
-texture_margin_left = 11.0
-texture_margin_top = 11.0
-texture_margin_right = 11.0
-texture_margin_bottom = 17.0
-expand_margin_left = 10.0
-expand_margin_top = 10.0
-expand_margin_right = 10.0
-expand_margin_bottom = 16.0
-region_rect = Rect2(0, 0, 151, 38)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3dept"]
-texture = ExtResource("5_1o6fb")
-texture_margin_left = 3.0
-texture_margin_top = 3.0
-texture_margin_right = 3.0
-texture_margin_bottom = 3.0
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lqaif"]
+texture = ExtResource("4_o4n1q")
+texture_margin_left = 10.0
+texture_margin_right = 10.0
+region_rect = Rect2(51, 6, 42, 5)
+modulate_color = Color(5.2618666, 5.2618666, 0, 1)
 
 [node name="HUDCanvas" type="CanvasLayer" unique_id=1040860233]
 layer = 100
@@ -56,27 +30,27 @@ offset_bottom = 40.0
 texture = ExtResource("1_al4ug")
 
 [node name="HealthBar" type="ProgressBar" parent="Hud" unique_id=1584514550]
+custom_minimum_size = Vector2(10, 10)
 layout_mode = 0
 offset_left = 26.0
-offset_top = 984.0
-offset_right = 226.0
-offset_bottom = 1035.0
-scale = Vector2(1.3, 0.35)
+offset_top = 994.0
+offset_right = 149.0
+offset_bottom = 1021.0
+scale = Vector2(2, 0.5)
+theme = ExtResource("3_iw68g")
 theme_override_colors/font_color = Color(0, 0, 0, 0)
-theme_override_styles/background = SubResource("StyleBoxTexture_lqaif")
-theme_override_styles/fill = SubResource("StyleBoxTexture_w5jbv")
 value = 100.0
 
 [node name="XPBar" type="ProgressBar" parent="Hud" unique_id=1943781171]
 layout_mode = 0
-offset_left = 25.999998
-offset_top = 1038.0
-offset_right = 226.0
-offset_bottom = 1089.0
-scale = Vector2(1.3, 0.35)
+offset_left = 26.0
+offset_top = 1033.0
+offset_right = 149.0
+offset_bottom = 1060.0
+scale = Vector2(2, 0.5)
+theme = ExtResource("3_iw68g")
 theme_override_colors/font_color = Color(0, 0, 0, 0)
-theme_override_styles/background = SubResource("StyleBoxTexture_vmk76")
-theme_override_styles/fill = SubResource("StyleBoxTexture_3dept")
+theme_override_styles/fill = SubResource("StyleBoxTexture_1o6fb")
 max_value = 1000.0
 value = 500.0
 
@@ -99,12 +73,15 @@ text = "$0"
 
 [node name="HeatBar" type="ProgressBar" parent="Hud" unique_id=123456789]
 layout_mode = 0
-offset_left = 1600.0
-offset_top = 40.0
-offset_right = 1850.0
-offset_bottom = 60.0
+offset_left = 1721.0001
+offset_top = 48.0
+offset_right = 1836.0001
+offset_bottom = 75.0
+scale = Vector2(1.5, 0.5)
+theme = ExtResource("3_iw68g")
 theme_override_colors/font_color = Color(0, 0, 0, 0)
-value = 0.0
+theme_override_styles/fill = SubResource("StyleBoxTexture_lqaif")
+value = 1.37
 
 [node name="StarsContainer" type="HBoxContainer" parent="Hud" unique_id=987654321]
 layout_mode = 0

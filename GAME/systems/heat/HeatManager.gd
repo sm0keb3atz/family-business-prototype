@@ -3,6 +3,8 @@ extends Node
 signal heat_changed(value: float)
 signal stars_changed(value: int)
 signal star_lock_changed(state: bool)
+signal player_sighted(pos: Vector2, vel: Vector2)
+signal player_lost()
 
 var heat_value: float = 0.0
 var wanted_stars: int = 0
@@ -177,7 +179,10 @@ func on_kill(role: int) -> void:
 func broadcast_player_position(pos: Vector2, vel: Vector2 = Vector2.ZERO) -> void:
 	if pos == Vector2.ZERO:
 		return
-		
+
+	# Emit event-driven signal for any listeners
+	player_sighted.emit(pos, vel)
+
 	var npcs: Array[Node] = get_tree().get_nodes_in_group("npc")
 	var role_index: int = 0
 	var roles: Array[String] = ["tracker", "cutoff", "sweeper"]
@@ -187,6 +192,11 @@ func broadcast_player_position(pos: Vector2, vel: Vector2 = Vector2.ZERO) -> voi
 			npc.blackboard.set_var(&"last_known_position", pos)
 			npc.blackboard.set_var(&"last_known_velocity", vel)
 			npc.blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
+			# Set confidence to broadcast level (not as strong as direct LOS)
+			var dist: float = npc.global_position.distance_to(pos)
+			var conf: float = IntelConfidence.calculate_confidence(dist, false)
+			# Broadcast intel is weaker than direct LOS — cap at 0.6
+			npc.blackboard.set_var(&"confidence", minf(conf + 0.4, 0.6))
 			# Assign squad search roles so officers fan out
 			npc.blackboard.set_var(&"search_role", roles[role_index % roles.size()])
 			role_index += 1
