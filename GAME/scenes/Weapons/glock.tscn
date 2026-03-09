@@ -1,11 +1,11 @@
 [gd_scene format=4 uid="uid://bg8l1demnyeaj"]
 
-[ext_resource type="Texture2D" uid="uid://wd624r2o3py8" path="res://GAME/assets/sprites/weapons/pistol/[SHOOT WITH CASING AND MUZZLE FLASH] Glock - P80 Hands.png" id="1_7quf3"]
 [ext_resource type="Script" uid="uid://br7q02oqdnv34" path="res://GAME/scripts/weapons/weapon_base.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bbg25867tf438" path="res://GAME/assets/sprites/weapons/pistol/[RELOAD] Glock - P80.png" id="2_y2gkh"]
 [ext_resource type="Texture2D" uid="uid://dibbs7kcb7fwl" path="res://GAME/assets/sprites/weapons/pistol/[RELOAD MAGAZINE] Glock - P80.png" id="3_8utup"]
 [ext_resource type="Texture2D" uid="uid://cocso1d4h7aed" path="res://GAME/assets/sprites/weapons/muzzleflash/muzzle_05_rotated.png" id="4_igi3d"]
 [ext_resource type="Texture2D" uid="uid://1wto06cni4tl" path="res://GAME/assets/sprites/weapons/muzzleflash/muzzle_03_rotated.png" id="5_4lovf"]
+[ext_resource type="Texture2D" uid="uid://fvkq6n2gwyf7" path="res://GAME/assets/sprites/weapons/pistol/glocklv1.png" id="5_vilbo"]
 [ext_resource type="Texture2D" uid="uid://bg3xxwputjvfy" path="res://GAME/assets/sprites/weapons/muzzleflash/muzzle_02_rotated.png" id="6_06pcq"]
 [ext_resource type="Texture2D" uid="uid://t2b3sau5l7lh" path="res://GAME/assets/sprites/weapons/muzzleflash/muzzle_04_rotated.png" id="7_6wfj4"]
 [ext_resource type="Texture2D" uid="uid://4m1datyi3rd4" path="res://GAME/assets/sprites/weapons/muzzleflash/muzzle_01_rotated.png" id="8_0esi8"]
@@ -453,7 +453,7 @@ empty_mag_sound = ExtResource("18_slide")
 [node name="Glock" type="Node2D" parent="." unique_id=353807591]
 
 [node name="GlockShoot" type="Sprite2D" parent="Glock" unique_id=1995949675]
-texture = ExtResource("1_7quf3")
+texture = ExtResource("5_vilbo")
 hframes = 12
 
 [node name="GlockReload" type="Sprite2D" parent="Glock" unique_id=683362870]

@@ -7,14 +7,20 @@
 shader = ExtResource("1_shader")
 shader_parameter/radius = 0.2430000115425
 shader_parameter/thickness = 0.0
-shader_parameter/color = Color(0.23998213, 0.56892264, 0.9943109, 0.7882353)
-shader_parameter/feather = 0.070000003325
-shader_parameter/secondary_radius_offset = 0.050000002375
-shader_parameter/chromatic_aberration = 0.010000000475
-shader_parameter/scanline_intensity = 0.2730000129675
-shader_parameter/noise_intensity = 0.1090000051775
-shader_parameter/refraction_strength = 1.0
-shader_parameter/glitch_intensity = 0.0430000020425
+shader_parameter/color = Color(0.003313321, 0.22885644, 0.89147604, 1)
+shader_parameter/feather = 0.022000001045
+shader_parameter/secondary_radius_offset = 0.05600000266
+shader_parameter/chromatic_aberration = 0.0
+shader_parameter/scanline_intensity = 0.142000006745
+shader_parameter/noise_intensity = 0.0850000040375
+shader_parameter/refraction_strength = 0.3450000163875
+shader_parameter/glitch_intensity = 0.0
+shader_parameter/glow_strength = 0.6790000322525
+shader_parameter/fill_strength = 0.2750000130625
+shader_parameter/edge_flash_strength = 0.45
+shader_parameter/ripple_strength = 0.0410000019475
+shader_parameter/ripple_density = 29.00000133
+shader_parameter/swirl_strength = 0.02000000095
 
 [node name="SolicitationPulse" type="ColorRect" unique_id=1624761402]
 material = SubResource("ShaderMaterial_pulse")
@@ -22,7 +28,4 @@ offset_right = 40.0
 offset_bottom = 40.0
 mouse_filter = 2
 script = ExtResource("2_script")
-pulse_color = Color(0.19966345, 0.44044712, 0.9008019, 0.78400004)
-thickness = 0.0
-duration = 0.7
-fade_power = 3.0
+pulse_color = Color(0.003921569, 0.22745098, 0.8901961, 1)
