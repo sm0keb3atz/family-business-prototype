@@ -1,11 +1,12 @@
 [gd_scene format=4 uid="uid://bg8l1demnyeaj"]
 
 [ext_resource type="Script" uid="uid://br7q02oqdnv34" path="res://GAME/scripts/weapons/weapon_base.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://dshtykva4hxxj" path="res://GAME/resources/weapons/glock_lv2.tres" id="2_21lxf"]
 [ext_resource type="Texture2D" uid="uid://bbg25867tf438" path="res://GAME/assets/sprites/weapons/pistol/[RELOAD] Glock - P80.png" id="2_y2gkh"]
 [ext_resource type="Texture2D" uid="uid://dibbs7kcb7fwl" path="res://GAME/assets/sprites/weapons/pistol/[RELOAD MAGAZINE] Glock - P80.png" id="3_8utup"]
 [ext_resource type="Texture2D" uid="uid://cocso1d4h7aed" path="res://GAME/assets/sprites/weapons/muzzleflash/muzzle_05_rotated.png" id="4_igi3d"]
 [ext_resource type="Texture2D" uid="uid://1wto06cni4tl" path="res://GAME/assets/sprites/weapons/muzzleflash/muzzle_03_rotated.png" id="5_4lovf"]
-[ext_resource type="Texture2D" uid="uid://fvkq6n2gwyf7" path="res://GAME/assets/sprites/weapons/pistol/glocklv1.png" id="5_vilbo"]
+[ext_resource type="Texture2D" uid="uid://cg3qn52npy67f" path="res://GAME/assets/sprites/weapons/pistol/glocklv3.png" id="5_axtdp"]
 [ext_resource type="Texture2D" uid="uid://bg3xxwputjvfy" path="res://GAME/assets/sprites/weapons/muzzleflash/muzzle_02_rotated.png" id="6_06pcq"]
 [ext_resource type="Texture2D" uid="uid://t2b3sau5l7lh" path="res://GAME/assets/sprites/weapons/muzzleflash/muzzle_04_rotated.png" id="7_6wfj4"]
 [ext_resource type="Texture2D" uid="uid://4m1datyi3rd4" path="res://GAME/assets/sprites/weapons/muzzleflash/muzzle_01_rotated.png" id="8_0esi8"]
@@ -17,9 +18,7 @@
 [ext_resource type="Script" uid="uid://1es0osc8xjg1" path="res://GAME/scripts/components/weapon/spread_component.gd" id="14_spread"]
 [ext_resource type="AudioStream" uid="uid://disotn7loclr0" path="res://GAME/assets/audio/weapons/glock/9mm Pistol Reload 1.wav" id="15_0esi8"]
 [ext_resource type="AudioStream" uid="uid://mqbdoxjaunlu" path="res://GAME/assets/audio/weapons/glock/9mm Pistol Reload 2.wav" id="16_fa10a"]
-[ext_resource type="AudioStream" uid="uid://ddhoor2pv7gyt" path="res://GAME/assets/audio/weapons/glock/9mm Single.wav" id="17_oxwvh"]
-[ext_resource type="AudioStream" uid="uid://cprab13nv4vnv" path="res://GAME/assets/audio/weapons/glock/9mm Pistol Slide Release.wav" id="18_slide"]
-[ext_resource type="Resource" path="res://GAME/resources/weapons/glock_data.tres" id="19_data"]
+[ext_resource type="PackedScene" uid="uid://cl24o8jrsm3nu" path="res://GAME/scenes/components/weapon/laser_pointer_component.tscn" id="20_laser"]
 
 [sub_resource type="AnimatedTexture" id="AnimatedTexture_0o4i8"]
 frames = 5
@@ -202,6 +201,30 @@ tracks/13/keys = {
 "transitions": PackedFloat32Array(1),
 "update": 1,
 "values": [false]
+}
+tracks/14/type = "value"
+tracks/14/imported = false
+tracks/14/enabled = true
+tracks/14/path = NodePath("Glock:position")
+tracks/14/interp = 1
+tracks/14/loop_wrap = true
+tracks/14/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+tracks/15/type = "value"
+tracks/15/imported = false
+tracks/15/enabled = true
+tracks/15/path = NodePath("Glock:rotation")
+tracks/15/interp = 1
+tracks/15/loop_wrap = true
+tracks/15/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
 }
 
 [sub_resource type="Animation" id="Animation_53fl6"]
@@ -429,6 +452,30 @@ tracks/10/keys = {
 "update": 1,
 "values": [false, true, false]
 }
+tracks/11/type = "value"
+tracks/11/imported = false
+tracks/11/enabled = true
+tracks/11/path = NodePath("Glock:position")
+tracks/11/interp = 0
+tracks/11/loop_wrap = true
+tracks/11/keys = {
+"times": PackedFloat32Array(0.022222223, 0.044444446, 0.06666667, 0.08888889),
+"transitions": PackedFloat32Array(1, 1.6817931, 2.0000002, 1.8025011),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(-3, 0), Vector2(-9, 0), Vector2(0, 0)]
+}
+tracks/12/type = "value"
+tracks/12/imported = false
+tracks/12/enabled = true
+tracks/12/path = NodePath("Glock:rotation")
+tracks/12/interp = 1
+tracks/12/loop_wrap = true
+tracks/12/keys = {
+"times": PackedFloat32Array(0.022222223, 0.044444446, 0.06666667, 0.08888889),
+"transitions": PackedFloat32Array(1, 1.624505, 2.4622886, 2.4622893),
+"update": 0,
+"values": [0.0, -0.17453292, -0.34906584, 0.0]
+}
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_0yf2s"]
 _data = {
@@ -442,18 +489,33 @@ data = PackedByteArray("cW9hZgABig8CAKxEFAAQKAAAAAAAAAAAAAAAAOAAQAAAAAAAAAAAAAAA
 format = 3
 stereo = true
 
-[node name="WeaponBase" type="Node2D" unique_id=92293372]
+[node name="WeaponBase" type="Node2D" unique_id=92293372 node_paths=PackedStringArray("visual_root", "sprite", "reload_sprite", "muzzle_flash", "muzzle_light", "animation_player", "audio_stream_player_2d", "fire_point", "ammo_component", "fire_control_component", "recoil_component", "spread_component", "laser_pointer", "cooldown_timer", "reload_timer")]
 texture_filter = 1
 position = Vector2(60, -10)
 script = ExtResource("1_script")
-weapon_data = ExtResource("19_data")
-shoot_sound = ExtResource("17_oxwvh")
-empty_mag_sound = ExtResource("18_slide")
+weapon_data = ExtResource("2_21lxf")
+visual_root = NodePath("Glock")
+sprite = NodePath("Glock/GlockShoot")
+reload_sprite = NodePath("Glock/GlockReload")
+muzzle_flash = NodePath("MuzzleFlash")
+muzzle_light = NodePath("MuzzleLight")
+animation_player = NodePath("AnimationPlayer")
+audio_stream_player_2d = NodePath("AudioStreamPlayer2D")
+fire_point = NodePath("FirePoint")
+ammo_component = NodePath("Components/AmmoComponent")
+fire_control_component = NodePath("Components/FireControlComponent")
+recoil_component = NodePath("Components/RecoilComponent")
+spread_component = NodePath("Components/SpreadComponent")
+laser_pointer = NodePath("LaserPointer")
+cooldown_timer = NodePath("CooldownTimer")
+reload_timer = NodePath("ReloadTimer")
+shake_intensity = 0.55
+shake_duration = 0.3
 
 [node name="Glock" type="Node2D" parent="." unique_id=353807591]
 
 [node name="GlockShoot" type="Sprite2D" parent="Glock" unique_id=1995949675]
-texture = ExtResource("5_vilbo")
+texture = ExtResource("5_axtdp")
 hframes = 12
 
 [node name="GlockReload" type="Sprite2D" parent="Glock" unique_id=683362870]
@@ -480,14 +542,20 @@ range_layer_min = -100
 range_layer_max = 100
 range_item_cull_mask = 1048575
 texture = ExtResource("9_fa10a")
-texture_scale = 0.2
+texture_scale = 0.1
 
 [node name="MuzzleLight2" type="PointLight2D" parent="MuzzleLight" unique_id=-1268361680]
 enabled = false
-color = Color(0.999999, 0.963421, 0.724138, 1)
-energy = 0.48
+color = Color(1.0845727, 1.0451624, 0.78649855, 1)
+energy = 0.7
 range_item_cull_mask = 1048575
 texture = ExtResource("10_oxwvh")
+texture_scale = 2.0
+
+[node name="LaserPointer" parent="." unique_id=119798460 instance=ExtResource("20_laser")]
+unique_name_in_owner = true
+position = Vector2(15, -7)
+beam_color = Color(1, 0, 0, 0.733333)
 
 [node name="FirePoint" type="Marker2D" parent="." unique_id=94473891]
 position = Vector2(22, -13)

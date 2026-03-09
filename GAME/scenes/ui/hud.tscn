@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" uid="uid://bv3imv0sm6ghi" path="res://GAME/assets/ui/star3.tres" id="8_lysu8"]
 [ext_resource type="Texture2D" uid="uid://bnqkr174lt236" path="res://GAME/assets/ui/star4.tres" id="9_5m11w"]
 [ext_resource type="Texture2D" uid="uid://bgg6ek4cdahh7" path="res://GAME/assets/ui/star5.tres" id="10_rc6iq"]
+[ext_resource type="Texture2D" uid="uid://fvkq6n2gwyf7" path="res://GAME/assets/sprites/weapons/pistol/glocklv1.png" id="11_3dept"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1o6fb"]
 texture = ExtResource("4_o4n1q")
@@ -149,3 +150,48 @@ flip_h = true
 position = Vector2(161, 13)
 sprite_frames = SubResource("SpriteFrames_lc1f1")
 flip_h = true
+
+[node name="WeaponIcon" type="Sprite2D" parent="Hud" unique_id=640222834]
+position = Vector2(1711, 1019)
+scale = Vector2(1.5, 1.5)
+texture = ExtResource("11_3dept")
+hframes = 12
+
+[node name="LevelLabel" type="Label" parent="Hud" unique_id=2000000003]
+layout_mode = 0
+offset_left = 1685.0001
+offset_top = 1037.0
+offset_right = 1749.0001
+offset_bottom = 1059.0
+scale = Vector2(1.5, 1.5)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("6_o4n1q")
+theme_override_font_sizes/font_size = 10
+text = "LVL 1"
+
+[node name="AmmoLabel" type="Label" parent="Hud" unique_id=2000000004]
+layout_mode = 0
+offset_left = 1766.0
+offset_top = 1003.0
+offset_right = 1843.0
+offset_bottom = 1029.0
+scale = Vector2(1.5, 1.5)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("6_o4n1q")
+theme_override_font_sizes/font_size = 24
+text = "17/60"
+
+[node name="UnarmedLabel" type="Label" parent="Hud" unique_id=2000000005]
+layout_mode = 0
+offset_left = 1708.0001
+offset_top = 1003.00006
+offset_right = 1831.0001
+offset_bottom = 1029.0
+scale = Vector2(1.5, 1.5)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("6_o4n1q")
+theme_override_font_sizes/font_size = 24
+text = "UNARMED"

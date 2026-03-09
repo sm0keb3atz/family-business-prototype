@@ -9,8 +9,8 @@ extends Node2D
 
 @export_group("Shake Settings")
 @export var trauma_reduction_rate: float = 1.5 # Faster decay for snappier feel
-@export var max_x: float = 40.0 # Increased horizontal jolt
-@export var max_y: float = 40.0 # Increased vertical jolt
+@export var max_x: float = 50.0 # Increased horizontal jolt (from 40)
+@export var max_y: float = 50.0 # Increased vertical jolt (from 40)
 @export var noise_speed: float = 150.0 # Higher speed for faster jitter
 
 ## Radius of the circular cutout in pixels
@@ -26,6 +26,10 @@ extends Node2D
 @export var normal_zoom: Vector2 = Vector2(2.0, 2.0)
 @export var aim_zoom: Vector2 = Vector2(1.2, 1.2)
 @export var zoom_speed: float = 5.0
+
+var _active_aim_zoom: Vector2 = Vector2(1.0, 1.0)
+var _active_follow_dist: float = 0.0
+var _dynamic_target_zoom: Vector2 = Vector2(2.0, 2.0)
 
 @onready var camera: Camera2D = $Camera2D
 
@@ -59,8 +63,32 @@ func snap_to_target() -> void:
 func _process(delta: float) -> void:
 	var is_moving = false
 	if is_instance_valid(target):
-		# Smoothly interpolate position towards target
-		global_position = global_position.lerp(target.global_position, lerp_speed * delta)
+		# Calculate base target position
+		var base_pos = target.global_position
+		
+		# Apply mouse-follow offset if aiming
+		if Input.is_action_pressed("aim") and _active_follow_dist > 0.0:
+			var mouse_pos = get_global_mouse_position()
+			var to_mouse = mouse_pos - base_pos
+			
+			# DYNAMIC SCALING:
+			# Calculate how far the mouse is from the player relative to screen size
+			var viewport_size = get_viewport_rect().size
+			var screen_radius = min(viewport_size.x, viewport_size.y) * 0.4 # Use 40% of screen as max distance
+			var mouse_dist = to_mouse.length()
+			var stretch_factor = clamp(mouse_dist / screen_radius, 0.0, 1.0)
+			
+			# Offset scales with distance
+			var offset = to_mouse.normalized() * (_active_follow_dist * stretch_factor)
+			base_pos += offset
+			
+			# Track zoom target dynamically
+			_dynamic_target_zoom = normal_zoom.lerp(_active_aim_zoom, stretch_factor)
+		else:
+			_dynamic_target_zoom = normal_zoom
+
+		# Smoothly interpolate position towards base_pos (which may include mouse offset)
+		global_position = global_position.lerp(base_pos, lerp_speed * delta)
 		
 		var speed = target.global_position.distance_to(_last_target_pos) / delta
 		if speed > 10.0: # threshold to avoid micro-jitter bobbing
@@ -78,15 +106,13 @@ func _process(delta: float) -> void:
 	_update_shake(delta)
 	
 	# Handle aiming zoom
-	var target_zoom = normal_zoom
-	if Input.is_action_pressed("aim"):
-		target_zoom = aim_zoom
-		
-	camera.zoom = camera.zoom.lerp(target_zoom, delta * zoom_speed)
+	camera.zoom = camera.zoom.lerp(_dynamic_target_zoom, delta * zoom_speed)
 
-## Adds trauma to the camera (capped at 1.0)
+## Adds trauma to the camera (capped at 1.0) with soft stacking
 func add_trauma(amount: float) -> void:
-	trauma = clamp(trauma + amount, 0.0, 1.0)
+	# Soft stacking: Take the higher of current or new, then add a small 25% of new for "stacking"
+	# This prevents 1.0 from being reached instantly but feels more impactful than 10%.
+	trauma = clamp(max(trauma, amount) + (amount * 0.25), 0.0, 1.0)
 
 ## Legacy shake method for compatibility, mapping to trauma
 func shake(intensity: float, _duration: float = 0.0) -> void:
@@ -116,6 +142,12 @@ func _update_shake(delta: float) -> void:
 		camera.offset = bob_offset
 		if camera.rotation != 0.0:
 			camera.rotation = 0.0
+
+## Sets parameters from the currently held weapon
+func set_weapon_aim_params(target_zoom: Vector2, follow_dist: float) -> void:
+	_active_aim_zoom = target_zoom
+	_active_follow_dist = follow_dist
+	print("GameCamera: Weapon params updated: Zoom: ", target_zoom, " Follow Dist: ", follow_dist)
 
 ## Returns the screen-space position (pixels) of the target
 func get_target_screen_pos() -> Vector2:

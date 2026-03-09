@@ -167,11 +167,25 @@ func _process(delta: float) -> void:
 
 	# 3. Update uniforms
 	if is_instance_valid(game_camera):
-		var screen_pos = game_camera.get_target_screen_pos()
-		cutout_material.set_shader_parameter("player_pos", screen_pos)
+		var player_screen_pos = game_camera.get_target_screen_pos()
+		var cursor_screen_pos = player_screen_pos # Default to overlap
+		
+		if Input.is_action_pressed("aim"):
+			cursor_screen_pos = get_viewport().get_mouse_position()
+			
+		cutout_material.set_shader_parameter("player_pos", player_screen_pos)
+		cutout_material.set_shader_parameter("cursor_pos", cursor_screen_pos)
 		cutout_material.set_shader_parameter("radius", game_camera.cutout_radius)
 		cutout_material.set_shader_parameter("softness", game_camera.edge_softness)
-		cutout_material.set_shader_parameter("occlusion_strength", current_occlusion)
+		
+		# Drive strengths independently
+		var aim_blocked = false
+		var weapon_holder = player.get_node_or_null("%WeaponHolderComponent")
+		if weapon_holder and weapon_holder.current_weapon and weapon_holder.current_weapon.has_method("is_aiming_blocked"):
+			aim_blocked = weapon_holder.current_weapon.is_aiming_blocked()
+		
+		cutout_material.set_shader_parameter("player_occlusion", current_occlusion)
+		cutout_material.set_shader_parameter("cursor_occlusion", 1.0 if (Input.is_action_pressed("aim") and not aim_blocked) else 0.0)
 
 func _initialize_doors() -> void:
 	var triggers = get_tree().get_nodes_in_group("door_trigger")

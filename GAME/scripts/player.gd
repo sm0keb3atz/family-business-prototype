@@ -19,6 +19,8 @@ class_name Player
 @onready var state_machine: StateMachine = %StateMachine
 @onready var arrest_component: ArrestComponent = %ArrestComponent
 
+signal weapon_changed(weapon: WeaponBase)
+
 # Visuals
 @onready var appearance_nodes: Node2D = %Appearance
 @onready var player_ui: NpcUI = %PlayerUI
@@ -35,8 +37,11 @@ var solicitation_component: SolicitationComponent
 @export var solicitation_config: SolicitationConfigResource
 
 var available_weapons: Array = [
-	null, # Unarmed
-	preload("res://GAME/scenes/Weapons/glock.tscn")
+	{ "scene": null, "data": null }, # Unarmed
+	{ "scene": preload("res://GAME/scenes/Weapons/glock.tscn"), "data": preload("res://GAME/resources/weapons/glock_lv1.tres") },
+	{ "scene": preload("res://GAME/scenes/Weapons/glock.tscn"), "data": preload("res://GAME/resources/weapons/glock_lv2.tres") },
+	{ "scene": preload("res://GAME/scenes/Weapons/glock.tscn"), "data": preload("res://GAME/resources/weapons/glock_lv3.tres") },
+	{ "scene": preload("res://GAME/scenes/Weapons/glock.tscn"), "data": preload("res://GAME/resources/weapons/glock_lv4.tres") }
 ]
 var current_weapon_index: int = 1
 func _ready() -> void:
@@ -112,6 +117,7 @@ func _setup_connections() -> void:
 		input_component.interact_requested.connect(interact)
 		input_component.weapon_next_requested.connect(_on_weapon_next)
 		input_component.weapon_prev_requested.connect(_on_weapon_prev)
+		input_component.reload_requested.connect(weapon_holder_component.reload)
 		
 		# Movement/Animation is handled by the StateMachine which reads Input.get_vector directly
 		# or could listen to signals if we wanted more decoupling. 
@@ -199,8 +205,9 @@ func _on_weapon_prev() -> void:
 
 func _update_weapon() -> void:
 	if weapon_holder_component:
-		var weapon_scene = available_weapons[current_weapon_index]
-		weapon_holder_component.equip_weapon(weapon_scene)
+		var weapon_config = available_weapons[current_weapon_index]
+		weapon_holder_component.equip_weapon(weapon_config.scene, weapon_config.data)
+		weapon_changed.emit(weapon_holder_component.current_weapon)
 
 func _on_arrest_progress_changed(value: float) -> void:
 	if player_ui:

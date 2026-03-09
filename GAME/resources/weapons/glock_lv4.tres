@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="WeaponDataResource" format=3 uid="uid://cm2q7cdum82iy"]
+
+[ext_resource type="Script" uid="uid://qoayn8245383" path="res://GAME/scripts/resources/weapon_data_resource.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://bx8vkulw5w15r" path="res://GAME/scenes/projectiles/bullet_base.tscn" id="2_bullet"]
+[ext_resource type="Texture2D" uid="uid://x2urrnvp083t" path="res://GAME/assets/sprites/weapons/pistol/glocklv4.png" id="3_texture"]
+[ext_resource type="AudioStream" uid="uid://disotn7loclr0" path="res://GAME/assets/audio/weapons/glock/9mm Pistol Reload 1.wav" id="4_aim"]
+[ext_resource type="AudioStream" uid="uid://mqbdoxjaunlu" path="res://GAME/assets/audio/weapons/glock/9mm Pistol Reload 2.wav" id="5_switch"]
+[ext_resource type="AudioStream" uid="uid://ddhoor2pv7gyt" path="res://GAME/assets/audio/weapons/glock/9mm Single.wav" id="6_shoot"]
+[ext_resource type="AudioStream" uid="uid://cprab13nv4vnv" path="res://GAME/assets/audio/weapons/glock/9mm Pistol Slide Release.wav" id="7_empty"]
+
+[resource]
+script = ExtResource("1_script")
+level = 4
+damage = 25
+fire_rate = 0.1
+reload_time = 1.5
+magazine_size = 50
+reserve_ammo = 100
+bullet_scene = ExtResource("2_bullet")
+recoil_strength = 6.0
+spread_degrees = 1.5
+automatic = true
+weapon_sprite = ExtResource("3_texture")
+has_laser = true
+laser_color = Color(0, 1, 0, 1)
+shoot_sound = ExtResource("6_shoot")
+empty_mag_sound = ExtResource("7_empty")
+switch_sound = ExtResource("5_switch")
+aim_sound = ExtResource("4_aim")
