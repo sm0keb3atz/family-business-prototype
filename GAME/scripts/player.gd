@@ -91,6 +91,7 @@ func _inject_dependencies() -> void:
 	if health_component:
 		health_component.setup(stats)
 		health_component.damage_taken.connect(_on_damage_taken)
+		health_component.died.connect(_on_died)
 	
 	if animation_component:
 		animation_component.animation_player = %AnimationPlayer
@@ -212,3 +213,93 @@ func _update_weapon() -> void:
 func _on_arrest_progress_changed(value: float) -> void:
 	if player_ui:
 		player_ui.update_arrest_progress(value)
+
+func _on_died() -> void:
+	# Disable processing and input
+	set_physics_process(false)
+	set_process(false)
+	velocity = Vector2.ZERO
+	if state_machine:
+		state_machine.set_process(false)
+		state_machine.set_physics_process(false)
+	
+	if input_component:
+		input_component.set_process(false)
+		input_component.set_process_unhandled_input(false)
+		# Reset aiming state
+		input_component._is_aiming_last_state = false
+	
+	if weapon_holder_component:
+		weapon_holder_component.set_process(false)
+		# Force stop aiming
+		weapon_holder_component._on_aim_state_changed(false)
+	
+	if animation_component:
+		animation_component.update_animation(Vector2.ZERO)
+		if animation_component.animation_player:
+			animation_component.animation_player.stop()
+	
+	# Disable collisions safely
+	set_deferred("collision_layer", 0)
+	set_deferred("collision_mask", 0)
+	var hb = find_child("HurtBox")
+	if hb:
+		hb.set_deferred("collision_layer", 0)
+		hb.set_deferred("collision_mask", 0)
+	
+	# Blood Pool
+	if blood_effect_component:
+		blood_effect_component.spawn_blood_pool()
+	
+	# Death Animation (Rotate)
+	var death_tween = create_tween()
+	var target_rotation = deg_to_rad(randf_range(75.0, 85.0))
+	if animation_component and animation_component.last_direction.x < 0:
+		target_rotation = -target_rotation
+	
+	death_tween.tween_property(self, "rotation", target_rotation, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	
+	# Call MapManager for cutscene
+	var mm = get_tree().get_first_node_in_group("map_manager")
+	if mm:
+		mm.trigger_death_cutscene(self)
+
+func respawn(spawn_pos: Vector2) -> void:
+	global_position = spawn_pos
+	rotation = 0
+	modulate.a = 1.0
+	
+	# Re-enable processing
+	set_physics_process(true)
+	set_process(true)
+	
+	if health_component:
+		health_component.is_dead = false
+		health_component.current_health = stats.max_health
+		health_component.health_changed.emit(health_component.current_health, stats.max_health)
+		
+	if input_component:
+		input_component.set_process(true)
+		input_component.set_process_unhandled_input(true)
+		
+	if weapon_holder_component:
+		weapon_holder_component.set_process(true)
+		
+	if state_machine:
+		state_machine.set_process(true)
+		state_machine.set_physics_process(true)
+		state_machine.transition_to("Idle")
+	
+	# Re-sync aiming state if they were holding it through death (or just to be safe)
+	if weapon_holder_component:
+		weapon_holder_component._on_aim_state_changed(Input.is_action_pressed("aim"))
+	
+	# Restore collisions (Assuming Layer 2 for Player per standard NPC pattern)
+	set_deferred("collision_layer", 2)
+	set_deferred("collision_mask", 1)
+	var hb = find_child("HurtBox")
+	if hb:
+		hb.set_deferred("collision_layer", 4) # Standard HurtBox layer
+		hb.set_deferred("collision_mask", 0)
+	
+	print("Player: Respawned at ", spawn_pos)

@@ -30,6 +30,9 @@ extends Node2D
 var _active_aim_zoom: Vector2 = Vector2(1.0, 1.0)
 var _active_follow_dist: float = 0.0
 var _dynamic_target_zoom: Vector2 = Vector2(2.0, 2.0)
+var _manual_zoom_override: Vector2 = Vector2.ZERO
+var _is_zoom_tweened: bool = false
+var block_input: bool = false
 
 @onready var camera: Camera2D = $Camera2D
 
@@ -67,7 +70,7 @@ func _process(delta: float) -> void:
 		var base_pos = target.global_position
 		
 		# Apply mouse-follow offset if aiming
-		if Input.is_action_pressed("aim") and _active_follow_dist > 0.0:
+		if not block_input and Input.is_action_pressed("aim") and _active_follow_dist > 0.0:
 			var mouse_pos = get_global_mouse_position()
 			var to_mouse = mouse_pos - base_pos
 			
@@ -106,7 +109,18 @@ func _process(delta: float) -> void:
 	_update_shake(delta)
 	
 	# Handle aiming zoom
-	camera.zoom = camera.zoom.lerp(_dynamic_target_zoom, delta * zoom_speed)
+	var target_z = _manual_zoom_override if _is_zoom_tweened else _dynamic_target_zoom
+	camera.zoom = camera.zoom.lerp(target_z, delta * (zoom_speed if not _is_zoom_tweened else 1.0))
+
+## Tweens the zoom to a specific value, overriding the normal logic
+func tween_zoom(target_zoom: Vector2, duration: float) -> void:
+	_is_zoom_tweened = true
+	var tween = create_tween()
+	tween.tween_property(self, "_manual_zoom_override", target_zoom, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+## Resets zoom to normal behavior
+func reset_zoom() -> void:
+	_is_zoom_tweened = false
 
 ## Adds trauma to the camera (capped at 1.0) with soft stacking
 func add_trauma(amount: float) -> void:

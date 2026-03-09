@@ -455,4 +455,57 @@ func _on_damage_taken(amount: int) -> void:
 func _on_died() -> void:
 	if has_node("/root/HeatManager"):
 		get_node("/root/HeatManager").on_kill(role)
-	queue_free()
+	
+	# Disable processing and AI
+	set_physics_process(false)
+	set_process(false)
+	if bt_player:
+		bt_player.active = false
+	
+	if animation_component:
+		animation_component.update_animation(Vector2.ZERO) # Force idle
+		if animation_component.animation_player:
+			animation_component.animation_player.stop()
+	
+	# Hide Police Detection Ring
+	if role == Role.POLICE:
+		var detect_comp = get_node_or_null("PoliceDetectionComponent")
+		if detect_comp:
+			detect_comp.visible = false
+			# Also stop physics so it doesn't keep detecting
+			detect_comp.set_physics_process(false)
+			detect_comp.set_deferred("monitoring", false)
+			detect_comp.set_deferred("monitorable", false)
+	
+	# Disable collisions
+	collision_layer = 0
+	collision_mask = 0
+	if find_child("HurtBox"):
+		var hb = find_child("HurtBox")
+		hb.collision_layer = 0
+		hb.collision_mask = 0
+	
+	# Hide UI
+	if npc_ui:
+		npc_ui.hide()
+	
+	# Blood Pool
+	if blood_effect_component:
+		blood_effect_component.spawn_blood_pool()
+	
+	# Death Animation (Rotate and Fade)
+	var death_tween = create_tween()
+	
+	# 1. Rotate immediately
+	var target_rotation = deg_to_rad(randf_range(75.0, 85.0))
+	if animation_component and animation_component.last_direction.x < 0:
+		target_rotation = -target_rotation
+	
+	death_tween.tween_property(self, "rotation", target_rotation, 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	
+	# 2. Stay on ground for a moment, then fade
+	death_tween.tween_interval(1.5)
+	death_tween.tween_property(self, "modulate:a", 0.0, 1.0).set_trans(Tween.TRANS_SINE)
+	
+	# 3. Cleanup
+	death_tween.tween_callback(queue_free)

@@ -14,6 +14,7 @@ var _on_cooldown: bool = false
 # Transition UI
 var _fade_layer: CanvasLayer
 var _fade_rect: ColorRect
+var _died_label: Label
 
 func _ready() -> void:
 	add_to_group("map_manager")
@@ -35,6 +36,30 @@ func _setup_fade_ui() -> void:
 	_fade_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fade_layer.add_child(_fade_rect)
+	
+	# 2. YOU DIED UI Container (to ensure centering works)
+	var ui_container = Control.new()
+	ui_container.name = "DeathUIContainer"
+	ui_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_fade_layer.add_child(ui_container)
+	
+	_died_label = Label.new()
+	_died_label.name = "YouDiedLabel"
+	_died_label.text = "YOU DIED"
+	_died_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_died_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_died_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT) # Now it has a Control parent!
+	
+	# Load font
+	var font_path = "res://GAME/assets/ui/CyberpunkCraftpixPixel.otf"
+	if FileAccess.file_exists(font_path):
+		var font = load(font_path)
+		_died_label.add_theme_font_override("font", font)
+		_died_label.add_theme_font_size_override("font_size", 128) # Large font
+	
+	_died_label.modulate.a = 0.0 # Start hidden
+	_died_label.add_theme_color_override("font_color", Color.RED)
+	ui_container.add_child(_died_label)
 
 ## The main interaction function called by DoorTrigger
 func interact_with_door(to_interior: bool, spawn_pos: Vector2, door: Node = null) -> void:
@@ -118,9 +143,9 @@ func _wait_for_anim(node: Node) -> void:
 	else:
 		await get_tree().create_timer(0.1).timeout
 
-func _fade(target_alpha: float) -> void:
+func _fade(target_alpha: float, duration: float = 0.4) -> void:
 	var tween = create_tween()
-	await tween.tween_property(_fade_rect, "color:a", target_alpha, 0.4).set_trans(Tween.TRANS_SINE).finished
+	await tween.tween_property(_fade_rect, "color:a", target_alpha, duration).set_trans(Tween.TRANS_SINE).finished
 
 func swap_map(to_interior: bool, spawn_pos: Vector2 = Vector2.ZERO) -> void:
 	if _current_is_interior == to_interior:
@@ -149,3 +174,63 @@ func _apply_visibility() -> void:
 		interior_node.visible = _current_is_interior
 		interior_node.set_process(_current_is_interior)
 		interior_node.set_physics_process(_current_is_interior)
+
+
+## Triggers the player death cutscene and respawning
+func trigger_death_cutscene(player: Player) -> void:
+	if _on_cooldown:
+		return
+	
+	_on_cooldown = true
+	
+	# 1. Start Fade Out and Camera Zoom Out
+	var camera = get_tree().get_first_node_in_group("camera")
+	if camera and camera.has_method("tween_zoom"):
+		camera.block_input = true
+		camera._manual_zoom_override = camera.camera.zoom # Initialize override to current zoom
+		# Zoom out slower and further
+		camera.tween_zoom(Vector2(0.2, 0.2), 8.0)
+	
+	# Reset Wanted Level instantly on death
+	if has_node("/root/HeatManager"):
+		var hm = get_node("/root/HeatManager")
+		hm.set_stars(0)
+		hm.set_heat(0.0)
+	
+	# Faster fade out for better flow (2.5 seconds instead of 4)
+	var fade_tween = create_tween()
+	fade_tween.set_parallel(true)
+	fade_tween.tween_property(_fade_rect, "color:a", 1.0, 2.5).set_trans(Tween.TRANS_SINE)
+	fade_tween.tween_property(_died_label, "modulate:a", 1.0, 2.5).set_trans(Tween.TRANS_SINE)
+	
+	await fade_tween.finished
+	
+	# Wait shorter while screen is black (0.8 seconds instead of 2.0)
+	await get_tree().create_timer(0.8).timeout
+	
+	# 2. Teleport to Hospital
+	_died_label.modulate.a = 0.0 # Hide label before fading back in
+	var world = get_tree().current_scene
+	var hospital_spawn = world.find_child("HospitalSpawn", true, false)
+	var spawn_pos = Vector2.ZERO
+	if hospital_spawn:
+		spawn_pos = hospital_spawn.global_position
+	
+	# Always clear interior state when respawning at hospital (which is exterior)
+	_current_is_interior = false
+	_apply_visibility()
+	
+	if player:
+		player.respawn(spawn_pos)
+
+	if camera:
+		if camera.has_method("snap_to_target"):
+			camera.snap_to_target()
+		if camera.has_method("reset_zoom"):
+			camera.reset_zoom()
+	
+	# 3. Fade Back In
+	await _fade(0.0)
+	if camera:
+		camera.block_input = false
+	_on_cooldown = false

@@ -70,6 +70,7 @@ func _update_aiming_feedback(active: bool) -> void:
 
 var is_reloading: bool = false # Local tracking for animation state if needed
 var _trigger_released: bool = true # For semi-auto behavior
+var _last_empty_sound_time: float = 0.0
 var _crosshair_sprite: Sprite2D
 var _scouting_raycast: RayCast2D # Universal raycast for transparency checks
 
@@ -381,7 +382,12 @@ func _on_reload_finished() -> void:
 	print("Reload finished.")
 
 func _play_empty_sound() -> void:
+	# Prevent spamming the sound
+	if Time.get_ticks_msec() - _last_empty_sound_time < 500:
+		return
+		
 	if weapon_data and weapon_data.empty_mag_sound:
+		_last_empty_sound_time = Time.get_ticks_msec()
 		_play_sound(weapon_data.empty_mag_sound)
 
 func _play_sound(stream: AudioStream) -> void:

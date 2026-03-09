@@ -7,6 +7,7 @@ signal died
 
 @export var current_health: int = 100
 var stats: CharacterStatsResource
+var is_dead: bool = false
 
 func setup(p_stats: CharacterStatsResource) -> void:
 	stats = p_stats
@@ -20,7 +21,8 @@ func take_damage(amount: int) -> void:
 	damage_taken.emit(actual_damage)
 	health_changed.emit(current_health, stats.max_health if stats else current_health)
 	
-	if current_health <= 0:
+	if current_health <= 0 and not is_dead:
+		is_dead = true
 		died.emit()
 
 func _process(delta: float) -> void:

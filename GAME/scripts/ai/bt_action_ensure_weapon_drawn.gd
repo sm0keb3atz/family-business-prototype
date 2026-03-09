@@ -13,7 +13,8 @@ func _tick(delta: float) -> Status:
 	if not weapon_holder.current_weapon:
 		# Give them a gun if they don't have one out.
 		var glock = preload("res://GAME/scenes/Weapons/glock.tscn")
-		weapon_holder.equip_weapon(glock)
+		var glock_data = preload("res://GAME/resources/weapons/glock_lv1.tres")
+		weapon_holder.equip_weapon(glock, glock_data)
 		return SUCCESS
 		
 	return SUCCESS

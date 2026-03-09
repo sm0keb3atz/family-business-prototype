@@ -59,7 +59,7 @@ func _on_body_entered(body: Node) -> void:
 
 func _play_impact_sound(body: Node) -> void:
 	var sound_pool = stone_impact_sounds
-	if body.is_in_group("npc"):
+	if body.is_in_group("npc") or body.is_in_group("player"):
 		sound_pool = body_impact_sounds
 		
 	if sound_pool.size() > 0:

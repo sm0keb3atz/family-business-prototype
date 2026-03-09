@@ -168,6 +168,9 @@ door_node = NodePath("../BuildingDoor1")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Exterior/DoorToInterior" unique_id=667553450]
 shape = SubResource("RectangleShape2D_door")
 
+[node name="HospitalSpawn" type="Marker2D" parent="Exterior" unique_id=171000]
+position = Vector2(-203, -693)
+
 [node name="SpawnPoint" type="Marker2D" parent="Exterior" unique_id=57227611]
 z_index = 1
 position = Vector2(2958, -743)

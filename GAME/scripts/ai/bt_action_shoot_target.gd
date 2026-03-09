@@ -10,6 +10,16 @@ func _tick(delta: float) -> Status:
 	if not target or not is_instance_valid(target):
 		return FAILURE
 		
+	# Don't shoot if target is already dead
+	if target.has_node("Components/HealthComponent"):
+		var hc = target.get_node("Components/HealthComponent")
+		if hc.is_dead:
+			return FAILURE
+	elif target.has_node("HealthComponent"): # Fallback
+		var hc = target.get_node("HealthComponent")
+		if hc.is_dead:
+			return FAILURE
+		
 	# Leniency Check: Don't shoot if the player is no longer at combat heat level
 	var hm = agent.get_node_or_null("/root/HeatManager")
 	if hm and hm.wanted_stars < 2:

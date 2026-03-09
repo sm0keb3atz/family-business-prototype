@@ -8,10 +8,12 @@ class_name BloodEffectComponent
 
 func _ready() -> void:
 	if not hurt_box:
-		# Try to find HurtBox on parent if not assigned
-		var parent = get_parent()
-		if parent:
-			hurt_box = parent.get_node_or_null("HurtBox")
+		# Try to find HurtBox on owner if not assigned
+		if owner:
+			hurt_box = owner.get_node_or_null("HurtBox")
+			if not hurt_box:
+				# Fallback: search in children of owner
+				hurt_box = owner.find_child("HurtBox", true)
 
 ## Spawns a blood effect at the calculated exit point of the capsule.
 func spawn_blood(global_hit_pos: Vector2, hit_dir: Vector2) -> void:
@@ -38,6 +40,26 @@ func spawn_blood(global_hit_pos: Vector2, hit_dir: Vector2) -> void:
 	# Ensure it's rendered below characters but above the map
 	blood_fx.z_index = 0
 	blood_fx.z_as_relative = false
+	
+	if blood_fx.has_method("start_spray"):
+		blood_fx.start_spray()
+
+## Spawns a pooling blood effect at the character's feet.
+func spawn_blood_pool() -> void:
+	if not blood_scene: return
+	
+	var blood_fx = blood_scene.instantiate()
+	var world = get_tree().current_scene
+	world.add_child(blood_fx)
+	
+	if owner and "global_position" in owner:
+		blood_fx.global_position = owner.global_position
+	
+	blood_fx.z_index = 0 # Ensure it's visible on the ground
+	blood_fx.z_as_relative = false
+	
+	if blood_fx.has_method("start_pooling"):
+		blood_fx.start_pooling()
 
 func _calculate_exit_position(global_hit_pos: Vector2, hit_dir: Vector2) -> Vector2:
 	if not hurt_box:
@@ -77,4 +99,3 @@ func _calculate_exit_position(global_hit_pos: Vector2, hit_dir: Vector2) -> Vect
 	
 	# Scale by a small amount to ensure it starts slightly outside the visual boundary
 	return center + local_exit_pos * 1.2
-
