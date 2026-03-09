@@ -8,6 +8,8 @@ func _generate_name() -> String:
 
 func _tick(_delta: float) -> Status:
 	var was_shot: bool = blackboard.get_var(&"was_shot", false)
-	if was_shot:
+	var heard_gunfire: bool = blackboard.get_var(&"heard_gunfire", false)
+	
+	if was_shot or heard_gunfire:
 		return SUCCESS
 	return FAILURE

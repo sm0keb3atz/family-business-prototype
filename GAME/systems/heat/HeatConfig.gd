@@ -9,5 +9,8 @@ const STAR_SENSITIVITY_MULTIPLIER: float = 1.0
 
 # Situational Heat
 const ARMED_HEAT_RATE: float = 12.0 # Heat per second when seen armed
+const SOLICIT_HEAT: float = 25.0
+const CUSTOMER_FOLLOWING_HEAT_RATE: float = 5.0
+const CUSTOMER_TALKING_HEAT_RATE: float = 15.0
 const GUNSHOT_HEAT: float = 45.0 # Significant bump for firing
 const KILL_HEAT: float = 100.0 # Instant next star (or fill current)

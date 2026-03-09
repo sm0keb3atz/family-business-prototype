@@ -12,6 +12,8 @@ script = ExtResource("1_cond")
 
 [sub_resource type="BTAction" id="flee_1"]
 script = ExtResource("2_flee")
+flee_duration = 3.0
+flee_distance = 300.0
 
 [sub_resource type="BTSequence" id="flee_seq"]
 children = [SubResource("cond_1"), SubResource("flee_1")]

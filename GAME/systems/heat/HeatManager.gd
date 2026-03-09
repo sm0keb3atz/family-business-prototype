@@ -12,6 +12,12 @@ var star_lock: bool = false
 var unseen_timer: float = 0.0
 var _broadcast_timer: float = 0.0
 
+var siren_intro_player: AudioStreamPlayer
+var siren_loop_player: AudioStreamPlayer
+
+const SIREN_INTRO_SOUND = preload("res://GAME/assets/audio/dialog/police/sirens/police-intro-sfx-323774.mp3")
+const SIREN_LOOP_SOUND = preload("res://GAME/assets/audio/dialog/police/sirens/police-siren-one-loop-loop-able-104019.mp3")
+
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		if event.keycode == KEY_1:
@@ -19,10 +25,28 @@ func _input(event: InputEvent) -> void:
 			print("Debug: Added Wanted Star. Current: ", wanted_stars)
 
 func _ready() -> void:
+	_setup_siren_players()
 	# DetectionManager might not be ready in the exact same frame depending on autoload order,
 	# but we can connect safely or wait for it.
 	# We will connect in a deferred way or assume DetectionManager is an autoload before this.
 	call_deferred("_connect_to_detection_manager")
+
+func _setup_siren_players() -> void:
+	siren_intro_player = AudioStreamPlayer.new()
+	siren_intro_player.stream = SIREN_INTRO_SOUND
+	siren_intro_player.volume_db = -20.0 # Adjust volume as needed
+	add_child(siren_intro_player)
+	
+	siren_loop_player = AudioStreamPlayer.new()
+	siren_loop_player.stream = SIREN_LOOP_SOUND
+	siren_loop_player.volume_db = -20.0
+	add_child(siren_loop_player)
+	
+	siren_intro_player.finished.connect(_on_siren_intro_finished)
+
+func _on_siren_intro_finished() -> void:
+	if wanted_stars >= 1:
+		siren_loop_player.play()
 
 func _connect_to_detection_manager() -> void:
 	if has_node("/root/DetectionManager"):
@@ -55,10 +79,18 @@ func set_heat(value: float) -> void:
 	_evaluate_star_escalation()
 
 func set_stars(value: int) -> void:
-	var new_stars = clampi(value, 0, 5) # Assuming 5 is max
+	var new_stars = clampi(value, 0, 6) # Changed max to 6 per user request
 	if wanted_stars != new_stars:
+		var previous_stars = wanted_stars
 		wanted_stars = new_stars
 		stars_changed.emit(wanted_stars)
+		
+		# Siren Logic
+		if previous_stars == 0 and wanted_stars >= 1:
+			siren_intro_player.play()
+		elif wanted_stars == 0:
+			siren_intro_player.stop()
+			siren_loop_player.stop()
 		
 		# Star lock rules
 		if wanted_stars >= 2:
@@ -165,11 +197,19 @@ func on_gunshot(source_pos: Vector2 = Vector2.ZERO) -> void:
 	if source_pos != Vector2.ZERO:
 		var npcs = get_tree().get_nodes_in_group("npc")
 		for npc in npcs:
-			if npc is NPC and npc.role == NPC.Role.POLICE and npc.blackboard:
-				# Also check if they are near enough to hear it maybe? Or just global for now.
-				var dist = npc.global_position.distance_to(source_pos)
+			if not npc is NPC or not npc.blackboard:
+				continue
+				
+			var dist = npc.global_position.distance_to(source_pos)
+			
+			if npc.role == NPC.Role.POLICE:
 				if dist < 1200.0:
 					npc.blackboard.set_var(&"last_known_position", source_pos)
+			else:
+				# Non-police (Customers, Dealers) panic if they hear gunfire nearby
+				if dist < 1000.0: # Sight/Hearing range for panic
+					npc.blackboard.set_var(&"heard_gunfire", true)
+					npc.blackboard.set_var(&"damage_source_position", source_pos)
 
 func on_kill(role: int) -> void:
 	# role matches NPC.Role enum

@@ -48,11 +48,20 @@ func solicit() -> void:
 	
 	var npcs = get_tree().get_nodes_in_group("npc")
 	for npc in npcs:
+		var dist = player.global_position.distance_to(npc.global_position)
+		
 		if npc.role == npc.Role.CUSTOMER and not npc.has_node("CustomerComponent"):
-			var dist = player.global_position.distance_to(npc.global_position)
 			if dist <= config.radius:
 				if randf() * 100.0 <= config.base_chance_percent:
 					_convert_to_customer(npc, player)
+		
+		elif npc.role == npc.Role.POLICE:
+			var detect_comp = npc.get_node_or_null("PoliceDetectionComponent")
+			if detect_comp:
+				# If the distance between player and police is less than or equal to the sum of their radii, the solicitation reaches them.
+				if dist <= (config.radius + detect_comp.detection_radius):
+					if has_node("/root/HeatManager"):
+						get_node("/root/HeatManager").add_heat(HeatConfig.SOLICIT_HEAT)
 
 func _convert_to_customer(npc: Node2D, player: Player) -> void:
 	if npc is NPC and npc.blackboard:

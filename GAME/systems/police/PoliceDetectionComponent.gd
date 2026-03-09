@@ -23,6 +23,43 @@ var _collision_shape: CollisionShape2D = null
 var _update_timer: float = 0.0
 const UPDATE_INTERVAL: float = 0.25
 
+# Audio / Dialogue
+var radio_player: AudioStreamPlayer2D
+var bark_player: AudioStreamPlayer2D
+
+var _radio_timer: float = 0.0
+var _next_radio_time: float = 15.0
+
+var _bark_timer: float = 0.0
+var _next_bark_time: float = 8.0
+
+const RADIO_CHIPS = [
+	preload("res://GAME/assets/audio/dialog/police/radiochatter/618971__mrrap4food__radio-police-inside-car.mp3"),
+	preload("res://GAME/assets/audio/dialog/police/radiochatter/732209__soundbitersfx__walkie-talkie-beep.wav")
+]
+
+const CHASE_BARKS = [
+	preload("res://GAME/assets/audio/dialog/police/police_freeze.ogg"),
+	preload("res://GAME/assets/audio/dialog/police/police_stoporillshoot.ogg"),
+	preload("res://GAME/assets/audio/dialog/police/police_getontheground.ogg"),
+	preload("res://GAME/assets/audio/dialog/police/police_stopresisting.ogg"),
+	preload("res://GAME/assets/audio/dialog/police/police_wehaveyousurrounded.ogg")
+]
+
+const CHASE_TEXTS = [
+	"FREEZE!",
+	"Stop or I'll shoot!",
+	"Get on the ground!",
+	"Stop resisting!",
+	"We have you surrounded!"
+]
+
+const WARNING_TEXTS = [
+	"Move along.",
+	"I've got my eye on you.",
+	"Keep walking."
+]
+
 func _ready() -> void:
 	_base_radius = detection_radius
 
@@ -43,6 +80,8 @@ func _ready() -> void:
 	collision_mask = 2 # Detect Player
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
+	
+	_setup_audio_players()
 
 	if has_node("/root/HeatManager"):
 		var hm = get_node("/root/HeatManager")
@@ -50,6 +89,23 @@ func _ready() -> void:
 		hm.heat_changed.connect(_on_heat_changed)
 		_update_radius_for_stars(hm.wanted_stars)
 		_update_color()
+
+func _setup_audio_players() -> void:
+	# Add AudioStreamPlayer2D for realistic positional audio
+	radio_player = AudioStreamPlayer2D.new()
+	radio_player.volume_db = -20.0 # Lowered volume
+	radio_player.max_distance = 600.0
+	radio_player.bus = "SFX" # Using default structure, adjust to SFX bus if exists
+	add_child(radio_player)
+
+	bark_player = AudioStreamPlayer2D.new()
+	bark_player.volume_db = -10.0 # Lowered volume
+	bark_player.max_distance = 1000.0
+	bark_player.bus = "SFX"
+	add_child(bark_player)
+
+	_next_radio_time = randf_range(5.0, 15.0) # Increased frequency
+	_next_bark_time = randf_range(2.0, 5.0)  # Increased frequency
 
 func _on_stars_changed(stars: int) -> void:
 	_update_radius_for_stars(stars)
@@ -117,6 +173,20 @@ func _physics_process(delta: float) -> void:
 			# We need to _process the color every frame to get the flashing effect
 			_update_color()
 
+	var heat_manager = get_node_or_null("/root/HeatManager")
+	if heat_manager:
+		var npcs = get_tree().get_nodes_in_group("npc")
+		for npc in npcs:
+			if not is_instance_valid(npc): continue
+			if npc.role == npc.Role.CUSTOMER and npc.blackboard:
+				if npc.blackboard.get_var(&"is_solicited", false):
+					var dist = global_position.distance_to(npc.global_position)
+					if dist <= detection_radius:
+						if npc.blackboard.get_var(&"is_interacting", false):
+							heat_manager.add_heat(HeatConfig.CUSTOMER_TALKING_HEAT_RATE * delta)
+						else:
+							heat_manager.add_heat(HeatConfig.CUSTOMER_FOLLOWING_HEAT_RATE * delta)
+
 	if not is_player_inside or not is_instance_valid(player_ref):
 		return
 
@@ -126,8 +196,10 @@ func _physics_process(delta: float) -> void:
 		is_armed = true
 
 	if is_armed:
-		if has_node("/root/HeatManager"):
-			get_node("/root/HeatManager").add_heat(HeatConfig.ARMED_HEAT_RATE * delta)
+		if heat_manager:
+			heat_manager.add_heat(HeatConfig.ARMED_HEAT_RATE * delta)
+
+	_handle_audio_timers(delta)
 
 	# ── Throttled position updates (event-driven, not every frame) ────
 	_update_timer += delta
@@ -148,6 +220,58 @@ func _physics_process(delta: float) -> void:
 			npc.blackboard.set_var(&"is_searching", false)
 			# Update confidence based on distance
 			npc.blackboard.set_var(&"confidence", IntelConfidence.calculate_confidence(dist, true))
+
+func _handle_audio_timers(delta: float) -> void:
+	var hm = get_node_or_null("/root/HeatManager")
+	var stars = hm.wanted_stars if hm else 0
+	var heat = hm.heat_value if hm else 0.0
+	var npc: NPC = get_parent() as NPC
+	
+	# Patrol Radio chatter
+	if stars == 0:
+		_radio_timer += delta
+		if _radio_timer >= _next_radio_time:
+			_radio_timer = 0.0
+			_next_radio_time = randf_range(15.0, 30.0)
+			
+			if RADIO_CHIPS.size() > 0 and not radio_player.playing:
+				var stream = RADIO_CHIPS[randi() % RADIO_CHIPS.size()]
+				radio_player.stream = stream
+				radio_player.play()
+				
+	# Barks and UI dialogue whenplayer is inside radius
+	if is_player_inside:
+		_bark_timer += delta
+		if _bark_timer >= _next_bark_time:
+			_bark_timer = 0.0
+			
+			if stars >= 1:
+				# Active chase barks
+				_next_bark_time = randf_range(3.0, 6.0) # More frequent barks
+				
+				# Only bark if they can see the player
+				if npc and npc.blackboard and npc.blackboard.get_var(&"has_line_of_sight", false):
+					var idx = randi() % CHASE_BARKS.size()
+					var stream = CHASE_BARKS[idx]
+					var text = CHASE_TEXTS[idx]
+					
+					if not bark_player.playing:
+						bark_player.stream = stream
+						bark_player.play()
+					
+					if npc.npc_ui:
+						npc.npc_ui.show_dialog_bubble(text)
+						# Hide it after 2 seconds
+						get_tree().create_timer(2.0).timeout.connect(npc.npc_ui.hide_dialog_bubble)
+						
+			elif stars == 0 and heat > 30.0:
+				# Suspicion warning barks (no audio standardized for this yet, so just text)
+				_next_bark_time = randf_range(8.0, 15.0)
+				if npc and npc.npc_ui:
+					var text = WARNING_TEXTS[randi() % WARNING_TEXTS.size()]
+					npc.npc_ui.show_dialog_bubble(text)
+					# Optionally clear it early
+					get_tree().create_timer(4.0).timeout.connect(npc.npc_ui.hide_dialog_bubble)
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):

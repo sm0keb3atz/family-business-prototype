@@ -3,8 +3,8 @@ extends BTAction
 ## Moves the agent away from a threat position using NavigationAgent2D.
 ## Returns RUNNING while fleeing, SUCCESS when the flee duration expires.
 
-@export var flee_duration: float = 3.0
-@export var flee_distance: float = 300.0
+@export var flee_duration: float = 8.0
+@export var flee_distance: float = 1200.0
 @export var sprint_speed_multiplier: float = 1.5
 ## Blackboard variable containing the position to flee from.
 @export var threat_position_var: StringName = &"damage_source_position"
@@ -30,22 +30,47 @@ func _enter() -> void:
 	if _initial_flee_direction.length() < 0.1:
 		_initial_flee_direction = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)).normalized()
 
-	# Calculate target point far away in the flee direction
-	var potential_target: Vector2 = npc.global_position + _initial_flee_direction * flee_distance
+	# --- Path Awareness ---
+	var path_markers = []
+	if blackboard.has_var(&"path_markers"):
+		path_markers = blackboard.get_var(&"path_markers", [])
+	
+	var flee_target: Vector2 = Vector2.ZERO
+	
+	if path_markers is Array and path_markers.size() > 0:
+		# Try to find a waypoint that is further from the threat than we are
+		var valid_waypoints = []
+		var our_dist_to_threat = npc.global_position.distance_to(threat_pos)
+		
+		for marker in path_markers:
+			var m_pos = marker.global_position if marker is Marker2D else marker
+			if m_pos.distance_to(threat_pos) > our_dist_to_threat + 200.0:
+				valid_waypoints.append(m_pos)
+		
+		if valid_waypoints.size() > 0:
+			flee_target = valid_waypoints.pick_random()
+	
+	if flee_target == Vector2.ZERO:
+		# Fallback: Calculate target point far away in the flee direction
+		flee_target = npc.global_position + _initial_flee_direction * flee_distance
 	
 	# Snap the target point to the navigation mesh to ensure it's valid
 	var map: RID = npc.get_world_2d().navigation_map
-	var safe_target: Vector2 = NavigationServer2D.map_get_closest_point(map, potential_target)
+	var safe_target: Vector2 = NavigationServer2D.map_get_closest_point(map, flee_target)
 	
 	npc.nav_agent.target_position = safe_target
 	
-	# Speed up animation to simulate sprinting
+	# Speed up animation to simulate sprinting (even faster for erratic)
 	if npc.animation_component and npc.animation_component.animation_player:
-		npc.animation_component.animation_player.speed_scale = sprint_speed_multiplier
+		npc.animation_component.animation_player.speed_scale = sprint_speed_multiplier * 1.2
 	
 	# Increase nav agent max speed to allow sprinting
 	if npc.nav_agent and npc.stats:
 		npc.nav_agent.max_speed = npc.stats.move_speed * sprint_speed_multiplier
+
+	# Trigger panic scream if method exists
+	if npc.has_method(&"play_panic_scream"):
+		npc.play_panic_scream()
 
 func _exit() -> void:
 	# Reset animation speed and max speed when task ends or is aborted
@@ -55,6 +80,11 @@ func _exit() -> void:
 			npc.animation_component.animation_player.speed_scale = 1.0
 		if npc.nav_agent and npc.stats:
 			npc.nav_agent.max_speed = npc.stats.move_speed
+		
+		# Reset all panic flags
+		if blackboard:
+			blackboard.set_var(&"was_shot", false)
+			blackboard.set_var(&"heard_gunfire", false)
 
 func _tick(delta: float) -> Status:
 	_elapsed += delta
@@ -63,11 +93,10 @@ func _tick(delta: float) -> Status:
 		return FAILURE
 
 	if _elapsed >= flee_duration or npc.nav_agent.is_navigation_finished():
-		# Done fleeing — stop movement and clear the shot flag
+		# Done fleeing — stop movement
 		npc.movement_component.move_velocity(Vector2.ZERO)
 		if npc.animation_component:
 			npc.animation_component.update_animation(Vector2.ZERO)
-		blackboard.set_var(&"was_shot", false)
 		return SUCCESS
 
 	# Follow nav agent path
@@ -80,7 +109,11 @@ func _tick(delta: float) -> Status:
 
 	# Move at boosted speed
 	var boost_speed = npc.stats.move_speed * sprint_speed_multiplier
-	var desired_velocity = direction * boost_speed
+	
+	# Erratic jitter: Add random side-to-side force every frame
+	var jitter_strength = boost_speed * 0.4
+	var jitter = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)).normalized() * jitter_strength
+	var desired_velocity = (direction * boost_speed) + jitter
 	
 	# Send to nav agent for avoidance
 	npc.nav_agent.set_velocity(desired_velocity)

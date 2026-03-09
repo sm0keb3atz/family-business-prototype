@@ -34,6 +34,7 @@ var spawn_position: Vector2 = Vector2.ZERO
 var blackboard: Blackboard
 var _hitstun_duration: float = 0.0
 var _is_interacting: bool = false
+var _panic_audio_player: AudioStreamPlayer2D
 
 
 # --- BT ---
@@ -249,6 +250,50 @@ func _setup_bt() -> void:
 			blackboard.set_var(&"search_role", "")
 			blackboard.set_var(&"confidence", 0.0)
 			blackboard.set_var(&"last_known_velocity", Vector2.ZERO)
+			blackboard.set_var(&"heard_gunfire", false) # Track if gunshot was heard
+			blackboard.set_var(&"path_markers", []) # Ensure path_markers exists even for non-path characters
+
+	_setup_panic_audio()
+
+func _setup_panic_audio() -> void:
+	if not _panic_audio_player:
+		_panic_audio_player = AudioStreamPlayer2D.new()
+		_panic_audio_player.name = "PanicAudio"
+		_panic_audio_player.max_distance = 600.0
+		_panic_audio_player.attenuation = 2.0
+		_panic_audio_player.bus = &"SFX"
+		add_child(_panic_audio_player)
+
+func play_panic_scream() -> void:
+	if not _panic_audio_player or _panic_audio_player.playing:
+		return
+	
+	# Only non-police scream in panic for now
+	if role == Role.POLICE:
+		return
+
+	var screams: Array[String] = []
+	if gender == Gender.MALE:
+		screams = [
+			"res://GAME/assets/audio/dialog/customer/male/panic/male-scream1.ogg",
+			"res://GAME/assets/audio/dialog/customer/male/panic/male-screams3.ogg",
+			"res://GAME/assets/audio/dialog/customer/male/panic/male-scream5.ogg"
+		]
+	else:
+		screams = [
+			"res://GAME/assets/audio/dialog/customer/female/panic/female-scream1.ogg",
+			"res://GAME/assets/audio/dialog/customer/female/panic/female-scream2.ogg",
+			"res://GAME/assets/audio/dialog/customer/female/panic/female-scream3.ogg",
+			"res://GAME/assets/audio/dialog/customer/female/panic/female-scream4.ogg"
+		]
+	
+	if screams.is_empty(): return
+	
+	var chosen = screams.pick_random()
+	var stream = load(chosen)
+	if stream:
+		_panic_audio_player.stream = stream
+		_panic_audio_player.play()
 
 # --- Damage Interface ---
 # Called by BulletBase when a projectile hits this body.
