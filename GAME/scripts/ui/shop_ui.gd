@@ -32,7 +32,6 @@ func open_shop(dealer: DealerShopComponent, player: Player) -> void:
 	current_player = player
 	layer = 120 # Ensure it's above HUD
 	main_control.show()
-	get_tree().paused = true
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	error_label.text = ""
 	_refresh_ui()
@@ -40,8 +39,19 @@ func open_shop(dealer: DealerShopComponent, player: Player) -> void:
 
 func close_shop() -> void:
 	main_control.hide()
-	get_tree().paused = false
+	var dealer_npc: NPC = null
+	if current_dealer:
+		dealer_npc = current_dealer.get_parent() as NPC
+	if current_player:
+		current_player._is_interacting = false
+		if dealer_npc and current_player.current_interactable == dealer_npc:
+			current_player.current_interactable = null
+	if dealer_npc:
+		dealer_npc._is_interacting = false
+		if dealer_npc.blackboard:
+			dealer_npc.blackboard.set_var(&"is_interacting", false)
 	current_dealer = null
+	current_player = null
 	AudioManager.play_ui_menu()
 
 func _process(_delta: float) -> void:

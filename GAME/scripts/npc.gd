@@ -35,6 +35,25 @@ var blackboard: Blackboard
 var _hitstun_duration: float = 0.0
 var _is_interacting: bool = false
 var _panic_audio_player: AudioStreamPlayer2D
+var _dialog_hide_timer: SceneTreeTimer
+var _dealer_bark_cooldowns := {
+	"approach": 0,
+	"solicitation": 0
+}
+
+const DEALER_APPROACH_BARKS: Array[String] = [
+	"Yo, you need to re-up.",
+	"Come see what I got.",
+	"You lookin' low, pull up.",
+	"I got what you need."
+]
+
+const DEALER_SOLICITATION_BARKS: Array[String] = [
+	"Get off my corner.",
+	"You solicitin' on my block?",
+	"Take that hustle somewhere else.",
+	"Not in front of my spot."
+]
 
 
 # --- BT ---
@@ -295,6 +314,40 @@ func play_panic_scream() -> void:
 		_panic_audio_player.stream = stream
 		_panic_audio_player.play()
 
+func bark(text: String, duration: float = 2.5) -> void:
+	if not npc_ui:
+		return
+
+	npc_ui.show_dialog_bubble(text)
+	if _dialog_hide_timer and _dialog_hide_timer.timeout.is_connected(npc_ui.hide_dialog_bubble):
+		_dialog_hide_timer.timeout.disconnect(npc_ui.hide_dialog_bubble)
+	_dialog_hide_timer = get_tree().create_timer(duration)
+	_dialog_hide_timer.timeout.connect(npc_ui.hide_dialog_bubble)
+
+func bark_dealer_feedback(kind: String) -> void:
+	if role != Role.DEALER:
+		return
+
+	var now := Time.get_ticks_msec()
+	var ready_at: int = _dealer_bark_cooldowns.get(kind, 0)
+	if now < ready_at:
+		return
+
+	var lines: Array[String] = []
+	match kind:
+		"approach":
+			lines = DEALER_APPROACH_BARKS
+		"solicitation":
+			lines = DEALER_SOLICITATION_BARKS
+		_:
+			return
+
+	if lines.is_empty():
+		return
+
+	_dealer_bark_cooldowns[kind] = now + 4000
+	bark(lines.pick_random())
+
 # --- Damage Interface ---
 # Called by BulletBase when a projectile hits this body.
 func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO, hit_direction: Vector2 = Vector2.ZERO) -> void:
@@ -340,7 +393,7 @@ func interact() -> void:
 		return
 
 	if npc_ui:
-		npc_ui.show_dialog_bubble("Hey there! Can't talk right now.")
+		bark("Hey there! Can't talk right now.")
 
 func _handle_solicited_interaction(player: Player) -> void:
 	var grams = blackboard.get_var(&"requested_grams", 0)
@@ -426,8 +479,9 @@ func _on_interact_area_body_entered(body: Node2D) -> void:
 		var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false))
 		if can_interact:
 			body.register_interactable(self)
-			# Hide all distracting bubbles when in range to make "E" more responsive
-			if npc_ui:
+			if role == Role.DEALER:
+				bark_dealer_feedback("approach")
+			elif npc_ui:
 				npc_ui.hide_dialog_bubble()
 			if body.get("player_ui"):
 				body.player_ui.hide_dialog_bubble()
@@ -440,7 +494,7 @@ func _on_interact_area_body_exited(body: Node2D) -> void:
 		_is_interacting = false
 		if blackboard:
 			blackboard.set_var(&"is_interacting", false)
-		if npc_ui:
+		if npc_ui and role != Role.DEALER:
 			npc_ui.hide_dialog_bubble()
 
 # --- Callbacks ---

@@ -48,12 +48,19 @@ func solicit() -> void:
 	
 	var npcs = get_tree().get_nodes_in_group("npc")
 	for npc in npcs:
+		if not npc is NPC:
+			continue
+
 		var dist = player.global_position.distance_to(npc.global_position)
 		
 		if npc.role == npc.Role.CUSTOMER and not npc.has_node("CustomerComponent"):
 			if dist <= config.radius:
 				if randf() * 100.0 <= config.base_chance_percent:
 					_convert_to_customer(npc, player)
+		
+		elif npc.role == npc.Role.DEALER:
+			if dist <= config.radius and npc.has_method("bark_dealer_feedback"):
+				npc.bark_dealer_feedback("solicitation")
 		
 		elif npc.role == npc.Role.POLICE:
 			var detect_comp = npc.get_node_or_null("PoliceDetectionComponent")
