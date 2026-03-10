@@ -6,11 +6,16 @@ class_name DealerShopComponent
 var current_stock: int = 0
 var restock_timer: float = 0.0
 var dealer_name: String = "Dealer"
+var current_territory: TerritoryArea
 
 func _ready() -> void:
 	if tier_config:
 		current_stock = tier_config.max_stock
 		restock_timer = tier_config.restock_time_seconds
+	
+	var parent_npc = get_parent()
+	if parent_npc and parent_npc.has_meta(&"territory"):
+		current_territory = parent_npc.get_meta(&"territory")
 
 func _process(delta: float) -> void:
 	if not tier_config: return

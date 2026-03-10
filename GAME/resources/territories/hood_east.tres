@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="TerritoryResource" format=3 uid="uid://cu0uh1y7iskio"]
+
+[ext_resource type="Script" uid="uid://bmva4fwosk1hv" path="res://GAME/scripts/resources/territory_resource.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+territory_id = &"hood_east"
+display_name = "Hood East"
+territory_color = Color(1, 0.4, 0.4, 0.5)
+price_multiplier = 1.2
+drug_prices = {
+&"weed": 12
+}
+max_customers = 30
+max_police = 7
+max_dealers = 4

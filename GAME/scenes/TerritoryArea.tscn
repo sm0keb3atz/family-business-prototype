@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://cfot8raibprqo"]
+
+[ext_resource type="Script" uid="uid://cvff3dic57ykv" path="res://GAME/scripts/territory_area.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://d3jqpepjbkoep" path="res://GAME/scripts/components/reputation_component.gd" id="2_rep"]
+[ext_resource type="Script" uid="uid://gl0vdgjxkocv" path="res://GAME/scripts/components/territory_spawner.gd" id="3_spawn"]
+[ext_resource type="PackedScene" uid="uid://bmjfqp5tv548i" path="res://GAME/scenes/characters/npc.tscn" id="4_1uync"]
+[ext_resource type="BehaviorTree" uid="uid://djrt6v1dys2m5" path="res://GAME/resources/ai/dealer_bt.tres" id="5_xciht"]
+[ext_resource type="BehaviorTree" uid="uid://dxb0568i3p5h2" path="res://GAME/resources/npc/police_bt.tres" id="6_vx2jy"]
+[ext_resource type="BehaviorTree" uid="uid://b1qnqq3mh3j5u" path="res://GAME/resources/ai/customer_bt.tres" id="7_p6lgs"]
+
+[node name="TerritoryArea" type="Area2D"]
+y_sort_enabled = true
+collision_layer = 8
+collision_mask = 2
+script = ExtResource("1_script")
+
+[node name="ReputationComponent" type="Node" parent="." unique_id=439224894]
+script = ExtResource("2_rep")
+
+[node name="TerritorySpawner" type="Node2D" parent="." unique_id=182301873]
+script = ExtResource("3_spawn")
+dealer_scene = ExtResource("4_1uync")
+police_scene = ExtResource("4_1uync")
+customer_scene = ExtResource("4_1uync")
+dealer_bt = ExtResource("5_xciht")
+police_bt = ExtResource("6_vx2jy")
+customer_bt = ExtResource("7_p6lgs")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=791756006]
+debug_color = Color(0.7, 0, 0, 0.42)

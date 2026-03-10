@@ -6,6 +6,9 @@ class_name HUD
 @onready var money_label: Label = $Hud/MoneyLabel
 @onready var heat_bar: ProgressBar = $Hud/HeatBar
 @onready var stars_container: Control = $Hud/StarsContainer
+@onready var territory_rep_bar: ProgressBar = $Hud/TerritoryReputationBar
+@onready var territory_name_label: Label = $Hud/TerritoryNameLabel
+@onready var prices_label: Label = $Hud/PricesLabel
 
 @onready var weapon_icon: Sprite2D = $Hud/WeaponIcon
 @onready var level_label: Label = $Hud/LevelLabel
@@ -16,10 +19,13 @@ var player: Player
 var star_nodes: Array[AnimatedSprite2D] = []
 var displayed_money: float = 0.0
 var current_weapon: WeaponBase
+var current_territory: TerritoryArea
+var territory_tracking_ready: bool = false
 
 func _ready() -> void:
 	# Add nodes dynamically since the original tscn was just a TextureRect
 	_setup_ui_nodes()
+	_reset_territory_ui()
 	
 	# Try to find player
 	# Connect to health
@@ -59,6 +65,8 @@ func _process(delta: float) -> void:
 				displayed_money = float(player.progression.money)
 				if is_instance_valid(money_label):
 					money_label.text = "$" + str(roundi(displayed_money))
+			
+			_setup_territory_tracking()
 		return
 		
 	# Update Money and XP dynamically for now
@@ -76,7 +84,100 @@ func _process(delta: float) -> void:
 		var current_xp = player.progression.xp % 1000
 		xp_bar.value = current_xp
 
+	_refresh_current_territory()
 	_update_stars_animation()
+
+func _setup_territory_tracking() -> void:
+	if territory_tracking_ready:
+		return
+	territory_tracking_ready = true
+	
+	for territory in get_tree().get_nodes_in_group("territories"):
+		if territory is TerritoryArea:
+			if not territory.body_entered.is_connected(_on_territory_body_entered):
+				territory.body_entered.connect(_on_territory_body_entered.bind(territory))
+			if not territory.body_exited.is_connected(_on_territory_body_exited):
+				territory.body_exited.connect(_on_territory_body_exited.bind(territory))
+			if player and territory.get_overlapping_bodies().has(player):
+				_set_current_territory(territory)
+
+func _refresh_current_territory() -> void:
+	if not player:
+		return
+	var found: TerritoryArea = null
+	for node in get_tree().get_nodes_in_group("territories"):
+		if node is TerritoryArea and node.get_overlapping_bodies().has(player):
+			found = node
+			break
+	if found:
+		_set_current_territory(found)
+	else:
+		if current_territory:
+			_clear_current_territory()
+
+func _on_territory_body_entered(body: Node2D, territory: TerritoryArea) -> void:
+	if not player or body != player:
+		return
+	_set_current_territory(territory)
+
+func _on_territory_body_exited(body: Node2D, territory: TerritoryArea) -> void:
+	if not player or body != player:
+		return
+	if current_territory == territory and not territory.get_overlapping_bodies().has(body):
+		_clear_current_territory()
+
+func _set_current_territory(territory: TerritoryArea) -> void:
+	if current_territory == territory:
+		return
+	_disconnect_reputation()
+	current_territory = territory
+	_connect_reputation()
+	_update_territory_ui()
+
+func _clear_current_territory() -> void:
+	_disconnect_reputation()
+	current_territory = null
+	_reset_territory_ui()
+
+func _connect_reputation() -> void:
+	if current_territory and current_territory.reputation_component:
+		if not current_territory.reputation_component.reputation_changed.is_connected(_on_reputation_changed):
+			current_territory.reputation_component.reputation_changed.connect(_on_reputation_changed)
+		_on_reputation_changed(current_territory.reputation_component.get_reputation())
+
+func _disconnect_reputation() -> void:
+	if current_territory and current_territory.reputation_component:
+		if current_territory.reputation_component.reputation_changed.is_connected(_on_reputation_changed):
+			current_territory.reputation_component.reputation_changed.disconnect(_on_reputation_changed)
+
+func _on_reputation_changed(value: float) -> void:
+	if is_instance_valid(territory_rep_bar):
+		territory_rep_bar.value = _reputation_to_bar(value)
+
+func _reputation_to_bar(value: float) -> float:
+	return clampf((value + 100.0) * 0.5, 0.0, 100.0)
+
+func _update_territory_ui() -> void:
+	if not current_territory or not current_territory.territory_data:
+		_reset_territory_ui()
+		return
+	
+	if is_instance_valid(territory_name_label):
+		territory_name_label.text = "Territory: " + current_territory.territory_data.display_name
+	
+	if is_instance_valid(prices_label):
+		var weed_price = current_territory.get_drug_price(&"weed")
+		prices_label.text = "Prices: $" + str(weed_price) + "/g"
+	
+	_on_reputation_changed(current_territory.reputation_component.get_reputation() if current_territory.reputation_component else 0.0)
+
+func _reset_territory_ui() -> void:
+	if is_instance_valid(territory_name_label):
+		territory_name_label.text = "Territory: Neutral"
+	if is_instance_valid(prices_label):
+		prices_label.text = "Prices: Normal"
+	if is_instance_valid(territory_rep_bar):
+		territory_rep_bar.value = 50.0
 
 func _on_heat_changed(value: float) -> void:
 	if is_instance_valid(heat_bar):

@@ -510,6 +510,14 @@ func _on_died() -> void:
 	if has_node("/root/HeatManager"):
 		get_node("/root/HeatManager").on_kill(role)
 	
+	if role == Role.DEALER:
+		var territory = get_meta(&"territory") if has_meta(&"territory") else null
+		if territory and territory.reputation_component:
+			territory.reputation_component.add_reputation(-25.0)
+			var p = get_tree().get_first_node_in_group("player")
+			if p and p.get("player_ui"):
+				p.player_ui.spawn_indicator("money_up", "-25 REP (Dealer Killed)")
+	
 	# Disable processing and AI
 	set_physics_process(false)
 	set_process(false)

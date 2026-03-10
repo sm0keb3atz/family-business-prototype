@@ -9,6 +9,7 @@ var requested_grams: int = 0
 var offered_payout: int = 0
 
 var state: String = "APPROACHING"
+var current_territory: TerritoryArea
 
 func _ready() -> void:
 	target_npc = get_parent() as CharacterBody2D
@@ -16,9 +17,19 @@ func _ready() -> void:
 		queue_free()
 		return
 		
+	# Find territory if not already set
+	if target_npc.has_meta(&"territory"):
+		current_territory = target_npc.get_meta(&"territory")
+	
 	requested_grams = randi_range(config.min_request_grams, config.max_request_grams)
-	var payout_per_gram = randi_range(config.min_payout_per_gram, config.max_payout_per_gram)
-	offered_payout = requested_grams * payout_per_gram
+	
+	var price_per_gram = config.min_payout_per_gram # Fallback
+	if current_territory:
+		price_per_gram = current_territory.get_drug_price(&"weed") # For now assuming weed
+	else:
+		price_per_gram = randi_range(config.min_payout_per_gram, config.max_payout_per_gram)
+		
+	offered_payout = requested_grams * price_per_gram
 	
 	if target_npc.bt_player:
 		target_npc.bt_player.set_process(false)
@@ -85,6 +96,12 @@ func complete_deal() -> void:
 			pui.spawn_indicator("money_up", "+$" + str(offered_payout))
 			pui.spawn_indicator("product", "-" + str(requested_grams) + "g")
 			pui.spawn_indicator("xp", "+" + str(sale_xp) + " XP")
+			
+		# Gain Reputation in Territory
+		if current_territory and current_territory.reputation_component:
+			current_territory.reputation_component.add_reputation(1.0 + (requested_grams * 0.1))
+			if player_node.get("player_ui"):
+				player_node.player_ui.spawn_indicator("money_up", "+REP") # Simple indicator for now
 			
 		if target_npc.npc_ui:
 			target_npc.npc_ui.show_dialog_bubble("Thanks man.")

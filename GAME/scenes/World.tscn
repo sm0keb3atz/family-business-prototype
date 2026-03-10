@@ -8,10 +8,8 @@
 [ext_resource type="PackedScene" uid="uid://ca7t6y2ynjken" path="res://GAME/scenes/characters/player.tscn" id="6_pxu16"]
 [ext_resource type="PackedScene" uid="uid://bmjfqp5tv548i" path="res://GAME/scenes/characters/npc.tscn" id="7_2e6be"]
 [ext_resource type="Script" uid="uid://b6c56sc2m1g5a" path="res://GAME/scripts/MapInitializer.gd" id="8_32me2"]
-[ext_resource type="Script" uid="uid://c01pme3sm6hta" path="res://GAME/scripts/npc_spawner.gd" id="9_i66ib"]
-[ext_resource type="Resource" uid="uid://rfa2l2r2c0k7" path="res://GAME/resources/npc/appearance_data.tres" id="10_hnl4b"]
-[ext_resource type="BehaviorTree" uid="uid://djrt6v1dys2m5" path="res://GAME/resources/ai/dealer_bt.tres" id="10_j7dm0"]
-[ext_resource type="BehaviorTree" uid="uid://b1qnqq3mh3j5u" path="res://GAME/resources/ai/customer_bt.tres" id="11_pxu16"]
+[ext_resource type="PackedScene" uid="uid://cfot8raibprqo" path="res://GAME/scenes/TerritoryArea.tscn" id="12_territory"]
+[ext_resource type="Resource" uid="uid://cu0uh1y7iskio" path="res://GAME/resources/territories/hood_east.tres" id="13_hood_east"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
 size = Vector2(96, 26)
@@ -151,8 +149,10 @@ agent_radius = 50.0
 [node name="PrototypeMap" type="Node2D" unique_id=1024755768]
 y_sort_enabled = true
 
-[node name="MapManager" type="Node" parent="." unique_id=816788286 groups=["map_manager"]]
+[node name="MapManager" type="Node" parent="." unique_id=816788286 node_paths=PackedStringArray("exterior_node", "interior_node") groups=["map_manager"]]
 script = ExtResource("1_nqdoh")
+exterior_node = NodePath("../Exterior")
+interior_node = NodePath("../Interior")
 
 [node name="Exterior" type="Node2D" parent="." unique_id=929174303]
 z_index = -1
@@ -209,9 +209,6 @@ position = Vector2(506, 508)
 tile_map_data = PackedByteArray("AAAEAAIACAA3AFQAAAAEAAMACAA3AFUAAAAFAAIACAA4AFQAAAAFAAMACAA4AFUAAAAGAAIACAA3AFQAAAAGAAMACAA3AFUAAAAHAAIACAA4AFQAAAAHAAMACAA4AFUAAAAIAAIACAA3AFQAAAAIAAMACAA3AFUAAAAJAAIACAA4AFQAAAAJAAMACAA4AFUAAAAKAAIACAA3AFQAAAAKAAMACAA3AFUAAAALAAIACAA4AFQAAAALAAMACAA4AFUAAAAMAAIACAA3AFQAAAAMAAMACAA3AFUAAAANAAIACAA4AFQAAAANAAMACAA4AFUAAAAOAAIACAA3AFQAAAAOAAMACAA3AFUAAAAPAAIACAA4AFQAAAAPAAMACAA4AFUAAAAQAAIACAA3AFQAAAAQAAMACAA3AFUAAAARAAIACAA5AFIAAAARAAMACAA5AFMAAAARAAQACAA5AFQAAAARAAUACAA5AFQAAAARAAYACAA5AFQAAAARAAcACAA5AFQAAAARAAgACAA5AFQAAAARAAkACAA5AFQAAAARAAoACAA5AFQAAAARAAsACAA5AFQAAAAOAAwACAA3AFcAAAAPAAwACAA3AFcAAAAQAAwACAA4AFcAAAARAAwACAA5AFcAAAANAAwACAA3AFcAAAAMAAwACAA3AFcAAAALAAwACAA3AFcAAAAKAAwACAAXAAMAAAAJAAwACAA3AFcAAAAIAAwACAA3AFcAAAAHAAwACAA3AFcAAAAGAAwACAA3AFcAAAAFAAwACAA3AFcAAAAEAAwACAA3AFcAAAADAAsACAA2AFQAAAADAAoACAA2AFQAAAADAAkACAA2AFQAAAADAAgACAA2AFQAAAADAAcACAA2AFQAAAADAAYACAA2AFQAAAADAAUACAA2AFQAAAADAAQACAA2AFQAAAADAAIACAA2AFIAAAADAAMACAA2AFMAAAADAAwACAA2AFcAAAAEAAQACAAiACkAAAAEAAUACAAiACoAAAAFAAQACAAjACkAAAAFAAUACAAjACoAAAAGAAQACAAkACkAAAAGAAUACAAkACoAAAAEAAYACAAiACkAAAAEAAcACAAiACoAAAAFAAYACAAjACkAAAAFAAcACAAjACoAAAAGAAYACAAkACkAAAAGAAcACAAkACoAAAAEAAgACAAiACkAAAAEAAkACAAiACoAAAAFAAgACAAjACkAAAAFAAkACAAjACoAAAAGAAgACAAkACkAAAAGAAkACAAkACoAAAAEAAoACAAiACkAAAAEAAsACAAiACoAAAAFAAoACAAjACkAAAAFAAsACAAjACoAAAAGAAoACAAkACkAAAAGAAsACAAkACoAAAAHAAQACAAiACkAAAAHAAUACAAiACoAAAAIAAQACAAjACkAAAAIAAUACAAjACoAAAAJAAQACAAkACkAAAAJAAUACAAkACoAAAAHAAYACAAiACkAAAAHAAcACAAiACoAAAAIAAYACAAjACkAAAAIAAcACAAjACoAAAAJAAYACAAkACkAAAAJAAcACAAkACoAAAAHAAgACAAiACkAAAAHAAkACAAiACoAAAAIAAgACAAjACkAAAAIAAkACAAjACoAAAAJAAgACAAkACkAAAAJAAkACAAkACoAAAAHAAoACAAiACkAAAAHAAsACAAiACoAAAAIAAoACAAjACkAAAAIAAsACAAjACoAAAAJAAoACAAkACkAAAAJAAsACAAkACoAAAAKAAQACAAiACkAAAAKAAUACAAiACoAAAALAAQACAAjACkAAAALAAUACAAjACoAAAAMAAQACAAkACkAAAAMAAUACAAkACoAAAAKAAYACAAiACkAAAAKAAcACAAiACoAAAALAAYACAAjACkAAAALAAcACAAjACoAAAAMAAYACAAkACkAAAAMAAcACAAkACoAAAAKAAgACAAiACkAAAAKAAkACAAiACoAAAALAAgACAAjACkAAAALAAkACAAjACoAAAAMAAgACAAkACkAAAAMAAkACAAkACoAAAAKAAoACAAiACkAAAAKAAsACAAiACoAAAALAAoACAAjACkAAAALAAsACAAjACoAAAAMAAoACAAkACkAAAAMAAsACAAkACoAAAANAAQACAAiACkAAAANAAUACAAiACoAAAAOAAQACAAjACkAAAAOAAUACAAjACoAAAAPAAQACAAkACkAAAAPAAUACAAkACoAAAANAAYACAAiACkAAAANAAcACAAiACoAAAAOAAYACAAjACkAAAAOAAcACAAjACoAAAAPAAYACAAkACkAAAAPAAcACAAkACoAAAANAAgACAAiACkAAAANAAkACAAiACoAAAAOAAgACAAjACkAAAAOAAkACAAjACoAAAAPAAgACAAkACkAAAAPAAkACAAkACoAAAANAAoACAAiACkAAAANAAsACAAiACoAAAAOAAoACAAjACkAAAAOAAsACAAjACoAAAAPAAoACAAkACkAAAAPAAsACAAkACoAAAAQAAQACAAiACkAAAAQAAUACAAiACoAAAAQAAYACAAiACkAAAAQAAcACAAiACoAAAAQAAgACAAiACkAAAAQAAkACAAiACoAAAAQAAoACAAiACkAAAAQAAsACAAiACoAAAA=")
 tile_set = ExtResource("5_j7dm0")
 
-[node name="Exterior2" type="Node2D" parent="." unique_id=1339251942]
-z_index = -1
-
 [node name="Player" parent="." unique_id=1668827685 instance=ExtResource("6_pxu16")]
 z_as_relative = false
 position = Vector2(2235, -627)
@@ -224,88 +221,77 @@ position = Vector2(2126, -698)
 script = ExtResource("8_32me2")
 fade_speed = 10.0
 
-[node name="NpcSpawner" type="Node2D" parent="." unique_id=278041881 node_paths=PackedStringArray("dealer_points_container", "police_points_container", "customer_points_container", "path_points_container")]
-script = ExtResource("9_i66ib")
-dealer_scene = ExtResource("7_2e6be")
-police_scene = ExtResource("7_2e6be")
-customer_scene = ExtResource("7_2e6be")
-dealer_bt = ExtResource("10_j7dm0")
-customer_bt = ExtResource("11_pxu16")
-dealer_points_container = NodePath("DealerPoints")
-police_points_container = NodePath("PolicePoints")
-customer_points_container = NodePath("CustomerPoints")
-path_points_container = NodePath("PathPoints")
-max_customers = 30
-appearance_data = ExtResource("10_hnl4b")
-spawn_interval = 0.0
+[node name="Territories" type="Node2D" parent="." unique_id=443415521]
+y_sort_enabled = true
 
-[node name="DealerPoints" type="Node2D" parent="NpcSpawner" unique_id=179583584]
-visible = false
+[node name="HoodEast" parent="Territories" unique_id=1099638849 instance=ExtResource("12_territory")]
+position = Vector2(3240, -1669)
+territory_data = ExtResource("13_hood_east")
 
-[node name="Marker2D" type="Marker2D" parent="NpcSpawner/DealerPoints" unique_id=555583919]
-position = Vector2(1683, -1809)
+[node name="DealerPoints" type="Node2D" parent="Territories/HoodEast" unique_id=325925676]
 
-[node name="Marker2D2" type="Marker2D" parent="NpcSpawner/DealerPoints" unique_id=894355324]
-position = Vector2(4385, -1781)
+[node name="Marker2D" type="Marker2D" parent="Territories/HoodEast/DealerPoints" unique_id=186708783]
+position = Vector2(-1557, -140)
 
-[node name="Marker2D3" type="Marker2D" parent="NpcSpawner/DealerPoints" unique_id=85246551]
-position = Vector2(4846, -936)
+[node name="Marker2D2" type="Marker2D" parent="Territories/HoodEast/DealerPoints" unique_id=548361448]
+position = Vector2(1145, -112)
 
-[node name="Marker2D4" type="Marker2D" parent="NpcSpawner/DealerPoints" unique_id=161398303]
-position = Vector2(1416, -753)
+[node name="Marker2D3" type="Marker2D" parent="Territories/HoodEast/DealerPoints" unique_id=1411693628]
+position = Vector2(1606, 733)
 
-[node name="PolicePoints" type="Node2D" parent="NpcSpawner" unique_id=1481797638]
-visible = false
+[node name="Marker2D4" type="Marker2D" parent="Territories/HoodEast/DealerPoints" unique_id=7216348]
+position = Vector2(-1824, 916)
 
-[node name="Marker2D" type="Marker2D" parent="NpcSpawner/PolicePoints" unique_id=1877190339]
-position = Vector2(1292, -1107)
+[node name="PolicePoints" type="Node2D" parent="Territories/HoodEast" unique_id=982443619]
 
-[node name="Marker2D2" type="Marker2D" parent="NpcSpawner/PolicePoints" unique_id=1569769952]
-position = Vector2(2432, -731)
+[node name="Marker2D" type="Marker2D" parent="Territories/HoodEast/PolicePoints" unique_id=2144964292]
+position = Vector2(-1948, 562)
 
-[node name="Marker2D3" type="Marker2D" parent="NpcSpawner/PolicePoints" unique_id=1888612923]
-position = Vector2(5155, -1246)
+[node name="Marker2D2" type="Marker2D" parent="Territories/HoodEast/PolicePoints" unique_id=1176248787]
+position = Vector2(-808, 938)
 
-[node name="Marker2D4" type="Marker2D" parent="NpcSpawner/PolicePoints" unique_id=266783702]
-position = Vector2(2358, -2274)
+[node name="Marker2D3" type="Marker2D" parent="Territories/HoodEast/PolicePoints" unique_id=1161408086]
+position = Vector2(1915, 423)
 
-[node name="CustomerPoints" type="Node2D" parent="NpcSpawner" unique_id=1646957752]
-visible = false
+[node name="Marker2D4" type="Marker2D" parent="Territories/HoodEast/PolicePoints" unique_id=1448283720]
+position = Vector2(-882, -605)
 
-[node name="Marker2D" type="Marker2D" parent="NpcSpawner/CustomerPoints" unique_id=393028406]
-position = Vector2(1683, -737)
+[node name="CustomerPoints" type="Node2D" parent="Territories/HoodEast" unique_id=619713569]
 
-[node name="Marker2D2" type="Marker2D" parent="NpcSpawner/CustomerPoints" unique_id=1494119945]
-position = Vector2(4453, -725)
+[node name="Marker2D" type="Marker2D" parent="Territories/HoodEast/CustomerPoints" unique_id=630892131]
+position = Vector2(-1557, 932)
 
-[node name="Marker2D3" type="Marker2D" parent="NpcSpawner/CustomerPoints" unique_id=2056153829]
-position = Vector2(3805, -2274)
+[node name="Marker2D2" type="Marker2D" parent="Territories/HoodEast/CustomerPoints" unique_id=2055277422]
+position = Vector2(1213, 944)
 
-[node name="Marker2D4" type="Marker2D" parent="NpcSpawner/CustomerPoints" unique_id=1974444003]
-position = Vector2(1683, -2274)
+[node name="Marker2D3" type="Marker2D" parent="Territories/HoodEast/CustomerPoints" unique_id=1646848824]
+position = Vector2(565, -605)
 
-[node name="PathPoints" type="Node2D" parent="NpcSpawner" unique_id=851918644]
+[node name="Marker2D4" type="Marker2D" parent="Territories/HoodEast/CustomerPoints" unique_id=350944071]
+position = Vector2(-1557, -605)
 
-[node name="Marker2D" type="Marker2D" parent="NpcSpawner/PathPoints" unique_id=1645017313]
-position = Vector2(1292, -737)
+[node name="PathPoints" type="Node2D" parent="Territories/HoodEast" unique_id=1119330717]
 
-[node name="Marker2D5" type="Marker2D" parent="NpcSpawner/PathPoints" unique_id=32271551]
-position = Vector2(2126, -731)
+[node name="Marker2D" type="Marker2D" parent="Territories/HoodEast/PathPoints" unique_id=854330103]
+position = Vector2(-1948, 932)
 
-[node name="Marker2D6" type="Marker2D" parent="NpcSpawner/PathPoints" unique_id=84443202]
-position = Vector2(3955, -725)
+[node name="Marker2D2" type="Marker2D" parent="Territories/HoodEast/PathPoints" unique_id=1510193695]
+position = Vector2(-1114, 938)
 
-[node name="Marker2D2" type="Marker2D" parent="NpcSpawner/PathPoints" unique_id=237515736]
-position = Vector2(5155, -737)
+[node name="Marker2D3" type="Marker2D" parent="Territories/HoodEast/PathPoints" unique_id=1805195928]
+position = Vector2(715, 944)
 
-[node name="Marker2D3" type="Marker2D" parent="NpcSpawner/PathPoints" unique_id=1779524130]
-position = Vector2(5155, -2274)
+[node name="Marker2D4" type="Marker2D" parent="Territories/HoodEast/PathPoints" unique_id=1974676392]
+position = Vector2(1915, 932)
 
-[node name="Marker2D7" type="Marker2D" parent="NpcSpawner/PathPoints" unique_id=1143196487]
-position = Vector2(3884, -2274)
+[node name="Marker2D5" type="Marker2D" parent="Territories/HoodEast/PathPoints" unique_id=948015885]
+position = Vector2(1915, -605)
 
-[node name="Marker2D8" type="Marker2D" parent="NpcSpawner/PathPoints" unique_id=2124187554]
-position = Vector2(2358, -2274)
+[node name="Marker2D6" type="Marker2D" parent="Territories/HoodEast/PathPoints" unique_id=75023620]
+position = Vector2(644, -605)
 
-[node name="Marker2D4" type="Marker2D" parent="NpcSpawner/PathPoints" unique_id=176549030]
-position = Vector2(1292, -2274)
+[node name="Marker2D7" type="Marker2D" parent="Territories/HoodEast/PathPoints" unique_id=1263255958]
+position = Vector2(-882, -605)
+
+[node name="Marker2D8" type="Marker2D" parent="Territories/HoodEast/PathPoints" unique_id=101702969]
+position = Vector2(-1948, -605)

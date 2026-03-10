@@ -59,8 +59,16 @@ func solicit() -> void:
 					_convert_to_customer(npc, player)
 		
 		elif npc.role == npc.Role.DEALER:
-			if dist <= config.radius and npc.has_method("bark_dealer_feedback"):
-				npc.bark_dealer_feedback("solicitation")
+			if dist <= config.radius:
+				if npc.has_method("bark_dealer_feedback"):
+					npc.bark_dealer_feedback("solicitation")
+				
+				# Lose reputation for soliciting on dealer's turf
+				var territory = npc.get_meta(&"territory") if npc.has_meta(&"territory") else null
+				if territory and territory.reputation_component:
+					territory.reputation_component.add_reputation(-5.0)
+					if player.get("player_ui"):
+						player.player_ui.spawn_indicator("money_up", "-REP (Dealer Turf)")
 		
 		elif npc.role == npc.Role.POLICE:
 			var detect_comp = npc.get_node_or_null("PoliceDetectionComponent")
