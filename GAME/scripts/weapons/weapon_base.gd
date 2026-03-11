@@ -310,9 +310,12 @@ func _play_fire_effects() -> void:
 		else:
 			print("No animation found 'fire' or 'glock_shoot'. Available: ", animation_player.get_animation_list())
 	
-	# Play Fire Sound
+	# Play Fire Sound (AI officers get subtle random pitch/volume variation for less robotic volleys)
 	if weapon_data and weapon_data.shoot_sound:
-		_play_sound(weapon_data.shoot_sound)
+		if _is_police_shooter():
+			_play_sound_with_variation(weapon_data.shoot_sound, randf_range(0.93, 1.08), randf_range(-1.5, 0.5))
+		else:
+			_play_sound(weapon_data.shoot_sound)
 	
 	# Trigger Screen Shake (Only if player is the shooter)
 	if shooter and shooter.is_in_group("player"):
@@ -389,6 +392,28 @@ func _play_empty_sound() -> void:
 	if weapon_data and weapon_data.empty_mag_sound:
 		_last_empty_sound_time = Time.get_ticks_msec()
 		_play_sound(weapon_data.empty_mag_sound)
+
+
+func _is_police_shooter() -> bool:
+	if not shooter:
+		return false
+	if not shooter.is_in_group("npc"):
+		return false
+	var role_value = shooter.get("role")
+	if role_value == null:
+		return false
+	# NPC.Role.POLICE == 2
+	return int(role_value) == 2
+
+func _play_sound_with_variation(stream: AudioStream, pitch_scale: float, volume_db: float = 0.0) -> void:
+	if not stream or not audio_stream_player_2d:
+		return
+	audio_stream_player_2d.pitch_scale = pitch_scale
+	audio_stream_player_2d.volume_db = volume_db
+	_play_sound(stream)
+	# Reset to defaults so UI/reload sounds aren't permanently modified.
+	audio_stream_player_2d.pitch_scale = 1.0
+	audio_stream_player_2d.volume_db = 0.0
 
 func _play_sound(stream: AudioStream) -> void:
 	if not stream or not audio_stream_player_2d: return
