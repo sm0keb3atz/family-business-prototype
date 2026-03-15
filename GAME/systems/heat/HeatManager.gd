@@ -194,22 +194,27 @@ func on_gunshot(source_pos: Vector2 = Vector2.ZERO) -> void:
 		set_stars(2)
 	print("HeatManager: Gunshot detected. Heat: ", heat_value, " Stars: ", wanted_stars)
 	
-	if source_pos != Vector2.ZERO:
-		var npcs = get_tree().get_nodes_in_group("npc")
-		for npc in npcs:
-			if not npc is NPC or not npc.blackboard:
-				continue
-				
-			var dist = npc.global_position.distance_to(source_pos)
+	notify_gunshot(source_pos)
+
+func notify_gunshot(source_pos: Vector2 = Vector2.ZERO) -> void:
+	if source_pos == Vector2.ZERO:
+		return
+
+	var npcs = get_tree().get_nodes_in_group("npc")
+	for npc in npcs:
+		if not npc is NPC or not npc.blackboard:
+			continue
 			
-			if npc.role == NPC.Role.POLICE:
-				if dist < 1200.0:
-					npc.blackboard.set_var(&"last_known_position", source_pos)
-			else:
-				# Non-police (Customers, Dealers) panic if they hear gunfire nearby
-				if dist < 1000.0: # Sight/Hearing range for panic
-					npc.blackboard.set_var(&"heard_gunfire", true)
-					npc.blackboard.set_var(&"damage_source_position", source_pos)
+		var dist = npc.global_position.distance_to(source_pos)
+		
+		if npc.role == NPC.Role.POLICE:
+			if dist < 1200.0:
+				npc.blackboard.set_var(&"last_known_position", source_pos)
+		else:
+			# Non-police (Customers, Dealers) panic if they hear gunfire nearby
+			if dist < 1000.0: # Sight/Hearing range for panic
+				npc.blackboard.set_var(&"heard_gunfire", true)
+				npc.blackboard.set_var(&"damage_source_position", source_pos)
 
 func on_kill(role: int) -> void:
 	# role matches NPC.Role enum

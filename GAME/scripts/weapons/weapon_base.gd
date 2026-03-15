@@ -249,8 +249,12 @@ func fire() -> void:
 	_play_fire_effects()
 	recoil_component.apply_recoil()
 	
-	if shooter and shooter.is_in_group("player") and has_node("/root/HeatManager"):
-		get_node("/root/HeatManager").on_gunshot(global_position)
+	if has_node("/root/HeatManager"):
+		var heat_manager = get_node("/root/HeatManager")
+		if shooter and shooter.is_in_group("player"):
+			heat_manager.on_gunshot(global_position)
+		elif heat_manager.has_method(&"notify_gunshot"):
+			heat_manager.notify_gunshot(global_position)
 
 func reload() -> void:
 	if is_reloading or not ammo_component.can_reload():
