@@ -205,9 +205,23 @@ func on_gunshot(source_pos: Vector2 = Vector2.ZERO) -> void:
 			if npc.role == NPC.Role.POLICE:
 				if dist < 1200.0:
 					npc.blackboard.set_var(&"last_known_position", source_pos)
+					npc.blackboard.set_var(&"has_line_of_sight", false)
+					npc.blackboard.set_var(&"is_searching", true)
+					npc.blackboard.set_var(&"search_anchor", source_pos)
+					npc.blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
+			elif npc.role == NPC.Role.DEALER:
+				# Dealers already in combat update their target's known position
+				# (so they can chase even when player is outside detection ring)
+				# But they only become agro from being directly hit, not just from hearing shots
+				if dist < 1000.0 and npc.blackboard.get_var(&"was_shot", false):
+					var player = get_tree().get_first_node_in_group("player")
+					npc.blackboard.set_var(&"damage_source_position", source_pos)
+					npc.blackboard.set_var(&"last_known_position", source_pos)
+					if player:
+						npc.blackboard.set_var(&"attacker", player)
 			else:
-				# Non-police (Customers, Dealers) panic if they hear gunfire nearby
-				if dist < 1000.0: # Sight/Hearing range for panic
+				# Non-police, non-dealer (Customers) panic if they hear gunfire nearby
+				if dist < 1000.0:
 					npc.blackboard.set_var(&"heard_gunfire", true)
 					npc.blackboard.set_var(&"damage_source_position", source_pos)
 
@@ -216,6 +230,37 @@ func on_kill(role: int) -> void:
 	add_heat(HeatConfig.KILL_HEAT)
 	set_stars(wanted_stars + 1)
 	print("HeatManager: Kill detected (Role: ", role, "). Heat: ", heat_value, " Stars: ", wanted_stars)
+
+func reset() -> void:
+	set_stars(0)
+	set_heat(0.0)
+	unseen_timer = 0.0
+	
+	# Clear tracking/aggro for ALL NPCs (Police and Dealers)
+	var npcs = get_tree().get_nodes_in_group("npc")
+	for npc in npcs:
+		if not is_instance_valid(npc) or not npc.get("blackboard"): 
+			continue
+			
+		var bb = npc.blackboard
+		bb.set_var(&"was_shot", false)
+		bb.set_var(&"attacker", null)
+		bb.set_var(&"target", null)
+		bb.set_var(&"has_line_of_sight", false)
+		bb.set_var(&"last_known_position", Vector2.ZERO)
+		bb.set_var(&"is_searching", false)
+		bb.set_var(&"search_anchor", Vector2.ZERO)
+		bb.set_var(&"last_known_velocity", Vector2.ZERO)
+		bb.set_var(&"heard_gunfire", false)
+		if bb.has_var(&"approach_offset"):
+			bb.erase_var(&"approach_offset")
+		
+		# Force stop pathing
+		if npc.nav_agent:
+			npc.nav_agent.set_velocity(Vector2.ZERO)
+			npc.nav_agent.target_position = npc.global_position
+			
+	print("HeatManager: System reset. All heat and NPC aggression cleared.")
 func broadcast_player_position(pos: Vector2, vel: Vector2 = Vector2.ZERO) -> void:
 	if pos == Vector2.ZERO:
 		return

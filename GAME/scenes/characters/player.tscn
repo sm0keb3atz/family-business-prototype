@@ -24,7 +24,7 @@
 [ext_resource type="Script" uid="uid://cw45eplqxfjmf" path="res://GAME/scripts/components/states/idle_state.gd" id="17_idle"]
 [ext_resource type="Script" uid="uid://dwtj04vv0ribt" path="res://GAME/scripts/components/states/move_state.gd" id="18_move"]
 [ext_resource type="Animation" uid="uid://c4ewnc0jcowqg" path="res://GAME/assets/animations/walk_up.res" id="18_pytwa"]
-[ext_resource type="Resource" path="res://GAME/resources/defaults/default_player_stats.tres" id="19_stat_res"]
+[ext_resource type="Resource" uid="uid://dn5wnoui7e6nd" path="res://GAME/resources/defaults/default_player_stats.tres" id="19_stat_res"]
 [ext_resource type="Resource" path="res://GAME/resources/defaults/default_player_progression.tres" id="20_prog_res"]
 [ext_resource type="Resource" path="res://GAME/resources/defaults/default_player_appearance.tres" id="21_app_res"]
 [ext_resource type="Script" uid="uid://ow62v08jqpy7" path="res://GAME/scripts/components/blood_effect_component.gd" id="22_blood"]

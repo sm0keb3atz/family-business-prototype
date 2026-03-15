@@ -6,6 +6,6 @@
 script = ExtResource("1_stats")
 max_health = 80
 health_regen = 0.0
-move_speed = 150.0
+move_speed = 250.0
 defense = 0.0
 faction = &"dealer"

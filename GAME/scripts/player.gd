@@ -184,7 +184,7 @@ func interact() -> void:
 		current_interactable.interact()
 
 # --- Damage Interface ---
-func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO, hit_direction: Vector2 = Vector2.ZERO) -> void:
+func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO, hit_direction: Vector2 = Vector2.ZERO, shooter: Node2D = null) -> void:
 	if health_component:
 		health_component.take_damage(amount)
 	

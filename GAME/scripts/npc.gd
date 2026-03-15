@@ -55,6 +55,20 @@ const DEALER_SOLICITATION_BARKS: Array[String] = [
 	"Not in front of my spot."
 ]
 
+const DEALER_COMBAT_BARKS: Array[String] = [
+	"You picked the wrong corner!",
+	"Get him!",
+	"He's hit, push up!",
+	"Don't let him get away!"
+]
+
+const DEALER_POLICE_COMBAT_BARKS: Array[String] = [
+	"Five-O! Light 'em up!",
+	"Cops on the block!",
+	"Get back to the precinct!",
+	"They ain't takin' me today!"
+]
+
 
 # --- BT ---
 @onready var bt_player: BTPlayer = %BTPlayer
@@ -87,6 +101,12 @@ func _ready() -> void:
 		shop_comp.name = "DealerShopComponent"
 		shop_comp.tier_config = tier
 		add_child(shop_comp)
+		
+		# Add Detection Component for combat
+		var detect_comp = DealerDetectionComponent.new()
+		detect_comp.name = "DealerDetectionComponent"
+		detect_comp.detection_radius = 450.0  # Slightly larger than Police patrol to let them spot the player from further away once combat starts
+		add_child(detect_comp)
 	elif role == Role.POLICE:
 		var detect_comp: PoliceDetectionComponent = PoliceDetectionComponent.new()
 		detect_comp.name = "PoliceDetectionComponent"
@@ -177,7 +197,8 @@ func _inject_dependencies() -> void:
 
 	if nav_agent and stats:
 		# Randomize walk speed ±30% so each NPC feels unique
-		var speed_variation: float = randf_range(0.7, 1.3)
+		# Remove variance to ensure tuned speeds are perfectly consistent
+		var speed_variation: float = 1.0
 		var personal_speed: float = stats.move_speed * speed_variation
 		nav_agent.max_speed = personal_speed
 		# Store the personal speed so BT actions use it
@@ -256,8 +277,10 @@ func _setup_bt() -> void:
 		if blackboard:
 			blackboard.set_var(&"was_shot", false)
 			blackboard.set_var(&"damage_source_position", Vector2.ZERO)
+			blackboard.set_var(&"attacker", null)
 			blackboard.set_var(&"is_interacting", false)
 			blackboard.set_var(&"is_solicited", false)
+			blackboard.set_var(&"target", null)
 			blackboard.set_var(&"requested_grams", 0)
 			blackboard.set_var(&"offered_payout", 0)
 			blackboard.set_var(&"last_known_position", Vector2.ZERO)
@@ -348,9 +371,30 @@ func bark_dealer_feedback(kind: String) -> void:
 	_dealer_bark_cooldowns[kind] = now + 4000
 	bark(lines.pick_random())
 
+func bark_dealer_combat(target: Node2D) -> void:
+	if role != Role.DEALER:
+		return
+
+	var now := Time.get_ticks_msec()
+	var ready_at: int = _dealer_bark_cooldowns.get("combat", 0)
+	if now < ready_at:
+		return
+
+	var lines := DEALER_COMBAT_BARKS
+	if target and target.is_in_group("npc") and target.get("role") == Role.POLICE:
+		lines = DEALER_POLICE_COMBAT_BARKS
+	
+	_dealer_bark_cooldowns["combat"] = now + 6000 # Longer cooldown for combat barks
+	bark(lines.pick_random(), 3.0)
+
 # --- Damage Interface ---
 # Called by BulletBase when a projectile hits this body.
-func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO, hit_direction: Vector2 = Vector2.ZERO) -> void:
+func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO, hit_direction: Vector2 = Vector2.ZERO, shooter: Node2D = null) -> void:
+	# Friendly Fire Prevention: Ignore damage if both the victim and shooter share the same NPC role.
+	# We check 'role' and 'is_in_group("npc")' to ensure we only block ally-on-ally hits.
+	if shooter and shooter.is_in_group("npc") and shooter.get("role") == role:
+		return
+
 	if health_component:
 		health_component.take_damage(amount)
 
@@ -366,8 +410,19 @@ func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO, hit_direc
 	# Write to blackboard so BT can react
 	if blackboard:
 		blackboard.set_var(&"was_shot", true)
-		if source_position != Vector2.ZERO:
+		if shooter and is_instance_valid(shooter):
+			blackboard.set_var(&"attacker", shooter)
+			# Immediately seed target so check_line_of_sight / shoot_target
+			# don't fail on the very first BT tick (before set_aggro_target runs).
+			blackboard.set_var(&"target", shooter)
+			# Use the shooter's real position, not just the bullet origin.
+			blackboard.set_var(&"last_known_position", shooter.global_position)
+			blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
+		elif source_position != Vector2.ZERO:
 			blackboard.set_var(&"damage_source_position", source_position)
+			# No shooter ref — fall back to bullet origin as best guess.
+			blackboard.set_var(&"last_known_position", source_position)
+			blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
 
 
 # --- Interaction ---
@@ -529,12 +584,18 @@ func _on_died() -> void:
 		if animation_component.animation_player:
 			animation_component.animation_player.stop()
 	
-	# Hide Police Detection Ring
+	# Hide Detection Rings
 	if role == Role.POLICE:
 		var detect_comp = get_node_or_null("PoliceDetectionComponent")
 		if detect_comp:
 			detect_comp.visible = false
-			# Also stop physics so it doesn't keep detecting
+			detect_comp.set_physics_process(false)
+			detect_comp.set_deferred("monitoring", false)
+			detect_comp.set_deferred("monitorable", false)
+	elif role == Role.DEALER:
+		var detect_comp = get_node_or_null("DealerDetectionComponent")
+		if detect_comp:
+			detect_comp.visible = false
 			detect_comp.set_physics_process(false)
 			detect_comp.set_deferred("monitoring", false)
 			detect_comp.set_deferred("monitorable", false)

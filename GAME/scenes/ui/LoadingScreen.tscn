@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://b5laaw1tfo6bw"]
+
+[ext_resource type="Script" uid="uid://bndjwh5tkhj36" path="res://GAME/scripts/UI/LoadingScreen.gd" id="1_loading_screen"]
+[ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="2_xr606"]
+[ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="3_1vj6p"]
+
+[node name="LoadingScreen" type="CanvasLayer" unique_id=2018555233]
+layer = 128
+
+[node name="Control" type="Control" parent="." unique_id=311848359]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_loading_screen")
+
+[node name="ColorRect" type="ColorRect" parent="Control" unique_id=995704502]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="ProgressBar" type="ProgressBar" parent="Control" unique_id=1278832943]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 50.0
+offset_top = -100.0
+offset_right = -50.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("2_xr606")
+theme_override_fonts/font = ExtResource("3_1vj6p")

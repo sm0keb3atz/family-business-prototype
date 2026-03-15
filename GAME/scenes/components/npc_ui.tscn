@@ -109,7 +109,7 @@ mouse_filter = 2
 script = ExtResource("1_npcui")
 
 [node name="HealthBar" type="ProgressBar" parent="." unique_id=714929858]
-modulate = Color(1.3528494, 1.3528494, 1.3528494, 0.70000005)
+modulate = Color(2.6034334, 2.6034334, 2.6034334, 0.70000005)
 layout_mode = 0
 offset_left = -40.0
 offset_top = -10.0

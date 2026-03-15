@@ -12,7 +12,7 @@
 script = ExtResource("1_script")
 level = 3
 damage = 20
-fire_rate = 0.15
+fire_rate = 0.12
 reload_time = 1.5
 magazine_size = 32
 reserve_ammo = 64
@@ -22,7 +22,6 @@ spread_degrees = 2.0
 automatic = true
 weapon_sprite = ExtResource("3_texture")
 has_laser = true
-laser_color = null
 shoot_sound = ExtResource("6_shoot")
 empty_mag_sound = ExtResource("7_empty")
 switch_sound = ExtResource("5_switch")

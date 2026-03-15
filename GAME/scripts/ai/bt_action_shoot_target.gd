@@ -11,6 +11,7 @@ class_name BTActionShootTarget
 @export var burst_pause_min: float = 0.2
 @export var burst_pause_max: float = 0.75
 @export var aim_jitter_degrees: float = 5.0
+@export var speed_multiplier: float = 0.85
 
 const NEXT_FIRE_TIME_KEY: StringName = &"_combat_next_fire_time"
 const BURST_SHOTS_LEFT_KEY: StringName = &"_combat_burst_shots_left"
@@ -30,7 +31,10 @@ func _tick(delta: float) -> Status:
 	if not agent or not blackboard:
 		return FAILURE
 		
-	var target = blackboard.get_var(&"target", null) as Node2D
+	var raw_target = blackboard.get_var(&"target", null)
+	if not raw_target or not is_instance_valid(raw_target):
+		return FAILURE
+	var target := raw_target as Node2D
 	if not target or not is_instance_valid(target):
 		return FAILURE
 		
@@ -44,10 +48,11 @@ func _tick(delta: float) -> Status:
 		if hc.is_dead:
 			return FAILURE
 		
-	# Leniency Check: Don't shoot if the player is no longer at combat heat level
-	var hm = agent.get_node_or_null("/root/HeatManager")
-	if hm and hm.wanted_stars < 2:
-		return FAILURE
+	# Leniency Check: Don't shoot if the player is no longer at combat heat level (Police only)
+	if agent.role == NPC.Role.POLICE:
+		var hm = agent.get_node_or_null("/root/HeatManager")
+		if hm and hm.wanted_stars < 2:
+			return FAILURE
 		
 	var weapon_holder = agent.get_node_or_null("%WeaponHolderComponent")
 	if not weapon_holder or not weapon_holder.current_weapon:
@@ -70,7 +75,7 @@ func _tick(delta: float) -> Status:
 		weapon_holder.fire()
 		_schedule_next_shot(now, weapon_holder)
 	
-	return SUCCESS
+	return RUNNING
 
 func _ensure_combat_profile() -> void:
 	if blackboard.has_var(AGGRESSION_KEY):
@@ -118,12 +123,8 @@ func _update_combat_movement(target: Node2D, now: float, nav_agent: NavigationAg
 		var orbit: Vector2 = Vector2(-dir_to_target.y, dir_to_target.x) * strafe_dir
 		desired = orbit + (dir_to_target * 0.15 * strafe_dir)
 
-	desired = desired.normalized() * agent.stats.move_speed * 0.7 * aggression
+	desired = desired.normalized() * agent.stats.move_speed * speed_multiplier * aggression
 	nav_agent.set_velocity(desired)
-	if movement:
-		movement.move_velocity(desired)
-	if animation:
-		animation.update_animation(desired)
 
 func _can_fire_now(now: float) -> bool:
 	if not blackboard:

@@ -210,16 +210,37 @@ func _physics_process(delta: float) -> void:
 	var npc: NPC = get_parent() as NPC
 	if npc and npc.blackboard:
 		var hm: Node = get_node_or_null("/root/HeatManager")
-		if hm and hm.wanted_stars >= 1:
-			var vel: Vector2 = player_ref.velocity if player_ref is CharacterBody2D else Vector2.ZERO
-			var dist: float = npc.global_position.distance_to(player_ref.global_position)
-			npc.blackboard.set_var(&"last_known_position", player_ref.global_position)
+		var heat_manager_stars = hm.wanted_stars if hm else 0
+		
+		# Determine highest priority target (Hostile Player > Hostile Dealer)
+		var best_target: Node2D = null
+		var min_dist: float = INF
+		
+		if is_player_inside and is_instance_valid(player_ref) and heat_manager_stars >= 1:
+			best_target = player_ref
+			min_dist = npc.global_position.distance_to(player_ref.global_position)
+			
+		# Also check for hostile dealers in radius
+		var npcs = get_tree().get_nodes_in_group("npc")
+		for other in npcs:
+			if not is_instance_valid(other) or other == npc: continue
+			if other.role == npc.Role.DEALER and other.blackboard and other.blackboard.get_var(&"was_shot", false):
+				var dist = npc.global_position.distance_to(other.global_position)
+				if dist <= detection_radius and dist < min_dist:
+					min_dist = dist
+					best_target = other
+
+		if best_target:
+			var vel: Vector2 = best_target.velocity if best_target is CharacterBody2D else Vector2.ZERO
+			npc.blackboard.set_var(&"target", best_target)
+			npc.blackboard.set_var(&"last_known_position", best_target.global_position)
 			npc.blackboard.set_var(&"last_known_velocity", vel)
 			npc.blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
 			npc.blackboard.set_var(&"has_line_of_sight", true)
 			npc.blackboard.set_var(&"is_searching", false)
 			# Update confidence based on distance
-			npc.blackboard.set_var(&"confidence", IntelConfidence.calculate_confidence(dist, true))
+			npc.blackboard.set_var(&"confidence", IntelConfidence.calculate_confidence(min_dist, true))
+
 
 func _handle_audio_timers(delta: float) -> void:
 	var hm = get_node_or_null("/root/HeatManager")

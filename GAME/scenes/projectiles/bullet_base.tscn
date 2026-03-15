@@ -15,7 +15,7 @@ texture_filter = 1
 collision_layer = 8
 collision_mask = 5
 script = ExtResource("1_script")
-speed = 2000.0
+speed = 5000.0
 body_impact_sounds = Array[AudioStream]([ExtResource("3_body1"), ExtResource("5_body2")])
 stone_impact_sounds = Array[AudioStream]([ExtResource("4_stone1"), ExtResource("6_stone2")])
 

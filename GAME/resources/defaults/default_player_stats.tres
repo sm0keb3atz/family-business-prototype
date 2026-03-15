@@ -1,11 +1,10 @@
-[gd_resource type="Resource" script_class="CharacterStatsResource" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="CharacterStatsResource" format=3 uid="uid://dn5wnoui7e6nd"]
 
-[ext_resource type="Script" path="res://GAME/scripts/resources/character_stats_resource.gd" id="1_stats"]
+[ext_resource type="Script" uid="uid://c7ul3b4w8yveo" path="res://GAME/scripts/resources/character_stats_resource.gd" id="1_stats"]
 
 [resource]
 script = ExtResource("1_stats")
-max_health = 100
-health_regen = 5.0
-move_speed = 300.0
-defense = 0.0
+max_health = 1000
+move_speed = 350.0
+sprint_speed = 500.0
 faction = &"player"

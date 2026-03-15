@@ -12,7 +12,7 @@
 script = ExtResource("1_script")
 level = 4
 damage = 25
-fire_rate = 0.1
+fire_rate = 0.07
 reload_time = 1.5
 magazine_size = 50
 reserve_ammo = 100

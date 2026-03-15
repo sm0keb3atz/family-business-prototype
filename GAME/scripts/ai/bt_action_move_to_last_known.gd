@@ -2,6 +2,8 @@
 extends BTAction
 class_name BTActionMoveToLastKnown
 
+@export var predict_velocity: bool = true
+@export var speed_multiplier: float = 1.0
 @export var tolerance: float = 20.0
 
 ## Maximum seconds of projection for intercept prediction.
@@ -71,8 +73,16 @@ func _tick(delta: float) -> Status:
 		blackboard.erase_var(&"approach_offset")
 		return SUCCESS
 
+	var movement = agent.get_node_or_null("%MovementComponent")
+	var animation = agent.get_node_or_null("%AnimationComponent")
+	
 	var next_path_pos: Vector2 = nav_agent.get_next_path_position()
 	var dir: Vector2 = agent.global_position.direction_to(next_path_pos)
-	nav_agent.set_velocity(dir * agent.stats.move_speed)
-
+	
+	# Calculate speed with multiplier
+	var speed = agent.stats.move_speed * speed_multiplier
+		
+	var vel = dir * speed
+	nav_agent.set_velocity(vel)
+	
 	return RUNNING

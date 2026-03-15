@@ -36,12 +36,7 @@ func _tick(_delta: float) -> Status:
 			return SUCCESS # Returning success so MoveToLastKnown logic can transition
 			
 		# Force instant stop if we are in arrest range
-		if npc.movement_component:
-			npc.movement_component.move_velocity(Vector2.ZERO)
-		
 		npc.nav_agent.set_velocity(Vector2.ZERO)
-		if npc.animation_component:
-			npc.animation_component.update_animation(Vector2.ZERO)
 		return SUCCESS
 
 	# Set target to last known position

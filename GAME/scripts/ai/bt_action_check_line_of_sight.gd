@@ -18,8 +18,11 @@ func _tick(delta: float) -> Status:
 	if not agent or not blackboard:
 		return FAILURE
 
-	var target = blackboard.get_var(&"target", null) as Node2D
-	if not target or not is_instance_valid(target):
+	var raw_target = blackboard.get_var(&"target", null)
+	if not raw_target or not is_instance_valid(raw_target):
+		return FAILURE
+	var target := raw_target as Node2D
+	if not target:
 		return FAILURE
 
 	# ── Throttle: return cached result if checked recently ────────────
@@ -30,9 +33,12 @@ func _tick(delta: float) -> Status:
 
 	# ── Distance check ────────────────────────────────────────────────
 	var detection_dist: float = max_distance
-	var det_comp = agent.get_node_or_null("PoliceDetectionComponent")
-	if det_comp:
-		detection_dist = det_comp.detection_radius
+	var pol_comp = agent.get_node_or_null("PoliceDetectionComponent")
+	var dlr_comp = agent.get_node_or_null("DealerDetectionComponent")
+	if pol_comp:
+		detection_dist = pol_comp.detection_radius
+	elif dlr_comp:
+		detection_dist = dlr_comp.detection_radius
 
 	var distance: float = agent.global_position.distance_to(target.global_position)
 	if distance > detection_dist:
@@ -67,8 +73,8 @@ func _tick(delta: float) -> Status:
 		if now > search_cooldown_until:
 			blackboard.set_var(&"is_searching", false)
 
-		# Shared Intel: Broadcast to all police
-		if agent.has_node("/root/HeatManager"):
+		# Shared Intel: Broadcast to all police (Police only)
+		if agent.role == NPC.Role.POLICE and agent.has_node("/root/HeatManager"):
 			var vel: Vector2 = target.velocity if target is CharacterBody2D else Vector2.ZERO
 			agent.get_node("/root/HeatManager").broadcast_player_position(target.global_position, vel)
 

@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="FamilyBusinessPrototype"
-run/main_scene="uid://ctstmap123"
+run/main_scene="uid://b5laaw1tfo6bw"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -104,4 +104,4 @@ textures/canvas_textures/default_texture_filter=0
 
 [run]
 
-main_scene="res://GAME/scenes/test_map_swap.tscn"
+main_scene="res://GAME/scenes/UI/LoadingScreen.tscn"

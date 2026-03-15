@@ -191,11 +191,9 @@ func trigger_death_cutscene(player: Player) -> void:
 		# Zoom out slower and further
 		camera.tween_zoom(Vector2(0.2, 0.2), 8.0)
 	
-	# Reset Wanted Level instantly on death
+	# Reset Wanted Level and all NPC aggression instantly on death
 	if has_node("/root/HeatManager"):
-		var hm = get_node("/root/HeatManager")
-		hm.set_stars(0)
-		hm.set_heat(0.0)
+		get_node("/root/HeatManager").reset()
 	
 	# Faster fade out for better flow (2.5 seconds instead of 4)
 	var fade_tween = create_tween()

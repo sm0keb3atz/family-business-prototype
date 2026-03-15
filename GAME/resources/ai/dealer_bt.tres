@@ -1,22 +1,66 @@
 [gd_resource type="BehaviorTree" format=3 uid="uid://djrt6v1dys2m5"]
 
-[ext_resource type="Script" uid="uid://cdnx2c1goie3r" path="res://GAME/scripts/ai/bt_condition_was_shot.gd" id="1_cond"]
-[ext_resource type="Script" uid="uid://2hkxhgxhprt8" path="res://GAME/scripts/ai/bt_action_flee.gd" id="2_flee"]
 [ext_resource type="Script" uid="uid://dinjl8bhuot8o" path="res://GAME/scripts/ai/bt_action_wander.gd" id="3_wander"]
 [ext_resource type="Script" uid="uid://c85wj4n6ht8ve" path="res://GAME/scripts/ai/bt_action_wait_random.gd" id="4_wait"]
+[ext_resource type="Script" uid="uid://bc6tsys45t3cq" path="res://GAME/scripts/ai/bt_action_ensure_weapon_drawn.gd" id="5_weap"]
+[ext_resource type="Script" uid="uid://bdgnlc6c32ikv" path="res://GAME/scripts/ai/bt_action_set_aggro_target.gd" id="6_aggro"]
+[ext_resource type="Script" uid="uid://cry2beh2v5t32" path="res://GAME/scripts/ai/bt_action_check_line_of_sight.gd" id="7_los"]
+[ext_resource type="Script" uid="uid://bddgitc3rx1pq" path="res://GAME/scripts/ai/bt_action_shoot_target.gd" id="8_shoot"]
+[ext_resource type="Script" uid="uid://dlo7t6eisp47u" path="res://GAME/scripts/ai/bt_action_move_to_last_known.gd" id="9_lastk"]
+[ext_resource type="Script" uid="uid://ckoy4yjvqyyaa" path="res://GAME/scripts/ai/bt_condition_was_damaged.gd" id="10_cond_dmg"]
+[ext_resource type="Script" uid="uid://dek303whn6v5q" path="res://GAME/scripts/ai/bt_condition_is_searching.gd" id="11_cond_srch"]
+[ext_resource type="Script" uid="uid://fv50dbbm3h1c" path="res://GAME/scripts/ai/bt_action_search_area.gd" id="12_act_srch"]
+[ext_resource type="Script" uid="uid://bfkd7s84casol" path="res://GAME/scripts/ai/bt_decorator_commit_window.gd" id="13_commit"]
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_dealer"]
 
-[sub_resource type="BTCondition" id="cond_1"]
-script = ExtResource("1_cond")
+[sub_resource type="BTCondition" id="cond_dmg"]
+script = ExtResource("10_cond_dmg")
 
-[sub_resource type="BTAction" id="flee_1"]
-script = ExtResource("2_flee")
-flee_duration = 3.0
-flee_distance = 300.0
+[sub_resource type="BTAction" id="act_draw"]
+script = ExtResource("5_weap")
 
-[sub_resource type="BTSequence" id="flee_seq"]
-children = [SubResource("cond_1"), SubResource("flee_1")]
+[sub_resource type="BTAction" id="act_aggro"]
+script = ExtResource("6_aggro")
+
+[sub_resource type="BTAction" id="act_chk_los"]
+script = ExtResource("7_los")
+
+[sub_resource type="BTAction" id="act_shoot"]
+script = ExtResource("8_shoot")
+preferred_min_range = 100.0
+preferred_max_range = 250.0
+strafe_interval_min = 0.3
+strafe_interval_max = 0.8
+speed_multiplier = 1.0
+
+[sub_resource type="BTSequence" id="seq_shoot"]
+children = [SubResource("act_chk_los"), SubResource("act_shoot")]
+
+[sub_resource type="BTAction" id="act_mv_lk"]
+script = ExtResource("9_lastk")
+speed_multiplier = 1.2
+
+[sub_resource type="BTCondition" id="cond_is_searching"]
+script = ExtResource("11_cond_srch")
+
+[sub_resource type="BTAction" id="act_do_search"]
+script = ExtResource("12_act_srch")
+search_radius = 400.0
+
+[sub_resource type="BTSequence" id="seq_search"]
+children = [SubResource("cond_is_searching"), SubResource("act_do_search")]
+
+[sub_resource type="BTDynamicSelector" id="sel_combat_act"]
+children = [SubResource("seq_shoot"), SubResource("act_mv_lk"), SubResource("seq_search")]
+
+[sub_resource type="BTSequence" id="seq_combat"]
+children = [SubResource("cond_dmg"), SubResource("act_draw"), SubResource("act_aggro"), SubResource("sel_combat_act")]
+
+[sub_resource type="BTDecorator" id="commit_combat"]
+children = [SubResource("seq_combat")]
+script = ExtResource("13_commit")
+commit_key = &"_commit_until_combat_dealer"
 
 [sub_resource type="BTAction" id="wander_1"]
 script = ExtResource("3_wander")
@@ -29,7 +73,7 @@ script = ExtResource("4_wait")
 children = [SubResource("wander_1"), SubResource("wait_1")]
 
 [sub_resource type="BTDynamicSelector" id="root_sel"]
-children = [SubResource("flee_seq"), SubResource("wander_seq")]
+children = [SubResource("commit_combat"), SubResource("wander_seq")]
 
 [resource]
 blackboard_plan = SubResource("BlackboardPlan_dealer")
