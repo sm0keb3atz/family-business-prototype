@@ -205,23 +205,9 @@ func on_gunshot(source_pos: Vector2 = Vector2.ZERO) -> void:
 			if npc.role == NPC.Role.POLICE:
 				if dist < 1200.0:
 					npc.blackboard.set_var(&"last_known_position", source_pos)
-					npc.blackboard.set_var(&"has_line_of_sight", false)
-					npc.blackboard.set_var(&"is_searching", true)
-					npc.blackboard.set_var(&"search_anchor", source_pos)
-					npc.blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
-			elif npc.role == NPC.Role.DEALER:
-				# Dealers already in combat update their target's known position
-				# (so they can chase even when player is outside detection ring)
-				# But they only become agro from being directly hit, not just from hearing shots
-				if dist < 1000.0 and npc.blackboard.get_var(&"was_shot", false):
-					var player = get_tree().get_first_node_in_group("player")
-					npc.blackboard.set_var(&"damage_source_position", source_pos)
-					npc.blackboard.set_var(&"last_known_position", source_pos)
-					if player:
-						npc.blackboard.set_var(&"attacker", player)
 			else:
-				# Non-police, non-dealer (Customers) panic if they hear gunfire nearby
-				if dist < 1000.0:
+				# Non-police (Customers, Dealers) panic if they hear gunfire nearby
+				if dist < 1000.0: # Sight/Hearing range for panic
 					npc.blackboard.set_var(&"heard_gunfire", true)
 					npc.blackboard.set_var(&"damage_source_position", source_pos)
 
