@@ -78,11 +78,20 @@ func _check_direct_overlaps() -> void:
 			_handle_collision(area)
 			return
 
+		var parent := area.get_parent()
+		if _is_valid_hit_target(parent):
+			_handle_collision(parent)
+			return
+
 func _on_area_entered(area: Area2D) -> void:
 	if _destroyed:
 		return
 
 	_handle_collision(area)
+	# Forward to parent body if it has health
+	var parent = area.get_parent()
+	if parent:
+		_on_body_entered(parent)
 
 func _on_body_entered(body: Node) -> void:
 	if _destroyed:
@@ -109,6 +118,10 @@ func _is_valid_hit_target(body: Node) -> bool:
 		return false
 
 	if target.is_in_group("player") and shooter and shooter.is_in_group("player"):
+	if body == shooter:
+		return false
+
+	if body.is_in_group("player") and shooter and shooter.is_in_group("player"):
 		return false
 
 	return true
@@ -120,6 +133,10 @@ func _handle_collision(collider: Node) -> void:
 
 	var body := _resolve_hit_target(collider)
 	if not _is_valid_hit_target(body):
+		return
+
+func _handle_collision(body: Node) -> void:
+	if _destroyed or not _is_valid_hit_target(body):
 		return
 
 	_destroyed = true
