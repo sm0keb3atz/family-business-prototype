@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_stats")
-max_health = 1000
+max_health = 500
 move_speed = 350.0
 sprint_speed = 500.0
 faction = &"player"
