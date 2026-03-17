@@ -87,7 +87,6 @@ func _on_area_entered(area: Area2D) -> void:
 	if _destroyed:
 		return
 
-	_handle_collision(area)
 	# Forward to parent body if it has health
 	var parent = area.get_parent()
 	if parent:
@@ -100,24 +99,10 @@ func _on_body_entered(body: Node) -> void:
 	_handle_collision(body)
 
 
-func _resolve_hit_target(collider: Node) -> Node:
-	var current := collider
-	while current:
-		if current.has_method("take_damage") or current.has_node("HealthComponent"):
-			return current
-		current = current.get_parent()
-	return collider
-
-
 func _is_valid_hit_target(body: Node) -> bool:
 	if not body:
 		return false
 
-	var target := _resolve_hit_target(body)
-	if target == shooter:
-		return false
-
-	if target.is_in_group("player") and shooter and shooter.is_in_group("player"):
 	if body == shooter:
 		return false
 
@@ -126,14 +111,6 @@ func _is_valid_hit_target(body: Node) -> bool:
 
 	return true
 
-
-func _handle_collision(collider: Node) -> void:
-	if _destroyed:
-		return
-
-	var body := _resolve_hit_target(collider)
-	if not _is_valid_hit_target(body):
-		return
 
 func _handle_collision(body: Node) -> void:
 	if _destroyed or not _is_valid_hit_target(body):
