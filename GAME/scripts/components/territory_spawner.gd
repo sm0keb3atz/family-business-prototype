@@ -20,6 +20,7 @@ class_name TerritorySpawner
 var _active_customers: Array[NPC] = []
 var _active_police: Array[NPC] = []
 var _active_dealers: Array[NPC] = []
+var _dealer_tier_cycle: int = 1 # To ensure we spawn 1, 2, 3, 4 for testing
 
 @onready var parent_territory: TerritoryArea = get_parent() as TerritoryArea
 
@@ -121,6 +122,17 @@ func _spawn_npc(role: NPC.Role) -> void:
 	
 	# Inject territory reference
 	npc.set_meta(&"territory", parent_territory)
+	
+	# Assign Dealer Tier if it's a dealer
+	if role == NPC.Role.DEALER:
+		var tier_path = "res://GAME/resources/npc/dealers/dealer_lvl" + str(_dealer_tier_cycle) + ".tres"
+		if FileAccess.file_exists(tier_path):
+			npc.dealer_tier = load(tier_path)
+			print("TerritorySpawner: Assigned tier ", _dealer_tier_cycle, " to ", npc.name)
+		
+		_dealer_tier_cycle += 1
+		if _dealer_tier_cycle > 4:
+			_dealer_tier_cycle = 1
 	
 	# Inject Path Markers for Navigation
 	var markers = _get_path_markers()

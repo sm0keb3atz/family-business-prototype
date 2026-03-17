@@ -64,18 +64,43 @@ func _refresh_ui() -> void:
 	var drug = tier.allowed_drugs[0]
 	
 	dealer_name_label.text = current_dealer.dealer_name + " (Level " + str(tier.tier_level) + ")"
-	stock_label.text = "Stock: " + str(current_dealer.current_stock) + "g"
-	drug_name_label.text = drug.display_name
-	price_label.text = "$" + str(drug.base_price) + " / g"
+	
+	var drug_id = drug.id
+	var price = current_dealer.get_price(drug_id)
+	var is_brick_tier = (tier.tier_level == 4)
+	
+	if is_brick_tier:
+		var brick_count = int(current_dealer.current_stock / 100)
+		stock_label.text = "Stock: " + str(brick_count) + " bricks"
+		drug_name_label.text = drug.display_name + " Bricks"
+		price_label.text = "$" + str(price * 100) + " / brick"
+		
+		btn_5g.text = "Buy 1 Brick"
+		btn_10g.text = "Buy 2 Bricks"
+		btn_20g.text = "Buy 5 Bricks"
+	else:
+		stock_label.text = "Stock: " + str(current_dealer.current_stock) + "g"
+		drug_name_label.text = drug.display_name
+		price_label.text = "$" + str(price) + " / g"
+		
+		btn_5g.text = "Buy 5g"
+		btn_10g.text = "Buy 10g"
+		btn_20g.text = "Buy 20g"
 	
 	# Update button states
 	var player_money = current_player.progression.money
-	btn_5g.disabled = current_dealer.current_stock < 5 or player_money < 5 * drug.base_price
-	btn_10g.disabled = current_dealer.current_stock < 10 or player_money < 10 * drug.base_price
-	btn_20g.disabled = current_dealer.current_stock < 20 or player_money < 20 * drug.base_price
+	if is_brick_tier:
+		btn_5g.disabled = current_dealer.current_stock < 100 or player_money < price * 100
+		btn_10g.disabled = current_dealer.current_stock < 200 or player_money < price * 200
+		btn_20g.disabled = current_dealer.current_stock < 500 or player_money < price * 500
+	else:
+		btn_5g.disabled = current_dealer.current_stock < 5 or player_money < 5 * price
+		btn_10g.disabled = current_dealer.current_stock < 10 or player_money < 10 * price
+		btn_20g.disabled = current_dealer.current_stock < 20 or player_money < 20 * price
 	
-	var max_affordable = floor(player_money / drug.base_price)
-	var max_buyable = min(max_affordable, current_dealer.current_stock)
+	var divisor = 100 if is_brick_tier else 1
+	var max_affordable = floor(player_money / (price * divisor))
+	var max_buyable = min(max_affordable, current_dealer.current_stock / divisor)
 	btn_max.disabled = max_buyable <= 0
 
 func _attempt_buy(amount: int) -> void:
@@ -83,17 +108,38 @@ func _attempt_buy(amount: int) -> void:
 	if not tier or tier.allowed_drugs.is_empty(): return
 	var drug = tier.allowed_drugs[0]
 	
-	var cost = amount * drug.base_price
+	var price = current_dealer.get_price(drug.id)
+	var is_brick_tier = (tier.tier_level == 4)
+	
+	var actual_gram_amount = amount
+	var cost = 0
+	
+	if is_brick_tier:
+		# Map btn presses to brick counts: 5->1, 10->2, 20->5
+		var brick_count = 1
+		match amount:
+			5: brick_count = 1
+			10: brick_count = 2
+			20: brick_count = 5
+		actual_gram_amount = brick_count * 100
+		cost = brick_count * price * 100
+	else:
+		cost = amount * price
+	
 	if current_player.progression.money < cost:
 		error_label.text = "Not enough money!"
 		return
-	if not current_dealer.can_buy(amount):
+	if not current_dealer.can_buy(actual_gram_amount):
 		error_label.text = "Dealer out of stock!"
 		return
 		
-	current_dealer.buy(amount)
+	current_dealer.buy(actual_gram_amount)
 	current_player.progression.money -= cost
-	current_player.inventory_component.add_drug(drug.id, amount)
+	
+	if is_brick_tier:
+		current_player.inventory_component.add_brick(drug.id, int(actual_gram_amount / 100))
+	else:
+		current_player.inventory_component.add_drug(drug.id, actual_gram_amount)
 	
 	# Audio Feedback
 	AudioManager.play_transaction()
@@ -101,9 +147,10 @@ func _attempt_buy(amount: int) -> void:
 	var pui = current_player.get("player_ui")
 	if pui:
 		pui.spawn_indicator("money_down", "-$" + str(cost))
-		pui.spawn_indicator("product", "+" + str(amount) + "g")
+		var label_text = "+" + str(int(actual_gram_amount/100)) + " brick" if is_brick_tier else "+" + str(actual_gram_amount) + "g"
+		pui.spawn_indicator("product", label_text)
 		
-	error_label.text = "Bought " + str(amount) + "g of " + drug.display_name + "!"
+	error_label.text = "Bought " + drug.display_name + "!"
 	_refresh_ui()
 
 func _on_buy_max() -> void:
@@ -111,7 +158,32 @@ func _on_buy_max() -> void:
 	if not tier or tier.allowed_drugs.is_empty(): return
 	var drug = tier.allowed_drugs[0]
 	
-	var max_affordable = floor(current_player.progression.money / drug.base_price)
-	var max_buyable = min(max_affordable, current_dealer.current_stock)
+	var price = current_dealer.get_price(drug.id)
+	var is_brick_tier = (tier.tier_level == 4)
+	var divisor = 100 if is_brick_tier else 1
+	
+	var max_affordable = floor(current_player.progression.money / (price * divisor))
+	var max_buyable = min(max_affordable, current_dealer.current_stock / divisor)
+	
 	if max_buyable > 0:
-		_attempt_buy(max_buyable)
+		var gram_amount = max_buyable * divisor
+		var total_cost = max_buyable * price * divisor
+		
+		current_dealer.buy(gram_amount)
+		current_player.progression.money -= total_cost
+		
+		if is_brick_tier:
+			current_player.inventory_component.add_brick(drug.id, int(max_buyable))
+		else:
+			current_player.inventory_component.add_drug(drug.id, gram_amount)
+		
+		# Audio/UI Feedback
+		AudioManager.play_transaction()
+		var pui = current_player.get("player_ui")
+		if pui:
+			pui.spawn_indicator("money_down", "-$" + str(total_cost))
+			var label_text = "+" + str(int(max_buyable)) + " brick" if is_brick_tier else "+" + str(gram_amount) + "g"
+			pui.spawn_indicator("product", label_text)
+		
+		error_label.text = "Bought MAX!"
+		_refresh_ui()

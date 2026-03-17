@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://62mvx408cq4a" path="res://GAME/scripts/ui/inventory_ui.gd" id="1_invui"]
 [ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="2_ej0am"]
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="3_dbb7i"]
+[ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="4_1dcgg"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dbb7i"]
 texture = ExtResource("2_ej0am")
@@ -155,9 +156,10 @@ theme_override_styles/tab_selected = SubResource("StyleBoxTexture_1degf")
 theme_override_styles/tab_disabled = SubResource("StyleBoxEmpty_63e2k")
 theme_override_styles/tab_focus = SubResource("StyleBoxEmpty_70681")
 tab_alignment = 1
-current_tab = 0
+current_tab = 2
 
 [node name="Drugs" type="ScrollContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer" unique_id=2089470543]
+visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_aovdg")
 metadata/_tab_index = 0
@@ -184,20 +186,22 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Girlfriends" type="Control" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer" unique_id=99661499]
-visible = false
 layout_mode = 2
 metadata/_tab_index = 2
 
-[node name="Label" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Girlfriends" unique_id=448945874]
+[node name="GirlfriendScroll" type="ScrollContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Girlfriends" unique_id=99661500]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Girlfriends (Placeholder)"
-horizontal_alignment = 1
-vertical_alignment = 1
+
+[node name="GirlfriendsList" type="VBoxContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Girlfriends/GirlfriendScroll" unique_id=99661501]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("4_1dcgg")
 
 [node name="Properties" type="Control" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer" unique_id=1168754454]
 visible = false

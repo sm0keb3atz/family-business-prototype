@@ -89,3 +89,11 @@ func _handle_busted() -> void:
 	if player.player_ui:
 		player.player_ui.show_dialog_bubble("BUSTED!")
 	# You could trigger a signal here for the Game Manager
+
+## Call when the player respawns (e.g. after death) so movement and arrest UI are not stuck.
+func reset_for_respawn() -> void:
+	is_being_arrested = false
+	arrest_progress = 0.0
+	police_nodes.clear()
+	progress_changed.emit(arrest_progress)
+	_update_player_speed()

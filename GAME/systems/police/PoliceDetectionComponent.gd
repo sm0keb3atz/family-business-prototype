@@ -104,8 +104,8 @@ func _setup_audio_players() -> void:
 	bark_player.bus = "SFX"
 	add_child(bark_player)
 
-	_next_radio_time = randf_range(5.0, 15.0) # Increased frequency
-	_next_bark_time = randf_range(2.0, 5.0)  # Increased frequency
+	_next_radio_time = randf_range(2.0, 6.0)   # First radio plays soon after entering radius
+	_next_bark_time = randf_range(1.0, 3.0)   # First bark plays soon when wanted
 
 func _on_stars_changed(stars: int) -> void:
 	_update_radius_for_stars(stars)
@@ -215,10 +215,15 @@ func _physics_process(delta: float) -> void:
 		# Determine highest priority target (Hostile Player > Hostile Dealer)
 		var best_target: Node2D = null
 		var min_dist: float = INF
+		var investigating_gunshot: bool = npc.blackboard.has_var(&"responding_to_gunshot") and npc.blackboard.get_var(&"responding_to_gunshot", false)
 		
-		if is_player_inside and is_instance_valid(player_ref) and heat_manager_stars >= 1:
+		# Chase player if wanted, OR if this cop is investigating a gunshot and sees the player
+		if is_player_inside and is_instance_valid(player_ref) and (heat_manager_stars >= 1 or (heat_manager_stars == 0 and investigating_gunshot)):
 			best_target = player_ref
 			min_dist = npc.global_position.distance_to(player_ref.global_position)
+			# First cop to see the player while investigating escalates to 1 star (limited dispatch)
+			if heat_manager_stars == 0 and investigating_gunshot and hm:
+				hm.set_stars(1)
 			
 		# Also check for hostile dealers in radius
 		var npcs = get_tree().get_nodes_in_group("npc")
@@ -231,6 +236,24 @@ func _physics_process(delta: float) -> void:
 					best_target = other
 
 		if best_target:
+			var dist: float = npc.global_position.distance_to(best_target.global_position)
+			
+			# Enforcement: Only track if within detection radius
+			if dist > detection_radius:
+				npc.blackboard.set_var(&"has_line_of_sight", false)
+				return
+
+			# Raycast Check
+			var space_state = npc.get_world_2d().direct_space_state
+			var query = PhysicsRayQueryParameters2D.create(npc.global_position, best_target.global_position, 1) # Layer 1 is environment
+			query.exclude = [npc.get_rid()]
+			var result = space_state.intersect_ray(query)
+			
+			if result:
+				# Hit environment/wall
+				npc.blackboard.set_var(&"has_line_of_sight", false)
+				return
+
 			var vel: Vector2 = best_target.velocity if best_target is CharacterBody2D else Vector2.ZERO
 			npc.blackboard.set_var(&"target", best_target)
 			npc.blackboard.set_var(&"last_known_position", best_target.global_position)
@@ -239,7 +262,7 @@ func _physics_process(delta: float) -> void:
 			npc.blackboard.set_var(&"has_line_of_sight", true)
 			npc.blackboard.set_var(&"is_searching", false)
 			# Update confidence based on distance
-			npc.blackboard.set_var(&"confidence", IntelConfidence.calculate_confidence(min_dist, true))
+			npc.blackboard.set_var(&"confidence", IntelConfidence.calculate_confidence(dist, true))
 
 
 func _handle_audio_timers(delta: float) -> void:
@@ -247,47 +270,63 @@ func _handle_audio_timers(delta: float) -> void:
 	var stars = hm.wanted_stars if hm else 0
 	var heat = hm.heat_value if hm else 0.0
 	var npc: NPC = get_parent() as NPC
-	
-	# Patrol Radio chatter
-	if stars == 0:
+
+	# Determine if player is actually close enough for this cop's radio
+	var player: Player = null
+	if is_instance_valid(player_ref):
+		player = player_ref
+	else:
+		var players = get_tree().get_nodes_in_group("player")
+		if players.size() > 0:
+			player = players[0]
+
+	var is_player_nearby := false
+	if player:
+		var dist_to_player = global_position.distance_to(player.global_position)
+		# Use a slight buffer over detection_radius so you hear them just before detection
+		is_player_nearby = dist_to_player <= detection_radius * 1.2
+
+	# Radio chatter: used as a proximity warning
+	if is_player_nearby:
 		_radio_timer += delta
 		if _radio_timer >= _next_radio_time:
 			_radio_timer = 0.0
-			_next_radio_time = randf_range(15.0, 30.0)
-			
+			if stars == 0:
+				_next_radio_time = randf_range(5.0, 12.0)   # Patrol: every 5–12 sec when close
+			else:
+				_next_radio_time = randf_range(8.0, 16.0)  # Chase: less often but still audible
 			if RADIO_CHIPS.size() > 0 and not radio_player.playing:
 				var stream = RADIO_CHIPS[randi() % RADIO_CHIPS.size()]
 				radio_player.stream = stream
 				radio_player.play()
-				
-	# Barks and UI dialogue whenplayer is inside radius
+
+	# Barks and UI dialogue when player is inside radius
 	if is_player_inside:
 		_bark_timer += delta
 		if _bark_timer >= _next_bark_time:
 			_bark_timer = 0.0
-			
+
 			if stars >= 1:
-				# Active chase barks
-				_next_bark_time = randf_range(3.0, 6.0) # More frequent barks
-				
 				# Only bark if they can see the player
 				if npc and npc.blackboard and npc.blackboard.get_var(&"has_line_of_sight", false):
 					var idx = randi() % CHASE_BARKS.size()
 					var stream = CHASE_BARKS[idx]
 					var text = CHASE_TEXTS[idx]
-					
+
 					if not bark_player.playing:
 						bark_player.stream = stream
 						bark_player.play()
-					
+
 					if npc.npc_ui:
 						npc.npc_ui.show_dialog_bubble(text)
-						# Hide it after 2 seconds
 						get_tree().create_timer(2.0).timeout.connect(npc.npc_ui.hide_dialog_bubble)
-						
+					_next_bark_time = randf_range(1.5, 3.5)  # Next bark after a successful one
+				else:
+					_next_bark_time = randf_range(0.5, 1.2)  # Retry soon when no line of sight yet
+
 			elif stars == 0 and heat > 30.0:
 				# Suspicion warning barks (no audio standardized for this yet, so just text)
-				_next_bark_time = randf_range(8.0, 15.0)
+				_next_bark_time = randf_range(6.0, 12.0)
 				if npc and npc.npc_ui:
 					var text = WARNING_TEXTS[randi() % WARNING_TEXTS.size()]
 					npc.npc_ui.show_dialog_bubble(text)
@@ -302,11 +341,24 @@ func _on_body_entered(body: Node2D) -> void:
 		if has_node("/root/DetectionManager"):
 			get_node("/root/DetectionManager").register_detection()
 
+		# Play patrol radio immediately as a warning that police are close
+		var hm = get_node_or_null("/root/HeatManager")
+		var stars: int = hm.wanted_stars if hm else 0
+		if stars == 0 and RADIO_CHIPS.size() > 0 and not radio_player.playing:
+			radio_player.stream = RADIO_CHIPS[randi() % RADIO_CHIPS.size()]
+			radio_player.play()
+			_radio_timer = 0.0
+			_next_radio_time = randf_range(5.0, 12.0)
+
 		# ── Event-driven: immediate blackboard update on sighting ─────
 		var npc: NPC = get_parent() as NPC
 		if npc and npc.blackboard:
-			var hm: Node = get_node_or_null("/root/HeatManager")
-			if hm and hm.wanted_stars >= 1:
+			hm = get_node_or_null("/root/HeatManager")
+			stars = hm.wanted_stars if hm else 0
+			var investigating: bool = npc.blackboard.has_var(&"responding_to_gunshot") and npc.blackboard.get_var(&"responding_to_gunshot", false)
+			if hm and (stars >= 1 or (stars == 0 and investigating)):
+				if stars == 0 and investigating:
+					hm.set_stars(1)
 				var vel: Vector2 = body.velocity if body is CharacterBody2D else Vector2.ZERO
 				var dist: float = npc.global_position.distance_to(body.global_position)
 				npc.blackboard.set_var(&"last_known_position", body.global_position)

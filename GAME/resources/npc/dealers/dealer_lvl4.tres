@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DealerTierResource" format=3 uid="uid://b1d2e3f4g4"]
+
+[ext_resource type="Script" path="res://GAME/scripts/resources/dealer_tier_resource.gd" id="1_script"]
+[ext_resource type="Resource" path="res://GAME/resources/weapons/glock_lv4.tres" id="2_weapon"]
+[ext_resource type="PackedScene" path="res://GAME/scenes/Weapons/glock.tscn" id="3_scene"]
+
+[ext_resource type="Resource" uid="uid://dweed123" path="res://GAME/resources/products/weed.tres" id="4_drug"]
+
+[resource]
+script = ExtResource("1_script")
+tier_level = 4
+min_stock = 100
+max_stock = 500
+max_health = 300
+weapon_data = ExtResource("2_weapon")
+weapon_scene = ExtResource("3_scene")
+restock_time_seconds = 60.0
+allowed_drugs = [ExtResource("4_drug")]

@@ -290,6 +290,9 @@ func respawn(spawn_pos: Vector2) -> void:
 		state_machine.set_physics_process(true)
 		state_machine.transition_to("Idle")
 	
+	if arrest_component:
+		arrest_component.reset_for_respawn()
+	
 	# Re-sync aiming state if they were holding it through death (or just to be safe)
 	if weapon_holder_component:
 		weapon_holder_component._on_aim_state_changed(Input.is_action_pressed("aim"))

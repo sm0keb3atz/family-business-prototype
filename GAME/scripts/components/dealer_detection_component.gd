@@ -62,8 +62,25 @@ func _physics_process(delta: float) -> void:
 	if raw_attacker and is_instance_valid(raw_attacker):
 		var attacker := raw_attacker as Node2D
 		if attacker and is_instance_valid(attacker):
-			var vel: Vector2 = attacker.velocity if attacker is CharacterBody2D else Vector2.ZERO
 			var dist: float = npc.global_position.distance_to(attacker.global_position)
+			
+			# Enforcement: Only track and shoot if within detection radius
+			if dist > detection_radius:
+				npc.blackboard.set_var(&"has_line_of_sight", false)
+				return
+
+			# Raycast Check
+			var space_state = npc.get_world_2d().direct_space_state
+			var query = PhysicsRayQueryParameters2D.create(npc.global_position, attacker.global_position, 1) # Layer 1 is environment
+			query.exclude = [npc.get_rid()]
+			var result = space_state.intersect_ray(query)
+			
+			if result:
+				# Hit environment/wall
+				npc.blackboard.set_var(&"has_line_of_sight", false)
+				return
+
+			var vel: Vector2 = attacker.velocity if attacker is CharacterBody2D else Vector2.ZERO
 			npc.blackboard.set_var(&"last_known_position", attacker.global_position)
 			npc.blackboard.set_var(&"last_known_velocity", vel)
 			npc.blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
@@ -74,8 +91,19 @@ func _physics_process(delta: float) -> void:
 
 	# ── Priority 2: Fall back to player if inside ring ────────────────
 	if is_player_inside and is_instance_valid(player_ref):
-		var vel: Vector2 = player_ref.velocity if player_ref is CharacterBody2D else Vector2.ZERO
 		var dist: float = npc.global_position.distance_to(player_ref.global_position)
+		
+		# Raycast Check
+		var space_state = npc.get_world_2d().direct_space_state
+		var query = PhysicsRayQueryParameters2D.create(npc.global_position, player_ref.global_position, 1)
+		query.exclude = [npc.get_rid()]
+		var result = space_state.intersect_ray(query)
+		
+		if result:
+			npc.blackboard.set_var(&"has_line_of_sight", false)
+			return
+
+		var vel: Vector2 = player_ref.velocity if player_ref is CharacterBody2D else Vector2.ZERO
 		npc.blackboard.set_var(&"last_known_position", player_ref.global_position)
 		npc.blackboard.set_var(&"last_known_velocity", vel)
 		npc.blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)

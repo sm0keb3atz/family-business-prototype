@@ -3,6 +3,7 @@ class_name InventoryUI
 
 @onready var tabs: TabContainer = $Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer
 @onready var drugs_list: VBoxContainer = %DrugsList
+@onready var girlfriends_list: VBoxContainer = get_node_or_null("%GirlfriendsList")
 @onready var main_control: Control = $Control
 
 var inventory_component: InventoryComponent
@@ -14,6 +15,7 @@ func _ready() -> void:
 func setup(component: InventoryComponent) -> void:
 	inventory_component = component
 	inventory_component.inventory_changed.connect(refresh_ui)
+	inventory_component.girlfriends_changed.connect(refresh_ui)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("inventory") or (event is InputEventKey and event.keycode == KEY_I and event.pressed and not event.echo):
@@ -35,8 +37,100 @@ func refresh_ui() -> void:
 		
 	if not inventory_component: return
 	
+	# Show Bricks (if any)
+	for drug_id in inventory_component.bricks:
+		var qty = inventory_component.bricks[drug_id]
+		if qty <= 0: continue
+		
+		var h_box = HBoxContainer.new()
+		drugs_list.add_child(h_box)
+		
+		var label = Label.new()
+		label.text = str(drug_id).capitalize() + " Brick: " + str(qty)
+		h_box.add_child(label)
+		
+		var break_btn = Button.new()
+		break_btn.text = "Break Down"
+		break_btn.pressed.connect(func():
+			if inventory_component.break_brick(drug_id):
+				refresh_ui()
+		)
+		h_box.add_child(break_btn)
+	
+	# Show Grams
 	for drug_id in inventory_component.drugs:
 		var qty = inventory_component.drugs[drug_id]
 		var label = Label.new()
 		label.text = str(drug_id).capitalize() + ": " + str(qty) + "g"
 		drugs_list.add_child(label)
+	
+	# Show Girlfriends
+	if girlfriends_list:
+		for child in girlfriends_list.get_children():
+			child.queue_free()
+		
+		for gf in inventory_component.girlfriends:
+			var h_box = HBoxContainer.new()
+			girlfriends_list.add_child(h_box)
+			
+			var name_label = Label.new()
+			name_label.text = gf.npc_name + " (" + ("Following" if gf.is_following else "At Home") + ")"
+			h_box.add_child(name_label)
+			
+			var call_btn = Button.new()
+			call_btn.text = "Send Home" if gf.is_following else "Call"
+			call_btn.pressed.connect(func():
+				var npc_node = _find_gf_node(gf)
+				if gf.is_following:
+					if npc_node:
+						npc_node.dismiss(false)
+				else:
+					var player = get_tree().get_first_node_in_group("player")
+					if player:
+						if npc_node:
+							npc_node.call_back(player.global_position)
+						else:
+							# Spawn new NPC if node was freed
+							_spawn_girlfriend_npc(gf, player.global_position)
+					gf.is_following = true
+				refresh_ui()
+			)
+			h_box.add_child(call_btn)
+			
+			var breakup_btn = Button.new()
+			breakup_btn.text = "Break Up"
+			breakup_btn.pressed.connect(func():
+				var npc_node = _find_gf_node(gf)
+				if npc_node:
+					npc_node.dismiss(true)
+				else:
+					inventory_component.remove_girlfriend(gf)
+				refresh_ui()
+			)
+			h_box.add_child(breakup_btn)
+
+func _find_gf_node(resource: GirlfriendResource) -> NPC:
+	for node in get_tree().get_nodes_in_group("girlfriend"):
+		if node is NPC and node.gf_resource == resource:
+			return node
+	return null
+
+func _spawn_girlfriend_npc(resource: GirlfriendResource, pos: Vector2) -> void:
+	var npc_scene = load("res://GAME/scenes/characters/npc.tscn")
+	var instance = npc_scene.instantiate()
+	# Spawn at a distance so she walks up
+	var spawn_offset = Vector2.RIGHT.rotated(randf() * TAU) * 400.0
+	instance.global_position = pos + spawn_offset
+	instance.gf_resource = resource
+	instance.stats = resource.stats
+	instance.gender = NPC.Gender.FEMALE
+	instance.role = NPC.Role.CUSTOMER
+	var player = get_tree().get_first_node_in_group("player")
+	if player:
+		player.get_parent().add_child(instance)
+	else:
+		get_parent().add_child(instance)
+	instance.add_to_group("girlfriend")
+	instance.modulate.a = 0.0
+	var tween = create_tween()
+	tween.tween_property(instance, "modulate:a", 1.0, 1.0)

@@ -103,21 +103,21 @@ func set_stars(value: int) -> void:
 				star_lock = false
 				star_lock_changed.emit(star_lock)
 				
-				# RE-DISPATCH: Immediately broadcast position when dropping back to 1 star
+				# RE-DISPATCH: Limited broadcast when dropping back to 1 star
 				var player = get_tree().get_first_node_in_group("player")
 				if player:
-					broadcast_player_position(player.global_position)
+					broadcast_player_position(player.global_position, player.velocity if player is CharacterBody2D else Vector2.ZERO)
 				
-			# INITIAL DISPATCH: Immediately broadcast position to all police (first time 1-star)
+			# INITIAL DISPATCH: Limited broadcast at 1 star (only nearest N cops respond)
 			var player = get_tree().get_first_node_in_group("player")
 			if player:
-				broadcast_player_position(player.global_position)
+				broadcast_player_position(player.global_position, player.velocity if player is CharacterBody2D else Vector2.ZERO)
 		elif wanted_stars == 0:
 			if star_lock:
 				star_lock = false
 				star_lock_changed.emit(star_lock)
 				
-			# Clear searching and tracking state for all police
+			# Clear searching, investigating, and tracking state for all police
 			var npcs = get_tree().get_nodes_in_group("npc")
 			for npc in npcs:
 				if npc is NPC and npc.role == NPC.Role.POLICE and npc.blackboard:
@@ -126,6 +126,7 @@ func set_stars(value: int) -> void:
 					npc.blackboard.set_var(&"last_known_position", Vector2.ZERO)
 					npc.blackboard.set_var(&"last_known_velocity", Vector2.ZERO)
 					npc.blackboard.set_var(&"target", null)
+					npc.blackboard.set_var(&"responding_to_gunshot", false)
 					if npc.blackboard.has_var(&"approach_offset"):
 						npc.blackboard.erase_var(&"approach_offset")
 					
@@ -170,7 +171,22 @@ func update_heat(delta: float) -> void:
 			target_heat = HeatConfig.ONE_STAR_DECAY_TARGET
 		
 		if heat_value > target_heat:
-			var new_heat = move_toward(heat_value, target_heat, HeatConfig.BASE_DECAY_RATE * delta)
+			var gf_multiplier = 1.0
+			var player = get_tree().get_first_node_in_group("player")
+			if player and player.inventory_component:
+				var active_count = 0
+				for gf in player.inventory_component.girlfriends:
+					if gf.is_following:
+						active_count += 1
+				gf_multiplier += (active_count * 0.15)
+			
+			var decay_rate = HeatConfig.BASE_DECAY_RATE * gf_multiplier
+			
+			# Debug feedback for heat decay
+			if gf_multiplier > 1.0 and Engine.get_frames_drawn() % 60 == 0:
+				print("[HeatManager] Decaying heat at ", decay_rate, " (", gf_multiplier, "x buff from girlfriends)")
+				
+			var new_heat = move_toward(heat_value, target_heat, decay_rate * delta)
 			set_heat(new_heat)
 			
 			if wanted_stars == 1 and heat_value <= HeatConfig.ONE_STAR_DECAY_TARGET:
@@ -187,15 +203,17 @@ func _evaluate_star_escalation() -> void:
 		set_stars(1)
 
 func on_gunshot(source_pos: Vector2 = Vector2.ZERO) -> void:
+	# Gunshot adds heat; at 0 stars only cops in hearing range respond (no global 1 star from one shot)
 	add_heat(HeatConfig.GUNSHOT_HEAT)
-	if wanted_stars < 1:
-		set_stars(1)
-	elif wanted_stars == 1:
+	_evaluate_star_escalation()
+	# If already wanted, shooting escalates to 2 stars (lethal response)
+	if wanted_stars == 1:
 		set_stars(2)
-	print("HeatManager: Gunshot detected. Heat: ", heat_value, " Stars: ", wanted_stars)
+	print("HeatManager: Gunshot detected (range-based response). Heat: ", heat_value, " Stars: ", wanted_stars)
 	
 	if source_pos != Vector2.ZERO:
 		var npcs = get_tree().get_nodes_in_group("npc")
+		var hearing_range = HeatConfig.GUNSHOT_HEARING_RANGE
 		for npc in npcs:
 			if not npc is NPC or not npc.blackboard:
 				continue
@@ -203,11 +221,15 @@ func on_gunshot(source_pos: Vector2 = Vector2.ZERO) -> void:
 			var dist = npc.global_position.distance_to(source_pos)
 			
 			if npc.role == NPC.Role.POLICE:
-				if dist < 1200.0:
+				# Only police within hearing range respond to the shot; they go investigate
+				if dist <= hearing_range:
 					npc.blackboard.set_var(&"last_known_position", source_pos)
+					npc.blackboard.set_var(&"last_known_velocity", Vector2.ZERO)
+					npc.blackboard.set_var(&"responding_to_gunshot", true)
+					npc.blackboard.set_var(&"is_searching", false)
 			else:
 				# Non-police (Customers, Dealers) panic if they hear gunfire nearby
-				if dist < 1000.0: # Sight/Hearing range for panic
+				if dist < 1000.0:
 					npc.blackboard.set_var(&"heard_gunfire", true)
 					npc.blackboard.set_var(&"damage_source_position", source_pos)
 
@@ -238,6 +260,7 @@ func reset() -> void:
 		bb.set_var(&"search_anchor", Vector2.ZERO)
 		bb.set_var(&"last_known_velocity", Vector2.ZERO)
 		bb.set_var(&"heard_gunfire", false)
+		bb.set_var(&"responding_to_gunshot", false)
 		if bb.has_var(&"approach_offset"):
 			bb.erase_var(&"approach_offset")
 		
@@ -255,21 +278,37 @@ func broadcast_player_position(pos: Vector2, vel: Vector2 = Vector2.ZERO) -> voi
 	player_sighted.emit(pos, vel)
 
 	var npcs: Array[Node] = get_tree().get_nodes_in_group("npc")
-	var role_index: int = 0
-	var roles: Array[String] = ["tracker", "cutoff", "sweeper"]
+	var police_list: Array[NPC] = []
 	for npc in npcs:
 		if npc is NPC and npc.role == NPC.Role.POLICE and npc.blackboard:
-			# Update last known position for all police
-			npc.blackboard.set_var(&"last_known_position", pos)
-			npc.blackboard.set_var(&"last_known_velocity", vel)
-			npc.blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
-			# Set confidence to broadcast level (not as strong as direct LOS)
-			var dist: float = npc.global_position.distance_to(pos)
-			var conf: float = IntelConfidence.calculate_confidence(dist, false)
-			# Broadcast intel is weaker than direct LOS — cap at 0.6
-			npc.blackboard.set_var(&"confidence", minf(conf + 0.4, 0.6))
-			# Assign squad search roles so officers fan out
-			npc.blackboard.set_var(&"search_role", roles[role_index % roles.size()])
-			role_index += 1
-			# Found him! Stop searching and move to him
-			npc.blackboard.set_var(&"is_searching", false)
+			police_list.append(npc)
+
+	# At 1 star only dispatch nearest N cops so the whole map doesn't swarm you
+	var max_cops: int = police_list.size()
+	if wanted_stars == 1 and HeatConfig.MAX_DISPATCHED_AT_ONE_STAR > 0:
+		police_list.sort_custom(func(a: NPC, b: NPC) -> bool:
+			return a.global_position.distance_squared_to(pos) < b.global_position.distance_squared_to(pos)
+		)
+		max_cops = mini(HeatConfig.MAX_DISPATCHED_AT_ONE_STAR, police_list.size())
+
+	var role_index: int = 0
+	var roles: Array[String] = ["tracker", "cutoff", "sweeper"]
+	for i in range(police_list.size()):
+		if i >= max_cops:
+			# Clear responding_to_gunshot so they don't keep investigating; they just stay on patrol
+			police_list[i].blackboard.set_var(&"responding_to_gunshot", false)
+			continue
+		var npc: NPC = police_list[i]
+		if not npc.blackboard:
+			continue
+		# Clear investigating flag once we're officially wanted
+		npc.blackboard.set_var(&"responding_to_gunshot", false)
+		npc.blackboard.set_var(&"last_known_position", pos)
+		npc.blackboard.set_var(&"last_known_velocity", vel)
+		npc.blackboard.set_var(&"last_seen_time", Time.get_ticks_msec() / 1000.0)
+		var dist: float = npc.global_position.distance_to(pos)
+		var conf: float = IntelConfidence.calculate_confidence(dist, false)
+		npc.blackboard.set_var(&"confidence", minf(conf + 0.4, 0.6))
+		npc.blackboard.set_var(&"search_role", roles[role_index % roles.size()])
+		role_index += 1
+		npc.blackboard.set_var(&"is_searching", false)

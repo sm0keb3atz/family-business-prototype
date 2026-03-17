@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://dek303whn6v5q" path="res://GAME/scripts/ai/bt_condition_is_searching.gd" id="11_cond_srch"]
 [ext_resource type="Script" uid="uid://fv50dbbm3h1c" path="res://GAME/scripts/ai/bt_action_search_area.gd" id="12_act_srch"]
 [ext_resource type="Script" uid="uid://bfkd7s84casol" path="res://GAME/scripts/ai/bt_decorator_commit_window.gd" id="13_commit"]
+[ext_resource type="Script" uid="uid://busu3y6jfh5rm" path="res://GAME/scripts/ai/bt_action_ensure_weapon_holstered.gd" id="14_holst"]
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_dealer"]
 
@@ -62,6 +63,9 @@ children = [SubResource("seq_combat")]
 script = ExtResource("13_commit")
 commit_key = &"_commit_until_combat_dealer"
 
+[sub_resource type="BTAction" id="act_holst"]
+script = ExtResource("14_holst")
+
 [sub_resource type="BTAction" id="wander_1"]
 script = ExtResource("3_wander")
 wander_radius = 200.0
@@ -70,7 +74,7 @@ wander_radius = 200.0
 script = ExtResource("4_wait")
 
 [sub_resource type="BTSequence" id="wander_seq"]
-children = [SubResource("wander_1"), SubResource("wait_1")]
+children = [SubResource("act_holst"), SubResource("wander_1"), SubResource("wait_1")]
 
 [sub_resource type="BTDynamicSelector" id="root_sel"]
 children = [SubResource("commit_combat"), SubResource("wander_seq")]

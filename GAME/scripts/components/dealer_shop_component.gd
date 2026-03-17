@@ -10,7 +10,7 @@ var current_territory: TerritoryArea
 
 func _ready() -> void:
 	if tier_config:
-		current_stock = tier_config.max_stock
+		current_stock = randi_range(tier_config.min_stock, tier_config.max_stock)
 		restock_timer = tier_config.restock_time_seconds
 	
 	var parent_npc = get_parent()
@@ -32,3 +32,8 @@ func can_buy(amount: int) -> bool:
 func buy(amount: int) -> void:
 	if can_buy(amount):
 		current_stock -= amount
+
+func get_price(drug_id: StringName) -> int:
+	if current_territory:
+		return current_territory.get_drug_price(drug_id)
+	return 10 # Default fallback

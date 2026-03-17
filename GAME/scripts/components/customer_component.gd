@@ -23,12 +23,14 @@ func _ready() -> void:
 	
 	requested_grams = randi_range(config.min_request_grams, config.max_request_grams)
 	
-	var price_per_gram = config.min_payout_per_gram # Fallback
+	var territory_price = 10 # Fallback
 	if current_territory:
-		price_per_gram = current_territory.get_drug_price(&"weed") # For now assuming weed
+		territory_price = current_territory.get_drug_price(&"weed")
 	else:
-		price_per_gram = randi_range(config.min_payout_per_gram, config.max_payout_per_gram)
+		territory_price = randi_range(config.min_payout_per_gram, config.max_payout_per_gram)
 		
+	# Profit of 1-10 dollars over the territory price
+	var price_per_gram = territory_price + randi_range(1, 10)
 	offered_payout = requested_grams * price_per_gram
 	
 	if target_npc.bt_player:

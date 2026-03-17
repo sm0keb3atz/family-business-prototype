@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="DrugDefinitionResource" format=3 uid="uid://dweed123"]
+
+[ext_resource type="Script" path="res://GAME/scripts/resources/drug_definition_resource.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"weed"
+display_name = "Weed"
+base_price = 10
+base_heat_per_gram = 1.0
+risk_multiplier = 1.0

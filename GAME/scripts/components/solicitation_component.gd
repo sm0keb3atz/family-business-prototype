@@ -82,9 +82,16 @@ func _convert_to_customer(npc: Node2D, player: Player) -> void:
 	if npc is NPC and npc.blackboard:
 		print("Solicitation: Converting NPC ", npc.name, " to customer")
 		npc.blackboard.set_var(&"is_solicited", true)
-		npc.blackboard.set_var(&"requested_grams", randi_range(config.min_request_grams, config.max_request_grams))
-		var payout_per_gram = randi_range(config.min_payout_per_gram, config.max_payout_per_gram)
-		npc.blackboard.set_var(&"offered_payout", npc.blackboard.get_var(&"requested_grams") * payout_per_gram)
+		var grams = randi_range(config.min_request_grams, config.max_request_grams)
+		npc.blackboard.set_var(&"requested_grams", grams)
+		
+		var territory = npc.get_meta(&"territory") if npc.has_meta(&"territory") else null
+		var territory_price = 10 # Fallback
+		if territory and territory.has_method("get_drug_price"):
+			territory_price = territory.get_drug_price(&"weed")
+		
+		var payout_per_gram = territory_price + randi_range(1, 10)
+		npc.blackboard.set_var(&"offered_payout", grams * payout_per_gram)
 		
 		# Initialize movement vars for ApproachPlayer action
 		npc.blackboard.set_var(&"target", player)

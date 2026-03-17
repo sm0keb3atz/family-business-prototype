@@ -13,6 +13,8 @@ enum Gender { MALE, FEMALE }
 enum Role { CUSTOMER, DEALER, POLICE }
 @export var role: Role = Role.CUSTOMER
 @export var dealer_tier: DealerTierResource
+@export var is_potential_girlfriend: bool = false
+@export var gf_resource: GirlfriendResource
 
 # --- Components ---
 @onready var movement_component: MovementComponent = %MovementComponent
@@ -40,6 +42,7 @@ var _dealer_bark_cooldowns := {
 	"approach": 0,
 	"solicitation": 0
 }
+var _gf_rolled: bool = false
 
 const DEALER_APPROACH_BARKS: Array[String] = [
 	"Yo, you need to re-up.",
@@ -96,6 +99,16 @@ func _ready() -> void:
 			drug.display_name = "Weed"
 			drug.base_price = 10
 			tier.allowed_drugs.append(drug)
+		
+		# Apply Tier Stats
+		if stats:
+			stats.max_health = tier.max_health
+			if health_component:
+				health_component.setup(stats)
+		
+		# Equip Weapon (Moved to BT Action EnsureWeaponDrawn)
+		# if tier.weapon_scene and weapon_holder_component:
+		# 	weapon_holder_component.equip_weapon(tier.weapon_scene, tier.weapon_data)
 			
 		var shop_comp = DealerShopComponent.new()
 		shop_comp.name = "DealerShopComponent"
@@ -117,6 +130,14 @@ func _ready() -> void:
 		debug_overlay.name = "PoliceDebugOverlay"
 		add_child(debug_overlay)
 	
+	
+	
+	if gf_resource and gf_resource.appearance:
+		_apply_gf_appearance()
+		_boost_girlfriend_speed()
+	else:
+		_randomize_gender_and_appearance()
+	
 	_update_ui_icon()
 
 func _update_ui_icon() -> void:
@@ -126,15 +147,36 @@ func _update_ui_icon() -> void:
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Dealer_Icon.png"))
 	elif role == Role.CUSTOMER and blackboard and blackboard.get_var(&"is_solicited", false):
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Customer_Icon.png"))
+	elif is_potential_girlfriend:
+		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Girlfriend_Icon.png"))
 	else:
 		npc_ui.hide_type_icon()
 	
 	# Proactive check: if we just became interactable and player is already here, register!
-	var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false))
+	var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false)) or is_potential_girlfriend
 	if can_interact and interact_area:
 		for body in interact_area.get_overlapping_bodies():
 			if body.is_in_group("player"):
 				_on_interact_area_body_entered(body)
+
+
+func _apply_gf_appearance() -> void:
+	if not gf_resource or not gf_resource.appearance: return
+	
+	var app = gf_resource.appearance
+	%Appearance/Body.texture = app.body_texture
+	%Appearance/Hair.texture = app.hair_texture
+	%Appearance/Outfit.texture = app.outfit_texture
+	
+	for node_name in ["Backpack", "Beard", "Mustache", "Glasses", "Hat"]:
+		var sprite = %Appearance.get_node_or_null(node_name)
+		if sprite:
+			var tex = app.get(node_name.to_lower() + "_texture")
+			if tex:
+				sprite.texture = tex
+				sprite.visible = true
+			else:
+				sprite.visible = false
 
 func _randomize_gender_and_appearance() -> void:
 	if not appearance_data:
@@ -206,7 +248,7 @@ func _inject_dependencies() -> void:
 		stats.move_speed = personal_speed
 		# Light avoidance — small radius so NPCs nudge past each other
 		nav_agent.avoidance_enabled = true
-		nav_agent.radius = 10.0
+		nav_agent.radius = 20.0 # Slightly reduced to allow being closer
 		nav_agent.neighbor_distance = 50.0
 		nav_agent.max_neighbors = 3
 		nav_agent.time_horizon_agents = 0.5
@@ -242,6 +284,9 @@ func _physics_process(delta: float) -> void:
 	if _hitstun_duration > 0:
 		_hitstun_duration -= delta
 	
+	if gf_resource and gf_resource.is_following:
+		_follow_player(delta)
+	
 	# If solicited but player is too far, give up
 	if blackboard and blackboard.get_var(&"is_solicited", false):
 		var player = get_tree().get_first_node_in_group("player")
@@ -254,14 +299,45 @@ func _on_velocity_computed(safe_velocity: Vector2) -> void:
 		if _hitstun_duration > 0 or _is_interacting:
 			movement_component.move_velocity(Vector2.ZERO)
 			return
-		# Smooth velocity for less robotic movement
-		var smoothed: Vector2 = velocity.lerp(safe_velocity, 0.15)
+		# Tighten smoothing (0.3 instead of 0.15) for faster stops
+		var smoothed: Vector2 = velocity.lerp(safe_velocity, 0.3)
 		# Snap to zero when nearly stopped to prevent animation flicker
 		if smoothed.length_squared() < 25.0: # < 5 px/s
 			smoothed = Vector2.ZERO
 		movement_component.move_velocity(smoothed)
 		if animation_component:
 			animation_component.update_animation(smoothed)
+
+func _follow_player(_delta: float) -> void:
+	var player = get_tree().get_first_node_in_group("player")
+	if not player: return
+	
+	var dist = global_position.distance_to(player.global_position)
+	var stop_dist = 120.0 # Tighter (was 180)
+	var resume_dist = 180.0 # Tighter (was 250)
+	
+	if dist > resume_dist:
+		nav_agent.target_position = player.global_position
+		if not nav_agent.is_navigation_finished():
+			var next_path_pos = nav_agent.get_next_path_position()
+			var dir = global_position.direction_to(next_path_pos)
+			var desired_velocity = dir * stats.move_speed
+			nav_agent.set_velocity(desired_velocity) # Triggers _on_velocity_computed safely
+	elif dist < stop_dist:
+		nav_agent.set_velocity(Vector2.ZERO)
+		if animation_component:
+			var look_dir = global_position.direction_to(player.global_position)
+			animation_component.last_direction = look_dir
+			# Don't force update_animation(Vector2.ZERO) every frame if already idle
+	elif velocity.length_squared() > 100.0: # Hysteresis: keep following if moving fast enough
+		nav_agent.target_position = player.global_position
+		if not nav_agent.is_navigation_finished():
+			var next_path_pos = nav_agent.get_next_path_position()
+			var dir = global_position.direction_to(next_path_pos)
+			var desired_velocity = dir * stats.move_speed
+			nav_agent.set_velocity(desired_velocity)
+	else:
+		nav_agent.set_velocity(Vector2.ZERO)
 
 
 func _setup_bt() -> void:
@@ -442,6 +518,10 @@ func interact() -> void:
 			player.shop_ui.open_shop(shop_comp, player)
 		return
 
+	if is_potential_girlfriend:
+		_handle_girlfriend_recruitment(player)
+		return
+
 	if blackboard and blackboard.get_var(&"is_solicited", false):
 		AudioManager.play_ui_menu()
 		_handle_solicited_interaction(player)
@@ -527,11 +607,104 @@ func _handle_solicited_interaction(player: Player) -> void:
 		if npc_ui:
 			npc_ui.show_dialog_bubble("I need " + str(grams) + "g. Give you $" + str(payout) + ".\n(Press Space)")
 
+func _handle_girlfriend_recruitment(player: Player) -> void:
+	if not player: return
+	
+	player.show_bark("damn you fine lemme get your number")
+	bark("ok cutie")
+	
+	is_potential_girlfriend = false
+	_is_interacting = false
+	
+	# Create Resource
+	gf_resource = GirlfriendResource.new()
+	var names_res: NPCNamesResource = load("res://GAME/scripts/resources/npc_names_resource.gd").new()
+	gf_resource.npc_name = names_res.get_random_name()
+	
+	# Capture appearance
+	var app = AppearanceResource.new()
+	app.body_texture = %Appearance/Body.texture
+	app.hair_texture = %Appearance/Hair.texture
+	app.outfit_texture = %Appearance/Outfit.texture
+	
+	var backpack = %Appearance.get_node_or_null("Backpack")
+	if backpack and backpack.visible: app.backpack_texture = backpack.texture
+	var beard = %Appearance.get_node_or_null("Beard")
+	if beard and beard.visible: app.beard_texture = beard.texture
+	var mustache = %Appearance.get_node_or_null("Mustache")
+	if mustache and mustache.visible: app.mustache_texture = mustache.texture
+	var glasses = %Appearance.get_node_or_null("Glasses")
+	if glasses and glasses.visible: app.glasses_texture = glasses.texture
+	var hat = %Appearance.get_node_or_null("Hat")
+	if hat and hat.visible: app.hat_texture = hat.texture
+	
+	gf_resource.appearance = app
+	gf_resource.stats = stats.duplicate()
+	gf_resource.is_following = true
+	
+	player.inventory_component.add_girlfriend(gf_resource)
+	add_to_group("girlfriend")
+	_boost_girlfriend_speed()
+	
+	_update_ui_icon()
+
+func _boost_girlfriend_speed() -> void:
+	if not stats: return
+	var player = get_tree().get_first_node_in_group("player")
+	if player and player.stats:
+		# Tiny bit slower: 95% of player's base move speed 
+		# (Player is 350, GF will be ~332. Civilians are 200)
+		var target_speed = player.stats.move_speed * 0.95
+		stats.move_speed = target_speed
+		if nav_agent:
+			nav_agent.max_speed = target_speed
+	
+func dismiss(is_breakup: bool = false) -> void:
+	is_potential_girlfriend = false
+	if gf_resource:
+		gf_resource.is_following = false
+	
+	if is_breakup:
+		var player = get_tree().get_first_node_in_group("player")
+		if player and player.inventory_component:
+			player.inventory_component.remove_girlfriend(gf_resource)
+	
+	# Walk away and fade
+	var walk_dir = Vector2.RIGHT.rotated(randf() * TAU)
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(self, "modulate:a", 0.0, 2.0)
+	# Simple walk logic
+	tween.tween_method(func(v): velocity = v; move_and_slide(), walk_dir * stats.move_speed, Vector2.ZERO, 2.0)
+	tween.set_parallel(false)
+	tween.tween_callback(queue_free)
+
+func call_back(target_pos: Vector2) -> void:
+	if gf_resource:
+		gf_resource.is_following = true
+	
+	modulate.a = 0.0
+	# Spawn just outside current stop range
+	global_position = target_pos + Vector2.RIGHT.rotated(randf() * TAU) * 400.0
+	var tween = create_tween()
+	tween.tween_property(self, "modulate:a", 1.0, 1.0)
+	_boost_girlfriend_speed()
+
+
+func _evaluate_girlfriend_status() -> void:
+	if _gf_rolled or role != Role.CUSTOMER or gender != Gender.FEMALE or gf_resource != null:
+		return
+	
+	_gf_rolled = true
+	if randf() < 0.2: # 20% chance
+		is_potential_girlfriend = true
+		_update_ui_icon()
 
 func _on_interact_area_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player") and body.has_method("register_interactable"):
-		# Only allow interaction if we are a dealer OR a solicited customer
-		var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false))
+		_evaluate_girlfriend_status()
+		# Only allow interaction if we are a dealer OR a solicited customer OR a potential GF
+		var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false)) or is_potential_girlfriend
 		if can_interact:
 			body.register_interactable(self)
 			if role == Role.DEALER:
@@ -564,6 +737,11 @@ func _on_damage_taken(amount: int) -> void:
 func _on_died() -> void:
 	if has_node("/root/HeatManager"):
 		get_node("/root/HeatManager").on_kill(role)
+	
+	if gf_resource:
+		var player = get_tree().get_first_node_in_group("player")
+		if player and player.get("inventory_component"):
+			player.inventory_component.remove_girlfriend(gf_resource)
 	
 	if role == Role.DEALER:
 		var territory = get_meta(&"territory") if has_meta(&"territory") else null

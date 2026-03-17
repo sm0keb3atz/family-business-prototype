@@ -6,7 +6,6 @@
 [ext_resource type="Texture2D" uid="uid://ctg0qy2x8x6uv" path="res://GAME/assets/tilesets/Condo_Door_48x48_4.png" id="4_hnl4b"]
 [ext_resource type="TileSet" uid="uid://b5lo6l4xvqa7w" path="res://GAME/resources/tilesets/maintileset.tres" id="5_j7dm0"]
 [ext_resource type="PackedScene" uid="uid://ca7t6y2ynjken" path="res://GAME/scenes/characters/player.tscn" id="6_pxu16"]
-[ext_resource type="PackedScene" uid="uid://bmjfqp5tv548i" path="res://GAME/scenes/characters/npc.tscn" id="7_2e6be"]
 [ext_resource type="Script" uid="uid://b6c56sc2m1g5a" path="res://GAME/scripts/MapInitializer.gd" id="8_32me2"]
 [ext_resource type="PackedScene" uid="uid://cfot8raibprqo" path="res://GAME/scenes/TerritoryArea.tscn" id="12_territory"]
 [ext_resource type="Resource" uid="uid://cu0uh1y7iskio" path="res://GAME/resources/territories/hood_east.tres" id="13_hood_east"]
@@ -212,10 +211,6 @@ tile_set = ExtResource("5_j7dm0")
 [node name="Player" parent="." unique_id=1668827685 instance=ExtResource("6_pxu16")]
 z_as_relative = false
 position = Vector2(2235, -627)
-
-[node name="Npc" parent="." unique_id=298926992 instance=ExtResource("7_2e6be")]
-z_as_relative = false
-position = Vector2(2126, -698)
 
 [node name="MapInitializer" type="Node" parent="." unique_id=2054873289]
 script = ExtResource("8_32me2")

@@ -58,6 +58,23 @@ func _tick(delta: float) -> Status:
 	if not weapon_holder or not weapon_holder.current_weapon:
 		return FAILURE
 		
+	# Real-time Line of Sight check (populated by detection components)
+	if not blackboard.get_var(&"has_line_of_sight", false):
+		return FAILURE
+		
+	# Real-time Range check (against detection components)
+	var detection_dist: float = 600.0 # Default fallback
+	var pol_comp = agent.get_node_or_null("PoliceDetectionComponent")
+	var dlr_comp = agent.get_node_or_null("DealerDetectionComponent")
+	if pol_comp:
+		detection_dist = pol_comp.detection_radius
+	elif dlr_comp:
+		detection_dist = dlr_comp.detection_radius
+		
+	var distance: float = agent.global_position.distance_to(target.global_position)
+	if distance > detection_dist:
+		return FAILURE
+		
 	var now: float = Time.get_ticks_msec() / 1000.0
 	var weapon_pivot = agent.get_node_or_null("%WeaponPivot")
 	if weapon_pivot:
@@ -149,8 +166,10 @@ func _schedule_next_shot(now: float, weapon_holder: Node) -> void:
 	blackboard.set_var(BURST_SHOTS_LEFT_KEY, shots_left)
 
 	var fire_rate: float = 0.2
-	if weapon_holder and weapon_holder.current_weapon and weapon_holder.current_weapon.weapon_data:
-		fire_rate = weapon_holder.current_weapon.weapon_data.fire_rate
+	if weapon_holder and weapon_holder.current_weapon:
+		var w_data = weapon_holder.current_weapon.get("weapon_data")
+		if w_data:
+			fire_rate = w_data.fire_rate
 
 	var reaction: float = blackboard.get_var(REACTION_KEY, 1.0)
 	var cadence_jitter: float = randf_range(0.85, 1.2)
