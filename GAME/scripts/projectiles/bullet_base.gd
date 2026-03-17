@@ -11,6 +11,7 @@ class_name BulletBase
 
 var direction: Vector2 = Vector2.ZERO
 var shooter: Node2D
+var _destroyed: bool = false
 
 func initialize(p_direction: Vector2, p_damage: int, p_shooter: Node2D = null) -> void:
 	direction = p_direction.normalized()
@@ -30,21 +31,99 @@ func _ready() -> void:
 	area_entered.connect(_on_area_entered)
 
 func _physics_process(delta: float) -> void:
-	position += direction * speed * delta
+	if _destroyed:
+		return
+
+	_check_direct_overlaps()
+	if _destroyed:
+		return
+
+	var motion := direction * speed * delta
+	if motion.is_zero_approx():
+		return
+
+	var start := global_position
+	var target := start + motion
+	var hit := _sweep_for_hit(start, target)
+	if hit.is_empty():
+		global_position = target
+		return
+
+	global_position = hit.get("position", target)
+	_handle_collision(hit.get("collider"))
+
+
+func _sweep_for_hit(start: Vector2, target: Vector2) -> Dictionary:
+	var query := PhysicsRayQueryParameters2D.create(start, target, collision_mask)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+	query.hit_from_inside = true
+	query.exclude = [self]
+	if shooter:
+		query.exclude.append(shooter)
+
+	return get_world_2d().direct_space_state.intersect_ray(query)
+
+
+func _check_direct_overlaps() -> void:
+	for body in get_overlapping_bodies():
+		if _is_valid_hit_target(body):
+			_handle_collision(body)
+			return
+
+	for area in get_overlapping_areas():
+		if area == self:
+			continue
+		if _is_valid_hit_target(area):
+			_handle_collision(area)
+			return
 
 func _on_area_entered(area: Area2D) -> void:
-	# Forward to parent body if it has health
-	var parent = area.get_parent()
-	if parent:
-		_on_body_entered(parent)
+	if _destroyed:
+		return
+
+	_handle_collision(area)
 
 func _on_body_entered(body: Node) -> void:
-	if body == shooter:
+	if _destroyed:
 		return
-		
-	if body.is_in_group("player") and shooter and shooter.is_in_group("player"): # Don't hit shooter if player
+
+	_handle_collision(body)
+
+
+func _resolve_hit_target(collider: Node) -> Node:
+	var current := collider
+	while current:
+		if current.has_method("take_damage") or current.has_node("HealthComponent"):
+			return current
+		current = current.get_parent()
+	return collider
+
+
+func _is_valid_hit_target(body: Node) -> bool:
+	if not body:
+		return false
+
+	var target := _resolve_hit_target(body)
+	if target == shooter:
+		return false
+
+	if target.is_in_group("player") and shooter and shooter.is_in_group("player"):
+		return false
+
+	return true
+
+
+func _handle_collision(collider: Node) -> void:
+	if _destroyed:
 		return
-		
+
+	var body := _resolve_hit_target(collider)
+	if not _is_valid_hit_target(body):
+		return
+
+	_destroyed = true
+
 	# Play Impact Sound
 	_play_impact_sound(body)
 		
