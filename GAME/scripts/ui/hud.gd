@@ -9,6 +9,8 @@ class_name HUD
 @onready var territory_rep_bar: ProgressBar = $Hud/TerritoryReputationBar
 @onready var territory_name_label: Label = $Hud/TerritoryNameLabel
 @onready var prices_label: Label = $Hud/PricesLabel
+@onready var clock_label: Label = $Hud/ClockLabel
+@onready var date_label: Label = $Hud/DateLabel
 
 @onready var weapon_icon: Sprite2D = $Hud/WeaponIcon
 @onready var level_label: Label = $Hud/LevelLabel
@@ -38,6 +40,14 @@ func _ready() -> void:
 		hm.stars_changed.connect(_on_stars_changed)
 		_on_heat_changed(hm.heat_value)
 		_on_stars_changed(hm.wanted_stars)
+	
+	# Connect to TimeManager
+	var tm = get_tree().get_first_node_in_group("time_manager")
+	if tm:
+		tm.time_updated.connect(_on_time_updated)
+		tm.date_updated.connect(_on_date_updated)
+		_on_time_updated(tm.current_hour, tm.current_minute)
+		_on_date_updated(tm.current_day, tm.current_month, tm.current_year)
 
 func _setup_ui_nodes() -> void:
 	if is_instance_valid(stars_container):
@@ -67,6 +77,14 @@ func _process(delta: float) -> void:
 					money_label.text = "$" + str(roundi(displayed_money))
 			
 			_setup_territory_tracking()
+			
+			# Also check for TimeManager if not found in _ready
+			var tm = get_tree().get_first_node_in_group("time_manager")
+			if tm and not tm.time_updated.is_connected(_on_time_updated):
+				tm.time_updated.connect(_on_time_updated)
+				tm.date_updated.connect(_on_date_updated)
+				_on_time_updated(tm.current_hour, tm.current_minute)
+				_on_date_updated(tm.current_day, tm.current_month, tm.current_year)
 		return
 		
 	# Update Money and XP dynamically for now
@@ -269,3 +287,22 @@ func _on_weapon_changed(weapon: WeaponBase) -> void:
 func _on_ammo_changed(current: int, reserve: int) -> void:
 	if is_instance_valid(ammo_label):
 		ammo_label.text = str(current) + "/" + str(reserve)
+
+func _on_time_updated(hours: int, minutes: int) -> void:
+	if is_instance_valid(clock_label):
+		var am_pm = "AM"
+		var display_hour = hours
+		if display_hour >= 12:
+			am_pm = "PM"
+			if display_hour > 12:
+				display_hour -= 12
+		if display_hour == 0:
+			display_hour = 12
+		
+		clock_label.text = "%d:%02d %s" % [display_hour, minutes, am_pm]
+
+func _on_date_updated(day: int, month: int, year: int) -> void:
+	if is_instance_valid(date_label):
+		var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+		var month_str = months[(month - 1) % 12]
+		date_label.text = "%s %d, %d" % [month_str, day, year]
