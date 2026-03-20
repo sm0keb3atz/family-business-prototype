@@ -632,8 +632,8 @@ unique_name_in_owner = true
 
 [node name="NpcUI" parent="." unique_id=2144543252 instance=ExtResource("21_npcui")]
 unique_name_in_owner = true
-offset_top = -35.0
-offset_bottom = -35.0
+offset_top = -25.0
+offset_bottom = -25.0
 
 [node name="InteractArea" type="Area2D" parent="." unique_id=987654321]
 unique_name_in_owner = true

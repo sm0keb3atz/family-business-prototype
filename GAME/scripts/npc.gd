@@ -42,7 +42,8 @@ var _dealer_bark_cooldowns := {
 	"approach": 0,
 	"solicitation": 0
 }
-var _gf_rolled: bool = false
+var potential_gf_level: int = 1
+var _gf_reset_timer: SceneTreeTimer
 
 const DEALER_APPROACH_BARKS: Array[String] = [
 	"Yo, you need to re-up.",
@@ -135,8 +136,24 @@ func _ready() -> void:
 	if gf_resource and gf_resource.appearance:
 		_apply_gf_appearance()
 		_boost_girlfriend_speed()
+		
+		# Setup Girlfriend Component
+		var gf_comp = GirlfriendComponent.new()
+		gf_comp.name = "GirlfriendComponent"
+		gf_comp.setup(gf_resource)
+		add_child(gf_comp)
+		
+		# Set GF Behavior Tree
+		behavior_tree = load("res://GAME/resources/ai/girlfriend_bt.tres")
+		_setup_bt()
+		
+		if npc_ui:
+			npc_ui.update_level(gf_resource.level, -1)
 	else:
 		_randomize_gender_and_appearance()
+	
+	if role == Role.DEALER and dealer_tier and npc_ui:
+		npc_ui.update_level(dealer_tier.tier_level, 1)
 	
 	_update_ui_icon()
 
@@ -149,6 +166,10 @@ func _update_ui_icon() -> void:
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Customer_Icon.png"))
 	elif is_potential_girlfriend:
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Girlfriend_Icon.png"))
+		npc_ui.update_level(potential_gf_level, -1)
+	elif gf_resource != null:
+		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Girlfriend_Icon.png"))
+		npc_ui.update_level(gf_resource.level, -1)
 	else:
 		npc_ui.hide_type_icon()
 	
@@ -284,9 +305,6 @@ func _physics_process(delta: float) -> void:
 	if _hitstun_duration > 0:
 		_hitstun_duration -= delta
 	
-	if gf_resource and gf_resource.is_following:
-		_follow_player(delta)
-	
 	# If solicited but player is too far, give up
 	if blackboard and blackboard.get_var(&"is_solicited", false):
 		var player = get_tree().get_first_node_in_group("player")
@@ -308,36 +326,7 @@ func _on_velocity_computed(safe_velocity: Vector2) -> void:
 		if animation_component:
 			animation_component.update_animation(smoothed)
 
-func _follow_player(_delta: float) -> void:
-	var player = get_tree().get_first_node_in_group("player")
-	if not player: return
-	
-	var dist = global_position.distance_to(player.global_position)
-	var stop_dist = 120.0 # Tighter (was 180)
-	var resume_dist = 180.0 # Tighter (was 250)
-	
-	if dist > resume_dist:
-		nav_agent.target_position = player.global_position
-		if not nav_agent.is_navigation_finished():
-			var next_path_pos = nav_agent.get_next_path_position()
-			var dir = global_position.direction_to(next_path_pos)
-			var desired_velocity = dir * stats.move_speed
-			nav_agent.set_velocity(desired_velocity) # Triggers _on_velocity_computed safely
-	elif dist < stop_dist:
-		nav_agent.set_velocity(Vector2.ZERO)
-		if animation_component:
-			var look_dir = global_position.direction_to(player.global_position)
-			animation_component.last_direction = look_dir
-			# Don't force update_animation(Vector2.ZERO) every frame if already idle
-	elif velocity.length_squared() > 100.0: # Hysteresis: keep following if moving fast enough
-		nav_agent.target_position = player.global_position
-		if not nav_agent.is_navigation_finished():
-			var next_path_pos = nav_agent.get_next_path_position()
-			var dir = global_position.direction_to(next_path_pos)
-			var desired_velocity = dir * stats.move_speed
-			nav_agent.set_velocity(desired_velocity)
-	else:
-		nav_agent.set_velocity(Vector2.ZERO)
+# Removed hardcoded follow logic in favor of Behavior Tree
 
 
 func _setup_bt() -> void:
@@ -642,11 +631,39 @@ func _handle_girlfriend_recruitment(player: Player) -> void:
 	gf_resource.stats = stats.duplicate()
 	gf_resource.is_following = true
 	
+	gf_resource.level = potential_gf_level
+	
+	# Setup Girlfriend Component
+	var gf_comp = GirlfriendComponent.new()
+	gf_comp.name = "GirlfriendComponent"
+	gf_comp.setup(gf_resource)
+	add_child(gf_comp)
+	
+	# Switch to Girlfriend BT
+	behavior_tree = load("res://GAME/resources/ai/girlfriend_bt.tres")
+	_setup_bt()
+	
 	player.inventory_component.add_girlfriend(gf_resource)
 	add_to_group("girlfriend")
 	_boost_girlfriend_speed()
 	
+	if npc_ui:
+		npc_ui.update_level(gf_resource.level, -1)
+	
 	_update_ui_icon()
+
+func _on_gf_reset_timeout() -> void:
+	# Check if player is NOT in range anymore
+	var player_in_range = false
+	if interact_area:
+		for body in interact_area.get_overlapping_bodies():
+			if body.is_in_group("player"):
+				player_in_range = true
+				break
+	
+	if not player_in_range and is_potential_girlfriend:
+		is_potential_girlfriend = false
+		_update_ui_icon()
 
 func _boost_girlfriend_speed() -> void:
 	if not stats: return
@@ -692,13 +709,14 @@ func call_back(target_pos: Vector2) -> void:
 
 
 func _evaluate_girlfriend_status() -> void:
-	if _gf_rolled or role != Role.CUSTOMER or gender != Gender.FEMALE or gf_resource != null:
+	if role != Role.CUSTOMER or gender != Gender.FEMALE or gf_resource != null or is_potential_girlfriend:
 		return
 	
-	_gf_rolled = true
 	if randf() < 0.2: # 20% chance
 		is_potential_girlfriend = true
+		potential_gf_level = randi_range(1, 4)
 		_update_ui_icon()
+		bark("Hey cutie!")
 
 func _on_interact_area_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player") and body.has_method("register_interactable"):
@@ -709,7 +727,7 @@ func _on_interact_area_body_entered(body: Node2D) -> void:
 			body.register_interactable(self)
 			if role == Role.DEALER:
 				bark_dealer_feedback("approach")
-			elif npc_ui:
+			elif npc_ui and not is_potential_girlfriend:
 				npc_ui.hide_dialog_bubble()
 			if body.get("player_ui"):
 				body.player_ui.hide_dialog_bubble()
@@ -717,6 +735,10 @@ func _on_interact_area_body_entered(body: Node2D) -> void:
 func _on_interact_area_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
 		# Always clear interaction state when player walks away
+		if is_potential_girlfriend:
+			_gf_reset_timer = get_tree().create_timer(5.0)
+			_gf_reset_timer.timeout.connect(_on_gf_reset_timeout)
+			
 		if body.has_method("unregister_interactable"):
 			body.unregister_interactable(self)
 		_is_interacting = false

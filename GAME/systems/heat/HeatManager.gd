@@ -174,11 +174,15 @@ func update_heat(delta: float) -> void:
 			var gf_multiplier = 1.0
 			var player = get_tree().get_first_node_in_group("player")
 			if player and player.inventory_component:
-				var active_count = 0
 				for gf in player.inventory_component.girlfriends:
 					if gf.is_following:
-						active_count += 1
-				gf_multiplier += (active_count * 0.15)
+						var buff = 0.1
+						match gf.level:
+							1: buff = 0.1
+							2: buff = 0.3
+							3: buff = 0.5
+							4: buff = 1.0
+						gf_multiplier += buff
 			
 			var decay_rate = HeatConfig.BASE_DECAY_RATE * gf_multiplier
 			

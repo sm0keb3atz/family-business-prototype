@@ -1,0 +1,48 @@
+[gd_resource type="BehaviorTree" format=3]
+
+[ext_resource type="Script" uid="uid://cdnx2c1goie3r" path="res://GAME/scripts/ai/bt_condition_was_shot.gd" id="1_cond"]
+[ext_resource type="Script" uid="uid://2hkxhgxhprt8" path="res://GAME/scripts/ai/bt_action_flee.gd" id="2_flee"]
+[ext_resource type="Script" path="res://GAME/scripts/ai/bt_action_companion_follow.gd" id="3_follow"]
+[ext_resource type="Script" uid="uid://dj5s67moij08n" path="res://GAME/scripts/ai/bt_action_chat_nearby.gd" id="4_chat"]
+[ext_resource type="Script" path="res://GAME/scripts/ai/bt_action_companion_idle.gd" id="5_idle"]
+
+[sub_resource type="BlackboardPlan" id="BlackboardPlan_v8ilr"]
+
+[sub_resource type="BTCondition" id="cond_1"]
+script = ExtResource("1_cond")
+
+[sub_resource type="BTAction" id="flee_1"]
+script = ExtResource("2_flee")
+
+[sub_resource type="BTSequence" id="flee_seq"]
+children = [SubResource("cond_1"), SubResource("flee_1")]
+
+[sub_resource type="BTAction" id="follow_1"]
+script = ExtResource("3_follow")
+stop_distance = 120.0
+resume_distance = 180.0
+sprint_distance = 400.0
+fail_on_arrival = true
+
+[sub_resource type="BTAction" id="chat_1"]
+script = ExtResource("4_chat")
+chat_range = 100.0
+chat_chance = 0.1
+
+[sub_resource type="BTAction" id="idle_anim_1"]
+script = ExtResource("5_idle")
+idle_wander_radius = 40.0
+bark_chance = 0.05
+
+[sub_resource type="BTSelector" id="idle_sel"]
+children = [SubResource("chat_1"), SubResource("idle_anim_1")]
+
+[sub_resource type="BTSelector" id="follow_idle_sel"]
+children = [SubResource("follow_1"), SubResource("idle_sel")]
+
+[sub_resource type="BTDynamicSelector" id="root_sel"]
+children = [SubResource("flee_seq"), SubResource("follow_idle_sel")]
+
+[resource]
+blackboard_plan = SubResource("BlackboardPlan_v8ilr")
+root_task = SubResource("root_sel")

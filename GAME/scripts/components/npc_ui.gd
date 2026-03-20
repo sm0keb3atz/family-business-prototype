@@ -4,6 +4,7 @@ class_name NpcUI
 @onready var health_bar = $HealthBar
 @onready var type_icon = $TypeIcon
 @onready var dialog_bubble = $DialogBubble
+@onready var dialog_label = $DialogBubble/Label
 @onready var animation_player = $AnimationPlayer
 @onready var arrest_bar = get_node_or_null("ArrestBar")
 
@@ -25,6 +26,8 @@ func _ready():
 		health_bar.hide()
 	if arrest_bar:
 		arrest_bar.hide()
+	if has_node("LevelLabel"):
+		$LevelLabel.hide()
 
 
 func update_health(current_health: float, max_health: float):
@@ -54,24 +57,47 @@ func show_type_icon(texture: Texture2D = null):
 		set_type_icon(texture)
 	if type_icon:
 		type_icon.show()
+	if has_node("LevelLabel") and not $LevelLabel.text.is_empty():
+		$LevelLabel.show()
 	if animation_player and animation_player.has_animation("icon"):
 		animation_player.play("icon")
 
 func hide_type_icon():
 	if type_icon:
 		type_icon.hide()
+	if has_node("LevelLabel"):
+		$LevelLabel.hide()
 	if animation_player:
 		animation_player.stop()
 
+func update_level(level: int, role: int) -> void:
+	var level_label = get_node_or_null("LevelLabel")
+	if not level_label: return
+	
+	if role == 1: # Role.DEALER
+		level_label.text = "LVL " + str(level)
+		level_label.modulate = Color.YELLOW
+		level_label.show()
+	elif role == -1: # Special case for Girlfriend
+		level_label.text = "LVL " + str(level)
+		level_label.modulate = Color.PINK
+		level_label.show()
+	else:
+		level_label.hide()
+
 func show_dialog_bubble(text: String):
-	if dialog_bubble:
-		dialog_bubble.text = text
+	if dialog_bubble and dialog_label:
+		dialog_label.text = text
 		dialog_bubble.show()
+		# Boost Z-index when speaking to ensure visibility over other NPCs
+		z_index = 10
 
 
 func hide_dialog_bubble():
 	if dialog_bubble:
 		dialog_bubble.hide()
+		# Reset Z-index
+		z_index = 0
 
 func spawn_indicator(type: String, value: String, custom_icon: Texture2D = null):
 	var indicator = FLOATING_INDICATOR.instantiate()

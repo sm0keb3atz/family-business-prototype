@@ -38,8 +38,6 @@ texture_margin_right = 6.0
 texture_margin_bottom = 10.0
 region_rect = Rect2(80, 208, 48, 21)
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_t8wwd"]
-
 [sub_resource type="Animation" id="Animation_6aty4"]
 length = 0.001
 tracks/0/type = "value"
@@ -77,10 +75,10 @@ tracks/0/path = NodePath("TypeIcon:scale")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(-0.02, 1),
-"transitions": PackedFloat32Array(1.8025013, 0.75785834),
+"times": PackedFloat32Array(-0.02),
+"transitions": PackedFloat32Array(2.828423),
 "update": 0,
-"values": [Vector2(3, 3), Vector2(3.5, 3.5)]
+"values": [Vector2(1.5, 1.5)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -92,7 +90,7 @@ tracks/1/keys = {
 "times": PackedFloat32Array(0, 1),
 "transitions": PackedFloat32Array(1, 1),
 "update": 0,
-"values": [Vector2(-10, -52), Vector2(-9.999997, -59.000004)]
+"values": [Vector2(-11, -35.999992), Vector2(-9.999999, -44.000004)]
 }
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_jlibx"]
@@ -138,7 +136,7 @@ value = 50.0
 show_percentage = false
 
 [node name="TypeIcon" type="TextureRect" parent="." unique_id=1687686337]
-modulate = Color(1.196256, 1.0761228, 0.98937523, 0.837)
+modulate = Color(1.196256, 1.0761228, 0.98937523, 0.95)
 layout_mode = 0
 offset_left = -10.0
 offset_top = -52.0
@@ -151,27 +149,48 @@ texture = ExtResource("5_icon")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="DialogBubble" type="Label" parent="." unique_id=811389242]
-modulate = Color(1, 1, 1, 0.8)
+[node name="DialogBubble" type="PanelContainer" parent="." unique_id=811389242]
+modulate = Color(1, 1, 1, 0.980392)
+z_index = 10
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = 7
 anchor_left = 0.5
-anchor_top = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -83.0
-offset_top = -25.0
-offset_right = -25.0
-offset_bottom = 8.0
+anchor_bottom = 1.0
+offset_left = -79.0
+offset_top = -51.0
+offset_right = 71.0
+offset_bottom = -11.0
 grow_horizontal = 2
-grow_vertical = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_jlibx")
+
+[node name="Label" type="Label" parent="DialogBubble" unique_id=1719844021]
+custom_minimum_size = Vector2(60, 0)
+layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_constants/line_spacing = 3
+theme_override_constants/line_spacing = 1
 theme_override_fonts/font = ExtResource("5_vbcip")
 theme_override_font_sizes/font_size = 12
-theme_override_styles/normal = SubResource("StyleBoxTexture_jlibx")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_t8wwd")
-text = "HELLO"
+text = "YO. WHAT'S GOOD?"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="LevelLabel" type="Label" parent="." unique_id=811389243]
+layout_mode = 0
+offset_left = -20.0
+offset_top = -51.0
+offset_right = 20.0
+offset_bottom = -37.0
+theme_override_colors/font_color = Color(1, 1, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("5_vbcip")
+theme_override_font_sizes/font_size = 8
+text = "LVL 1"
+horizontal_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=36777957]
 libraries/ = SubResource("AnimationLibrary_jlibx")

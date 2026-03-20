@@ -5,7 +5,9 @@ extends Node2D
 ## Optimized trauma-based shake system for stable performance.
 
 @export var target: Node2D
-@export var lerp_speed: float = 5.0
+@export var lerp_speed: float = 10.0
+@export var lead_distance: float = 100.0 ## How far the camera leads ahead of the player velocity
+@export var lead_speed: float = 2.0 ## How fast the lead offset adapts
 
 @export_group("Shake Settings")
 @export var trauma_reduction_rate: float = 1.5 # Faster decay for snappier feel
@@ -42,6 +44,7 @@ var time: float = 0.0
 
 var _bob_phase: float = 0.0
 var _last_target_pos: Vector2 = Vector2.ZERO
+var _current_lead_offset: Vector2 = Vector2.ZERO
 
 var noise: FastNoiseLite = FastNoiseLite.new()
 
@@ -91,9 +94,17 @@ func _process(delta: float) -> void:
 			_dynamic_target_zoom = normal_zoom
 
 		# Smoothly interpolate position towards base_pos (which may include mouse offset)
-		global_position = global_position.lerp(base_pos, lerp_speed * delta)
+		var target_vel = (target.global_position - _last_target_pos) / delta
+		var target_lead = target_vel.normalized() * min(target_vel.length() * 0.2, lead_distance)
 		
-		var speed = target.global_position.distance_to(_last_target_pos) / delta
+		_current_lead_offset = _current_lead_offset.lerp(target_lead, lead_speed * delta)
+		
+		# Combine base position with lead offset
+		var final_target_pos = base_pos + _current_lead_offset
+		
+		global_position = global_position.lerp(final_target_pos, lerp_speed * delta)
+		
+		var speed = target_vel.length()
 		if speed > 10.0: # threshold to avoid micro-jitter bobbing
 			is_moving = true
 		
