@@ -13,4 +13,4 @@ drug_prices = {
 }
 max_customers = 30
 max_police = 7
-max_dealers = 4
+max_dealers = 10

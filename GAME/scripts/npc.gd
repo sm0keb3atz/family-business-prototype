@@ -44,6 +44,10 @@ var _dealer_bark_cooldowns := {
 }
 var potential_gf_level: int = 1
 var _gf_reset_timer: SceneTreeTimer
+var gf_is_requesting: bool = false
+var gf_request_amount: int = 0
+var gf_request_timer: float = 0.0
+var gf_request_grace_timer: float = 0.0
 
 const DEALER_APPROACH_BARKS: Array[String] = [
 	"Yo, you need to re-up.",
@@ -149,6 +153,8 @@ func _ready() -> void:
 		
 		if npc_ui:
 			npc_ui.update_level(gf_resource.level, -1)
+			
+		gf_request_timer = randf_range(45.0, 90.0)
 	else:
 		_randomize_gender_and_appearance()
 	
@@ -311,6 +317,55 @@ func _physics_process(delta: float) -> void:
 		if player and global_position.distance_to(player.global_position) > 800.0:
 			blackboard.set_var(&"is_solicited", false)
 			_update_ui_icon()
+			
+	# Girlfriend Request Logic
+	if gf_resource and gf_resource.is_following and not gf_is_requesting:
+		if gf_request_timer > 0.0:
+			gf_request_timer -= delta
+			if gf_request_timer <= 0.0:
+				_trigger_girlfriend_request()
+				
+	if gf_is_requesting:
+		if gf_request_grace_timer > 0.0:
+			gf_request_grace_timer -= delta
+		else:
+			var player = get_tree().get_first_node_in_group("player")
+			# Increased decline distance slightly and it only applies after grace period ends
+			if player and global_position.distance_to(player.global_position) > 400.0:
+				_decline_girlfriend_request()
+
+func _trigger_girlfriend_request() -> void:
+	gf_is_requesting = true
+	gf_request_amount = gf_resource.level * randi_range(20, 50)
+	var request_barks = [
+		"Can I get $" + str(gf_request_amount) + "?",
+		"I saw something nice, only $" + str(gf_request_amount) + "...",
+		"You got $" + str(gf_request_amount) + "?",
+		"Baby, I need $" + str(gf_request_amount) + " for my hair."
+	]
+	bark(request_barks.pick_random() + "\n(Press Space)", 999.0, true, "gf_request") 
+	gf_request_grace_timer = 5.0
+	
+	# Force register interactable if player is already in range
+	var player = get_tree().get_first_node_in_group("player")
+	if player and interact_area.overlaps_body(player):
+		if player.has_method("register_interactable"):
+			player.register_interactable(self)
+
+func _decline_girlfriend_request() -> void:
+	gf_is_requesting = false
+	gf_resource.set_relationship(gf_resource.relationship - 10.0)
+	bark("Fine, ignore me then!", 3.0, true)
+	gf_request_timer = randf_range(45.0, 90.0)
+	
+	# CRITICAL: Force unregister from player to prevent interaction prompt hanging
+	var player = get_tree().get_first_node_in_group("player")
+	if player:
+		if player.has_method("unregister_interactable"):
+			player.unregister_interactable(self)
+			if player.get("current_interactable") == self:
+				player._is_interacting = false
+				player.current_interactable = null
 
 func _on_velocity_computed(safe_velocity: Vector2) -> void:
 	if movement_component:
@@ -402,15 +457,46 @@ func play_panic_scream() -> void:
 		_panic_audio_player.stream = stream
 		_panic_audio_player.play()
 
-func bark(text: String, duration: float = 2.5) -> void:
+func bark(text: String, duration: float = 2.5, force: bool = false, type: String = "generic") -> void:
 	if not npc_ui:
 		return
+		
+	if gf_is_requesting and not force:
+		return
 
-	npc_ui.show_dialog_bubble(text)
-	if _dialog_hide_timer and _dialog_hide_timer.timeout.is_connected(npc_ui.hide_dialog_bubble):
-		_dialog_hide_timer.timeout.disconnect(npc_ui.hide_dialog_bubble)
-	_dialog_hide_timer = get_tree().create_timer(duration)
-	_dialog_hide_timer.timeout.connect(npc_ui.hide_dialog_bubble)
+	var priority = BarkManager.Priority.LOW
+	var color = Color.YELLOW # Default NPC dialogue color
+	
+	match type:
+		"gf_request":
+			priority = BarkManager.Priority.HIGH
+			color = Color(1.0, 0.4, 0.7) # Pink
+		"recruitment":
+			priority = BarkManager.Priority.HIGH
+			color = Color.YELLOW
+		"solicitation":
+			priority = BarkManager.Priority.URGENT
+			color = Color.YELLOW
+		"combat":
+			priority = BarkManager.Priority.MEDIUM
+			color = Color.DARK_RED
+		"generic":
+			priority = BarkManager.Priority.LOW
+			color = Color.YELLOW
+
+	if BarkManager.request_bark(self, priority, force):
+		npc_ui.show_dialog_bubble(text, color)
+		if _dialog_hide_timer and _dialog_hide_timer.timeout.is_connected(npc_ui.hide_dialog_bubble):
+			_dialog_hide_timer.timeout.disconnect(npc_ui.hide_dialog_bubble)
+		_dialog_hide_timer = get_tree().create_timer(duration)
+		_dialog_hide_timer.timeout.connect(npc_ui.hide_dialog_bubble)
+
+func interrupt_bark():
+	if npc_ui:
+		npc_ui.hide_dialog_bubble()
+		if _dialog_hide_timer:
+			_dialog_hide_timer.timeout.disconnect(npc_ui.hide_dialog_bubble)
+			_dialog_hide_timer = null
 
 func bark_dealer_feedback(kind: String) -> void:
 	if role != Role.DEALER:
@@ -450,7 +536,7 @@ func bark_dealer_combat(target: Node2D) -> void:
 		lines = DEALER_POLICE_COMBAT_BARKS
 	
 	_dealer_bark_cooldowns["combat"] = now + 6000 # Longer cooldown for combat barks
-	bark(lines.pick_random(), 3.0)
+	bark(lines.pick_random(), 3.0, false, "combat")
 
 # --- Damage Interface ---
 # Called by BulletBase when a projectile hits this body.
@@ -495,16 +581,32 @@ func interact() -> void:
 	_is_interacting = true
 	if blackboard:
 		blackboard.set_var(&"is_interacting", true)
-	var player = get_tree().get_first_node_in_group("player")
+	var player = get_tree().get_first_node_in_group("player") as Node2D
 	if player and animation_component:
 		var dir = global_position.direction_to(player.global_position)
 		animation_component.last_direction = dir
 		animation_component.update_animation(Vector2.ZERO) # Force idle facing player
 
 	if role == Role.DEALER and has_node("DealerShopComponent"):
-		if player and player.shop_ui:
-			var shop_comp = get_node("DealerShopComponent")
-			player.shop_ui.open_shop(shop_comp, player)
+		var shop_comp = get_node("DealerShopComponent")
+		var tier_num = 1
+		if shop_comp.get("tier_config"):
+			tier_num = shop_comp.get("tier_config").get("tier_level")
+			
+		var req_player_level = _get_required_level_for_tier(tier_num)
+			
+		if player and player.get("progression") and player.get("progression").get("level") < req_player_level:
+			bark("you neeed to be (lvl %d)" % req_player_level, 3.0, true)
+			_is_interacting = false
+			if blackboard: blackboard.set_var(&"is_interacting", false)
+			return
+			
+		if player and player.get("shop_ui"):
+			player.get("shop_ui").open_shop(shop_comp, player)
+		return
+
+	if gf_is_requesting:
+		_handle_girlfriend_money_request(player)
 		return
 
 	if is_potential_girlfriend:
@@ -519,12 +621,12 @@ func interact() -> void:
 	if npc_ui:
 		bark("Hey there! Can't talk right now.")
 
-func _handle_solicited_interaction(player: Player) -> void:
+func _handle_solicited_interaction(player: Node2D) -> void:
 	var grams = blackboard.get_var(&"requested_grams", 0)
 	var payout = blackboard.get_var(&"offered_payout", 0)
 	
 	if Input.is_action_just_pressed("ui_accept"): # Dealing with Space/Enter
-		var inv = player.inventory_component
+		var inv = player.get("inventory_component")
 		var found_drug_id = ""
 		for k in inv.drugs.keys():
 			if str(k).to_lower() == "weed":
@@ -533,19 +635,17 @@ func _handle_solicited_interaction(player: Player) -> void:
 				
 		if found_drug_id != "" and inv.has_drug(found_drug_id, grams):
 			inv.remove_drug(found_drug_id, grams)
-			player.progression.money += payout
+			player.get("progression").money += payout
 			
 			# Apply Heat
 			# In a larger system, we'd lookup the actual resource. Using def values here.
-			var base_heat = 1.0
-			var risk_mult = 1.0
-			var sale_heat = base_heat * grams * risk_mult
+			var sale_heat = HeatConfig.BASE_HEAT_PER_GRAM * grams * HeatConfig.SALE_RISK_MULTIPLIER
 			if has_node("/root/HeatManager"):
 				get_node("/root/HeatManager").add_heat(sale_heat)
 			
 			# XP and Indicators
-			var sale_xp = int(grams * 5) # Example: 5 XP per gram
-			player.progression.xp += sale_xp
+			var sale_xp = int(grams * 25) # Balanced: 25 XP per gram
+			player.get("progression").add_xp(sale_xp)
 			
 			var pui = player.get("player_ui")
 			if pui:
@@ -556,7 +656,7 @@ func _handle_solicited_interaction(player: Player) -> void:
 			AudioManager.play_transaction()
 			
 			if npc_ui:
-				npc_ui.show_dialog_bubble("Thanks man.")
+				bark("Thanks man.", 2.5, false, "solicitation")
 			
 			# Reset state so client returns to path
 			blackboard.set_var(&"is_solicited", false)
@@ -573,7 +673,7 @@ func _handle_solicited_interaction(player: Player) -> void:
 			_update_ui_icon()
 		else:
 			if npc_ui:
-				npc_ui.show_dialog_bubble("You don't have enough!")
+				bark("You don't have enough!", 2.5, false, "solicitation")
 			
 			# Exit solicitation if player can't fulfill
 			await get_tree().create_timer(1.5).timeout
@@ -594,13 +694,70 @@ func _handle_solicited_interaction(player: Player) -> void:
 					npc_ui.hide_dialog_bubble()
 	else:
 		if npc_ui:
-			npc_ui.show_dialog_bubble("I need " + str(grams) + "g. Give you $" + str(payout) + ".\n(Press Space)")
+			bark("I need " + str(grams) + "g. Give you $" + str(payout) + ".\n(Press Space)", 2.5, true, "solicitation")
 
-func _handle_girlfriend_recruitment(player: Player) -> void:
+func _handle_girlfriend_money_request(player: Node2D) -> void:
+	if not player or not player.get("progression"): return
+	
+	if player.get("progression").money >= gf_request_amount:
+		player.get("progression").money -= gf_request_amount
+		gf_resource.set_relationship(gf_resource.relationship + 10.0)
+		gf_is_requesting = false
+		gf_request_timer = randf_range(45.0, 90.0)
+		
+		if player.get("player_ui"):
+			var pui = player.player_ui
+			pui.spawn_indicator("money_down", "-$" + str(gf_request_amount))
+			pui.spawn_indicator("relationship_up", "+10 Relationship")
+			
+		AudioManager.play_transaction()
+		
+		var thanks_barks = ["Thanks baby!", "You're the best!", "I love a man with cash.", "You're so sweet!"]
+		bark(thanks_barks.pick_random(), 3.0, true, "gf_request")
+		
+		# CRITICAL: Force unregister from player to prevent re-interaction prompt
+		if player.has_method("unregister_interactable"):
+			player.unregister_interactable(self)
+			if player.get("current_interactable") == self:
+				player._is_interacting = false
+				player.current_interactable = null
+	else:
+		var broke_barks = ["You're broke?!", "Don't play with me.", "I need a real provider.", "Maybe next time then."]
+		bark(broke_barks.pick_random(), 3.0, true, "gf_request")
+		# She keeps requesting? Or decline? Let's decline it automatically if you can't pay and talk to her.
+		_decline_girlfriend_request()
+
+func _handle_girlfriend_recruitment(player: Node2D) -> void:
 	if not player: return
 	
-	player.show_bark("damn you fine lemme get your number")
-	bark("ok cutie")
+	var req_player_level = _get_required_level_for_tier(potential_gf_level)
+	if player and player.get("progression") and player.get("progression").get("level") < req_player_level:
+		var reject_barks = [
+			"You're not experienced enough for me.",
+			"Come back when you're a bigger deal.",
+			"I only roll with top-tier players.",
+			"You need to step your game up."
+		]
+		bark(reject_barks.pick_random() + "\n(Need Lvl %d)" % req_player_level, 3.0, true)
+		_is_interacting = false
+		if blackboard: blackboard.set_var(&"is_interacting", false)
+		return
+
+	var player_barks = [
+		"damn you fine lemme get your number",
+		"hey beautiful, what's your name?",
+		"you're the prettiest girl on this block",
+		"wanna come with me?"
+	]
+	player.show_bark(player_barks.pick_random())
+
+	var gf_barks = [
+		"ok cutie",
+		"sure, call me later",
+		"i like your style",
+		"let's go!"
+	]
+	bark(gf_barks.pick_random(), 2.5, false, "recruitment")
 	
 	is_potential_girlfriend = false
 	_is_interacting = false
@@ -643,7 +800,8 @@ func _handle_girlfriend_recruitment(player: Player) -> void:
 	behavior_tree = load("res://GAME/resources/ai/girlfriend_bt.tres")
 	_setup_bt()
 	
-	player.inventory_component.add_girlfriend(gf_resource)
+	if player and player.get("inventory_component"):
+		player.get("inventory_component").add_girlfriend(gf_resource)
 	add_to_group("girlfriend")
 	_boost_girlfriend_speed()
 	
@@ -651,6 +809,9 @@ func _handle_girlfriend_recruitment(player: Player) -> void:
 		npc_ui.update_level(gf_resource.level, -1)
 	
 	_update_ui_icon()
+	
+	# Start the request timer
+	gf_request_timer = randf_range(45.0, 90.0)
 
 func _on_gf_reset_timeout() -> void:
 	# Check if player is NOT in range anymore
@@ -711,23 +872,27 @@ func call_back(target_pos: Vector2) -> void:
 func _evaluate_girlfriend_status() -> void:
 	if role != Role.CUSTOMER or gender != Gender.FEMALE or gf_resource != null or is_potential_girlfriend:
 		return
+		
+	# Don't solicit customers who are already in a transaction
+	if blackboard and blackboard.get_var(&"is_solicited", false):
+		return
 	
 	if randf() < 0.2: # 20% chance
 		is_potential_girlfriend = true
 		potential_gf_level = randi_range(1, 4)
 		_update_ui_icon()
-		bark("Hey cutie!")
+		bark("Hey cutie! (Press E)", 3.0, false, "recruitment")
 
 func _on_interact_area_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player") and body.has_method("register_interactable"):
 		_evaluate_girlfriend_status()
-		# Only allow interaction if we are a dealer OR a solicited customer OR a potential GF
-		var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false)) or is_potential_girlfriend
+		# Only allow interaction if we are a dealer OR a solicited customer OR a potential GF OR requesting money
+		var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false)) or is_potential_girlfriend or gf_is_requesting
 		if can_interact:
 			body.register_interactable(self)
 			if role == Role.DEALER:
 				bark_dealer_feedback("approach")
-			elif npc_ui and not is_potential_girlfriend:
+			elif npc_ui and not is_potential_girlfriend and not gf_is_requesting:
 				npc_ui.hide_dialog_bubble()
 			if body.get("player_ui"):
 				body.player_ui.hide_dialog_bubble()
@@ -741,11 +906,13 @@ func _on_interact_area_body_exited(body: Node2D) -> void:
 			
 		if body.has_method("unregister_interactable"):
 			body.unregister_interactable(self)
-		_is_interacting = false
-		if blackboard:
-			blackboard.set_var(&"is_interacting", false)
-		if npc_ui and role != Role.DEALER:
-			npc_ui.hide_dialog_bubble()
+			
+		if not gf_is_requesting:
+			_is_interacting = false
+			if blackboard:
+				blackboard.set_var(&"is_interacting", false)
+			if npc_ui and role != Role.DEALER:
+				npc_ui.hide_dialog_bubble()
 
 # --- Callbacks ---
 func _on_health_changed(current: int, maximum: int) -> void:
@@ -832,3 +999,11 @@ func _on_died() -> void:
 	
 	# 3. Cleanup
 	death_tween.tween_callback(queue_free)
+
+func _get_required_level_for_tier(tier: int) -> int:
+	match tier:
+		1: return 1
+		2: return 20
+		3: return 40
+		4: return 100
+		_: return 1

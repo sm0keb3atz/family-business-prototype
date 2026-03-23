@@ -37,8 +37,8 @@ func _ready() -> void:
 		target_npc.bt_player.set_process(false)
 		target_npc.bt_player.set_physics_process(false)
 		
-	if target_npc.npc_ui:
-		target_npc.npc_ui.show_dialog_bubble("Hey! Over here!")
+	if target_npc.has_method("bark"):
+		target_npc.bark("Hey! Over here!", 2.5, false, "solicitation")
 
 func _physics_process(_delta: float) -> void:
 	if not is_instance_valid(player) or not is_instance_valid(target_npc):
@@ -62,8 +62,8 @@ func _physics_process(_delta: float) -> void:
 			state = "WAITING"
 			if target_npc.movement_component:
 				target_npc.movement_component.move_velocity(Vector2.ZERO)
-			if target_npc.npc_ui:
-				target_npc.npc_ui.show_dialog_bubble("I need " + str(requested_grams) + "g. Give you $" + str(offered_payout) + ".\n(Press Space inside E radius)")
+			if target_npc.has_method("bark"):
+				target_npc.bark("I need " + str(requested_grams) + "g. Give you $" + str(offered_payout) + ".\n(Press Space inside E radius)", 2.5, true, "solicitation")
 
 	elif state == "WAITING":
 		if target_npc.animation_component:
@@ -90,8 +90,8 @@ func complete_deal() -> void:
 		player_node.progression.money += offered_payout
 		
 		# XP and Indicators
-		var sale_xp = int(requested_grams * 5)
-		player_node.progression.xp += sale_xp
+		var sale_xp = int(requested_grams * 50) # Balanced: 50 XP per gram
+		player_node.progression.add_xp(sale_xp)
 		
 		if player_node.get("player_ui"):
 			var pui = player_node.player_ui
@@ -105,20 +105,20 @@ func complete_deal() -> void:
 			if player_node.get("player_ui"):
 				player_node.player_ui.spawn_indicator("money_up", "+REP") # Simple indicator for now
 			
-		if target_npc.npc_ui:
-			target_npc.npc_ui.show_dialog_bubble("Thanks man.")
+		if target_npc.has_method("bark"):
+			target_npc.bark("Thanks man.", 2.0, false, "solicitation")
 		
 		# Short delay before returning to normal
 		get_tree().create_timer(2.0).timeout.connect(_cancel)
 		state = "LEAVING"
 	else:
-		if target_npc.npc_ui:
-			target_npc.npc_ui.show_dialog_bubble("You don't have enough!")
+		if target_npc.has_method("bark"):
+			target_npc.bark("You don't have enough!", 2.0, false, "solicitation")
 
 func interact_triggered() -> void:
 	if state == "WAITING":
-		if target_npc.npc_ui:
-			target_npc.npc_ui.show_dialog_bubble("I said " + str(requested_grams) + "g for $" + str(offered_payout) + ".\n(Press Space)")
+		if target_npc.has_method("bark"):
+			target_npc.bark("I said " + str(requested_grams) + "g for $" + str(offered_payout) + ".\n(Press Space)", 2.5, true, "solicitation")
 
 func _cancel() -> void:
 	if is_instance_valid(target_npc):

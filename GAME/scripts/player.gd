@@ -145,11 +145,30 @@ func _apply_appearance() -> void:
 			node.texture = nodes_map[node_name]
 			node.visible = true
 
-func show_bark(text: String) -> void:
+func show_bark(text: String, type: String = "generic") -> void:
 	if player_ui:
-		player_ui.show_dialog_bubble(text)
-		# Hide bark after 2.5 seconds
-		get_tree().create_timer(2.5).timeout.connect(player_ui.hide_dialog_bubble)
+		var color = Color.YELLOW
+		var priority = BarkManager.Priority.LOW
+		
+		match type:
+			"recruitment":
+				color = Color.YELLOW
+				priority = BarkManager.Priority.HIGH
+			"solicitation":
+				color = Color.YELLOW
+				priority = BarkManager.Priority.URGENT
+			"generic":
+				color = Color.YELLOW
+				priority = BarkManager.Priority.LOW
+				
+		if BarkManager.request_bark(self, priority, false):
+			player_ui.show_dialog_bubble(text, color)
+			# Hide bark after 2.5 seconds
+			get_tree().create_timer(2.5).timeout.connect(player_ui.hide_dialog_bubble)
+
+func interrupt_bark():
+	if player_ui:
+		player_ui.hide_dialog_bubble()
 
 func register_interactable(node: Node2D) -> void:
 	if not _available_interactables.has(node):

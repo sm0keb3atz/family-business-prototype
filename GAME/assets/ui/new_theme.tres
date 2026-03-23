@@ -51,6 +51,10 @@ region_rect = Rect2(0, 19, 48, 11)
 texture = ExtResource("3_q57i6")
 texture_margin_left = 10.0
 texture_margin_right = 10.0
+expand_margin_left = 1.0
+expand_margin_top = 1.0
+expand_margin_right = 1.0
+expand_margin_bottom = 1.0
 region_rect = Rect2(51, 54, 42, 5)
 
 [resource]

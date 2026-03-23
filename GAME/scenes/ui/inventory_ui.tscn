@@ -103,13 +103,14 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -416.0
-offset_top = -240.0
-offset_right = 184.0
-offset_bottom = 160.0
+offset_left = -314.0
+offset_top = -217.0
+offset_right = 286.0
+offset_bottom = 183.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(1.5, 1.5)
+scale = Vector2(2, 2)
+pivot_offset = Vector2(300, 200)
 theme_override_styles/panel = SubResource("StyleBoxTexture_dbb7i")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/PanelContainer" unique_id=2086574946]

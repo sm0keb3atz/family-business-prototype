@@ -70,44 +70,11 @@ func refresh_ui() -> void:
 			child.queue_free()
 		
 		for gf in inventory_component.girlfriends:
-			var h_box = HBoxContainer.new()
-			girlfriends_list.add_child(h_box)
-			
-			var name_label = Label.new()
-			name_label.text = gf.npc_name + " (" + ("Following" if gf.is_following else "At Home") + ")"
-			h_box.add_child(name_label)
-			
-			var call_btn = Button.new()
-			call_btn.text = "Send Home" if gf.is_following else "Call"
-			call_btn.pressed.connect(func():
-				var npc_node = _find_gf_node(gf)
-				if gf.is_following:
-					if npc_node:
-						npc_node.dismiss(false)
-				else:
-					var player = get_tree().get_first_node_in_group("player")
-					if player:
-						if npc_node:
-							npc_node.call_back(player.global_position)
-						else:
-							# Spawn new NPC if node was freed
-							_spawn_girlfriend_npc(gf, player.global_position)
-					gf.is_following = true
-				refresh_ui()
-			)
-			h_box.add_child(call_btn)
-			
-			var breakup_btn = Button.new()
-			breakup_btn.text = "Break Up"
-			breakup_btn.pressed.connect(func():
-				var npc_node = _find_gf_node(gf)
-				if npc_node:
-					npc_node.dismiss(true)
-				else:
-					inventory_component.remove_girlfriend(gf)
-				refresh_ui()
-			)
-			h_box.add_child(breakup_btn)
+			var card: GirlfriendCard = preload("res://GAME/scenes/ui/girlfriend_card.tscn").instantiate()
+			girlfriends_list.add_child(card)
+			card.setup(gf, self)
+
+
 
 func _find_gf_node(resource: GirlfriendResource) -> NPC:
 	for node in get_tree().get_nodes_in_group("girlfriend"):

@@ -44,9 +44,8 @@ func _enter() -> void:
 			detect_comp.bark_player.volume_db = -10.0
 			detect_comp.bark_player.play()
 			
-			if agent.npc_ui:
-				agent.npc_ui.show_dialog_bubble(ARREST_TEXTS[idx])
-				agent.get_tree().create_timer(3.0).timeout.connect(agent.npc_ui.hide_dialog_bubble)
+			if agent.has_method("bark"):
+				agent.bark(ARREST_TEXTS[idx], 3.0, true, "combat")
 	
 	print("POLICE: YOU'RE UNDER ARREST! DON'T MOVE!")
 

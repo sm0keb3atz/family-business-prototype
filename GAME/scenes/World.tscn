@@ -9,9 +9,9 @@
 [ext_resource type="Script" uid="uid://b6c56sc2m1g5a" path="res://GAME/scripts/MapInitializer.gd" id="8_32me2"]
 [ext_resource type="PackedScene" uid="uid://cfot8raibprqo" path="res://GAME/scenes/TerritoryArea.tscn" id="12_territory"]
 [ext_resource type="Resource" uid="uid://cu0uh1y7iskio" path="res://GAME/resources/territories/hood_east.tres" id="13_hood_east"]
-[ext_resource type="Script" path="res://GAME/scripts/logic/time_manager.gd" id="14_time"]
-[ext_resource type="Script" path="res://GAME/scripts/logic/day_night_cycle.gd" id="15_cycle"]
-[ext_resource type="Gradient" uid="uid://day_night_grad_01" path="res://GAME/resources/visuals/day_night_gradient.tres" id="16_grad"]
+[ext_resource type="Script" uid="uid://bco7ototxsvst" path="res://GAME/scripts/logic/time_manager.gd" id="14_time"]
+[ext_resource type="Script" uid="uid://dqo3pawhyqnh4" path="res://GAME/scripts/logic/day_night_cycle.gd" id="15_cycle"]
+[ext_resource type="Gradient" uid="uid://bb6k1pxb08cg7" path="res://GAME/resources/visuals/day_night_gradient.tres" id="16_grad"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
 size = Vector2(96, 26)
@@ -294,10 +294,10 @@ position = Vector2(-882, -605)
 [node name="Marker2D8" type="Marker2D" parent="Territories/HoodEast/PathPoints" unique_id=101702969]
 position = Vector2(-1948, -605)
 
-[node name="TimeManager" type="Node" parent="." groups=["time_manager"]]
+[node name="TimeManager" type="Node" parent="." unique_id=1146846857 groups=["time_manager"]]
 script = ExtResource("14_time")
 
-[node name="DayNightCycle" type="CanvasModulate" parent="." node_paths=PackedStringArray("time_manager")]
+[node name="DayNightCycle" type="CanvasModulate" parent="." unique_id=141851874 node_paths=PackedStringArray("time_manager")]
 script = ExtResource("15_cycle")
 time_manager = NodePath("../TimeManager")
 day_night_gradient = ExtResource("16_grad")

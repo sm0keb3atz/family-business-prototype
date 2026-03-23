@@ -1,0 +1,179 @@
+[gd_scene format=3 uid="uid://dwv8h4lnh1qrw"]
+
+[ext_resource type="Script" uid="uid://c8y3wei0dstab" path="res://GAME/scripts/ui/girlfriend_card.gd" id="1_gfcard"]
+[ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="2_font"]
+[ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="3_theme"]
+[ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="4_bg"]
+[ext_resource type="Texture2D" uid="uid://knbqd6kdslb" path="res://GAME/assets/sprites/ChracterAssets/Bodys/Body_48x48_01.png" id="5_body"]
+[ext_resource type="Texture2D" uid="uid://bqfaobt6lodou" path="res://GAME/assets/sprites/ChracterAssets/Outfits/female/Outfit_23_48x48_01.png" id="6_outfit"]
+[ext_resource type="Texture2D" uid="uid://dw0f72bnj1ju1" path="res://GAME/assets/sprites/ChracterAssets/Hairstyles/female/Hairstyle_04_48x48_01.png" id="7_hair"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_card"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+texture = ExtResource("4_bg")
+texture_margin_left = 3.0
+texture_margin_top = 3.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(32, 160, 32, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ljxjk"]
+texture = ExtResource("4_bg")
+texture_margin_left = 3.0
+texture_margin_top = 3.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(32, 128, 32, 32)
+
+[node name="GirlfriendCard" type="PanelContainer" unique_id=672750765]
+texture_filter = 1
+custom_minimum_size = Vector2(320, 0)
+theme = ExtResource("3_theme")
+theme_override_styles/panel = SubResource("StyleBoxTexture_card")
+script = ExtResource("1_gfcard")
+
+[node name="OuterRow" type="HBoxContainer" parent="." unique_id=1896999474]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SpritePanel" type="PanelContainer" parent="OuterRow" unique_id=1285707170]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_ljxjk")
+
+[node name="SpriteStack" type="Control" parent="OuterRow/SpritePanel" unique_id=1471979826]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+
+[node name="BodyPreview" type="Sprite2D" parent="OuterRow/SpritePanel/SpriteStack" unique_id=1761736449]
+position = Vector2(21.000004, 41.105526)
+scale = Vector2(0.7, 0.693)
+texture = ExtResource("5_body")
+offset = Vector2(3.9999924, -18.947365)
+region_enabled = true
+region_rect = Rect2(144, 30, 48, 66)
+
+[node name="OutfitPreview" type="Sprite2D" parent="OuterRow/SpritePanel/SpriteStack" unique_id=2122305432]
+position = Vector2(24.199999, 41.106003)
+scale = Vector2(0.7, 0.693)
+texture = ExtResource("6_outfit")
+region_enabled = true
+region_rect = Rect2(147, 69, 42, 27)
+
+[node name="HairPreview" type="Sprite2D" parent="OuterRow/SpritePanel/SpriteStack" unique_id=1126159893]
+position = Vector2(24.000002, 18.553)
+scale = Vector2(0.7, 0.693)
+texture = ExtResource("7_hair")
+region_enabled = true
+region_rect = Rect2(144, 30, 48, 42)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="OuterRow" unique_id=1734766292]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="TopRow" type="HBoxContainer" parent="OuterRow/VBoxContainer" unique_id=254778123]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NameLabel" type="Label" parent="OuterRow/VBoxContainer/TopRow" unique_id=1970117885]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Name"
+
+[node name="LevelLabel" type="Label" parent="OuterRow/VBoxContainer/TopRow" unique_id=1826273458]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Lv. 1"
+
+[node name="StatusLabel" type="Label" parent="OuterRow/VBoxContainer/TopRow" unique_id=704526636]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 1, 0.6, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Following 💚"
+horizontal_alignment = 2
+
+[node name="RelationshipRow" type="HBoxContainer" parent="OuterRow/VBoxContainer" unique_id=183195529]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="RelLabel" type="Label" parent="OuterRow/VBoxContainer/RelationshipRow" unique_id=1878033950]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9964985, 0.3166802, 0.76945865, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Love:"
+
+[node name="RelationshipBar" type="ProgressBar" parent="OuterRow/VBoxContainer/RelationshipRow" unique_id=622035647]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 7)
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("3_theme")
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 6
+value = 50.0
+show_percentage = false
+
+[node name="RelValueLabel" type="Label" parent="OuterRow/VBoxContainer/RelationshipRow" unique_id=-2093028552]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(26, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "50"
+horizontal_alignment = 1
+
+[node name="BuffLabel" type="Label" parent="OuterRow/VBoxContainer/RelationshipRow" unique_id=567890123]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 10
+text = "(+10%)"
+
+[node name="ButtonRow" type="HBoxContainer" parent="OuterRow/VBoxContainer" unique_id=789753653]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ToggleBtn" type="Button" parent="OuterRow/VBoxContainer/ButtonRow" unique_id=967705758]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Send Home"
+
+[node name="BreakupBtn" type="Button" parent="OuterRow/VBoxContainer/ButtonRow" unique_id=255930733]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Break Up"

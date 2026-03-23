@@ -5,6 +5,7 @@ class_name HUD
 @onready var xp_bar: ProgressBar = $Hud/XPBar
 @onready var money_label: Label = $Hud/MoneyLabel
 @onready var heat_bar: ProgressBar = $Hud/HeatBar
+@onready var heat_buff_label: Label = $Hud/HeatBuffLabel
 @onready var stars_container: Control = $Hud/StarsContainer
 @onready var territory_rep_bar: ProgressBar = $Hud/TerritoryReputationBar
 @onready var territory_name_label: Label = $Hud/TerritoryNameLabel
@@ -16,6 +17,7 @@ class_name HUD
 @onready var level_label: Label = $Hud/LevelLabel
 @onready var ammo_label: Label = $Hud/AmmoLabel
 @onready var unarmed_label: Label = $Hud/UnarmedLabel
+@onready var player_level_label: Label = $Hud/PlayerLevelLabel
 
 var player: Player
 var star_nodes: Array[AnimatedSprite2D] = []
@@ -71,8 +73,8 @@ func _process(delta: float) -> void:
 			if player.weapon_holder_component and player.weapon_holder_component.current_weapon:
 				_on_weapon_changed(player.weapon_holder_component.current_weapon)
 
-			if player.progression:
-				displayed_money = float(player.progression.money)
+			if player.get("progression"):
+				displayed_money = float(player.get("progression").get("money"))
 				if is_instance_valid(money_label):
 					money_label.text = "$" + str(roundi(displayed_money))
 			
@@ -88,8 +90,8 @@ func _process(delta: float) -> void:
 		return
 		
 	# Update Money and XP dynamically for now
-	if is_instance_valid(money_label) and player.progression:
-		var target_money: float = float(player.progression.money)
+	if is_instance_valid(money_label) and player.get("progression"):
+		var target_money: float = float(player.get("progression").get("money"))
 		if abs(displayed_money - target_money) > 0.5:
 			displayed_money = lerp(displayed_money, target_money, 5.0 * delta)
 		else:
@@ -97,13 +99,34 @@ func _process(delta: float) -> void:
 			
 		money_label.text = "$" + str(roundi(displayed_money))
 	
-	if is_instance_valid(xp_bar) and player.progression:
-		# Assuming 1000 xp per level for demo
-		var current_xp = player.progression.xp % 1000
+	if is_instance_valid(xp_bar) and player.get("progression"):
+		var current_xp = player.get("progression").get("xp")
+		var required_xp = player.get("progression").get_required_xp()
+		xp_bar.max_value = required_xp
 		xp_bar.value = current_xp
+		
+		if is_instance_valid(player_level_label):
+			player_level_label.text = "Level %d  %d/%d XP" % [player.get("progression").get("level"), current_xp, required_xp]
 
 	_refresh_current_territory()
 	_update_stars_animation()
+
+	# Update Heat Decay Buff Label
+	if is_instance_valid(heat_buff_label) and has_node("/root/HeatManager"):
+		var hm = get_node("/root/HeatManager")
+		if hm.has_method("get_gf_heat_multiplier"):
+			var mult: float = hm.get_gf_heat_multiplier()
+			if is_equal_approx(mult, 1.0):
+				# Hide if neutral
+				heat_buff_label.text = ""
+			else:
+				var percent: int = roundi((mult - 1.0) * 100.0)
+				if percent > 0:
+					heat_buff_label.text = "Decay Speed: +%d%%" % percent
+					heat_buff_label.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4)) # Greenish
+				else:
+					heat_buff_label.text = "Decay Speed: %d%%" % percent
+					heat_buff_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4)) # Reddish
 
 func _setup_territory_tracking() -> void:
 	if territory_tracking_ready:

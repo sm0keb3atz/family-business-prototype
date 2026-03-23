@@ -9,6 +9,7 @@
 [resource]
 script = ExtResource("1_script")
 max_stock = 20
+restock_time_seconds = 10.0
 weapon_data = ExtResource("2_weapon")
 weapon_scene = ExtResource("3_scene")
 allowed_drugs = Array[ExtResource("1_jmvvn")]([ExtResource("4_drug")])

@@ -171,23 +171,11 @@ func update_heat(delta: float) -> void:
 			target_heat = HeatConfig.ONE_STAR_DECAY_TARGET
 		
 		if heat_value > target_heat:
-			var gf_multiplier = 1.0
-			var player = get_tree().get_first_node_in_group("player")
-			if player and player.inventory_component:
-				for gf in player.inventory_component.girlfriends:
-					if gf.is_following:
-						var buff = 0.1
-						match gf.level:
-							1: buff = 0.1
-							2: buff = 0.3
-							3: buff = 0.5
-							4: buff = 1.0
-						gf_multiplier += buff
-			
+			var gf_multiplier = get_gf_heat_multiplier()
 			var decay_rate = HeatConfig.BASE_DECAY_RATE * gf_multiplier
 			
 			# Debug feedback for heat decay
-			if gf_multiplier > 1.0 and Engine.get_frames_drawn() % 60 == 0:
+			if gf_multiplier != 1.0 and Engine.get_frames_drawn() % 60 == 0:
 				print("[HeatManager] Decaying heat at ", decay_rate, " (", gf_multiplier, "x buff from girlfriends)")
 				
 			var new_heat = move_toward(heat_value, target_heat, decay_rate * delta)
@@ -196,11 +184,35 @@ func update_heat(delta: float) -> void:
 			if wanted_stars == 1 and heat_value <= HeatConfig.ONE_STAR_DECAY_TARGET:
 				set_stars(0)
 
+
 func is_heat_locked() -> bool:
 	return star_lock
 
 func can_decay() -> bool:
 	return wanted_stars < 2
+
+func get_gf_heat_multiplier() -> float:
+	var gf_multiplier = 1.0
+	var player = get_tree().get_first_node_in_group("player")
+	if player and player.inventory_component:
+		for gf in player.inventory_component.girlfriends:
+			if gf.is_following:
+				# 1. Level Base Buff
+				var level_buff = 0.0
+				match gf.level:
+					1: level_buff = 0.10
+					2: level_buff = 0.25
+					3: level_buff = 0.50
+					_: level_buff = 0.10 * gf.level
+				
+				# 2. Relationship Multiplier (50% to 150% of Base Buff)
+				# 0 rel = 0.5x, 50 rel = 1.0x, 100 rel = 1.5x
+				var rel: float = gf.relationship
+				var rel_mult: float = lerp(0.5, 1.5, rel / 100.0)
+				
+				var final_gf_buff = level_buff * rel_mult
+				gf_multiplier += final_gf_buff
+	return maxf(gf_multiplier, 0.1)
 
 func _evaluate_star_escalation() -> void:
 	if heat_value >= HeatConfig.MAX_HEAT and wanted_stars == 0:

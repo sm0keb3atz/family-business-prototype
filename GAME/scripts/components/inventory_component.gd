@@ -11,6 +11,9 @@ var bricks: Dictionary = {}
 
 var girlfriends: Array[GirlfriendResource] = []
 
+## Decay rate (points/sec) when a girlfriend is at home.
+const GF_DECAY_RATE: float = 0.002
+
 func add_brick(id: StringName, amount: int) -> void:
 	if amount <= 0: return
 	if bricks.has(id):
@@ -61,3 +64,39 @@ func add_girlfriend(resource: GirlfriendResource) -> void:
 func remove_girlfriend(resource: GirlfriendResource) -> void:
 	girlfriends.erase(resource)
 	girlfriends_changed.emit()
+
+
+func _process(delta: float) -> void:
+	var broke_up: bool = false
+	for gf in girlfriends:
+		if gf.is_following:
+			# GirlfriendComponent on the NPC handles gain.
+			# If is_following is true but the NPC is gone, flip to at-home.
+			var npc_alive := _find_gf_npc(gf)
+			if not npc_alive:
+				gf.is_following = false
+		else:
+			# NPC is at home (or gone) — decay here
+			gf.set_relationship(gf.relationship - GF_DECAY_RATE * delta)
+			if gf.relationship <= 0.0:
+				broke_up = true
+				girlfriends_changed.emit() # trigger UI update
+	
+	if broke_up:
+		# Rebuild typed array to remove broken-up GFs (filter returns untyped Array)
+		var remaining: Array[GirlfriendResource] = []
+		for g: GirlfriendResource in girlfriends:
+			if g.relationship > 0.0:
+				remaining.append(g)
+		girlfriends = remaining
+		girlfriends_changed.emit()
+
+func _find_gf_npc(resource: GirlfriendResource) -> bool:
+	var tree := get_tree()
+	if not tree:
+		return false
+	for node in tree.get_nodes_in_group("girlfriend"):
+		if node is NPC and node.gf_resource == resource:
+			return true
+	return false
+

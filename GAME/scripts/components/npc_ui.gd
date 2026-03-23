@@ -85,9 +85,10 @@ func update_level(level: int, role: int) -> void:
 	else:
 		level_label.hide()
 
-func show_dialog_bubble(text: String):
+func show_dialog_bubble(text: String, color: Color = Color.BLACK):
 	if dialog_bubble and dialog_label:
 		dialog_label.text = text
+		dialog_label.modulate = color
 		dialog_bubble.show()
 		# Boost Z-index when speaking to ensure visibility over other NPCs
 		z_index = 10
@@ -98,6 +99,9 @@ func hide_dialog_bubble():
 		dialog_bubble.hide()
 		# Reset Z-index
 		z_index = 0
+		if get_parent().is_in_group("npc") or get_parent().is_in_group("player"):
+			if get_node("/root").has_node("BarkManager"):
+				get_node("/root/BarkManager").clear_bark(get_parent())
 
 func spawn_indicator(type: String, value: String, custom_icon: Texture2D = null):
 	var indicator = FLOATING_INDICATOR.instantiate()

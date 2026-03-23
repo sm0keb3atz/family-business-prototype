@@ -15,6 +15,9 @@ const CUSTOMER_TALKING_HEAT_RATE: float = 15.0
 const GUNSHOT_HEAT: float = 45.0 # Significant bump for firing (no instant star; only nearby cops respond)
 const KILL_HEAT: float = 100.0 # Instant next star (or fill current)
 
+const BASE_HEAT_PER_GRAM: float = 0.35 # Adjusted per user request
+const SALE_RISK_MULTIPLIER: float = 1.0
+
 ## Only police within this range of a gunshot "hear" it and respond. No global wanted from one shot.
 const GUNSHOT_HEARING_RANGE: float = 520.0
 ## At 1 star, only this many nearest police get dispatched (rest stay on patrol until they see you).

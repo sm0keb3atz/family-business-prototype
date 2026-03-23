@@ -40,7 +40,7 @@ func _enter() -> void:
 	
 	# Find a nearby NPC to chat with
 	var npc: NPC = agent as NPC
-	if not npc:
+	if not npc or npc.get("gf_is_requesting"):
 		_should_chat = false
 		return
 	
@@ -49,17 +49,17 @@ func _enter() -> void:
 		if other == npc:
 			continue
 		if other is NPC and npc.global_position.distance_to(other.global_position) < chat_range:
-			# Don't chat with someone already chatting
-			if not other._is_interacting:
+			# Don't chat with someone already chatting or asking for money
+			if not other._is_interacting and not other.get("gf_is_requesting"):
 				npcs_in_range.append(other)
 	
 	if npcs_in_range.size() > 0:
 		_partner = npcs_in_range.pick_random()
-		# Show bubbles on both
-		if npc.npc_ui:
-			npc.npc_ui.show_dialog_bubble(CHAT_LINES.pick_random())
-		if _partner.npc_ui:
-			_partner.npc_ui.show_dialog_bubble(CHAT_LINES.pick_random())
+		# Show bubbles on both (BarkManager will handle "one at a time" logic)
+		if npc.has_method("bark"):
+			npc.bark(CHAT_LINES.pick_random(), _duration, false, "generic")
+		if _partner.has_method("bark"):
+			_partner.bark(CHAT_LINES.pick_random(), _duration, false, "generic")
 		# Make both face each other
 		if npc.animation_component:
 			var dir: Vector2 = npc.global_position.direction_to(_partner.global_position)
@@ -86,6 +86,8 @@ func _exit() -> void:
 	_cleanup()
 
 func _cleanup() -> void:
+	if not _should_chat: return
+	
 	var npc: NPC = agent as NPC
 	if npc and npc.npc_ui:
 		npc.npc_ui.hide_dialog_bubble()

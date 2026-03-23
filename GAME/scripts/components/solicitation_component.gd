@@ -22,6 +22,28 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.keycode == KEY_SPACE and event.pressed and not event.echo:
 		var player = get_parent()
+		
+		# Prioritize nearby interactables over soliciting (EXCEPT potential girlfriends, which require E)
+		if player and player.get("_available_interactables") != null and not player._available_interactables.is_empty():
+			if not player._is_interacting:
+				# Find the closest interactable to check its type
+				var closest = null
+				var min_dist = 1e10
+				for node in player._available_interactables:
+					if not is_instance_valid(node): continue
+					var d = player.global_position.distance_to(node.global_position)
+					if d < min_dist:
+						min_dist = d
+						closest = node
+				
+				# If the closest thing is a potential girlfriend, we SKIP recruitment on Space.
+				# This forces the player to use E for recruitment, avoiding accidents while soliciting.
+				if closest and closest.get("is_potential_girlfriend"):
+					pass # Skip recruitment on Space
+				else:
+					player.interact()
+					return
+			
 		if player and player.get("_is_interacting") and player.get("current_interactable"):
 			var interactable = player.current_interactable
 			if interactable.has_method("interact"):
@@ -38,7 +60,7 @@ func solicit() -> void:
 	var player = get_parent()
 	if not player is Player: return
 	
-	player.show_bark(barks.pick_random())
+	player.show_bark(barks.pick_random(), "solicitation")
 	AudioManager.play_random_solicitation()
 	
 	# Visual Pulse
@@ -54,6 +76,9 @@ func solicit() -> void:
 		var dist = player.global_position.distance_to(npc.global_position)
 		
 		if npc.role == npc.Role.CUSTOMER and not npc.has_node("CustomerComponent"):
+			if npc.is_potential_girlfriend or npc.gf_resource != null:
+				continue
+				
 			if dist <= config.radius:
 				if randf() * 100.0 <= config.base_chance_percent:
 					_convert_to_customer(npc, player)
@@ -101,8 +126,8 @@ func _convert_to_customer(npc: Node2D, player: Player) -> void:
 		if npc.has_method("_update_ui_icon"):
 			npc._update_ui_icon()
 		
-		if npc.npc_ui:
-			npc.npc_ui.show_dialog_bubble("Hey! Over here!")
+		if npc.has_method("bark"):
+			npc.bark("Hey! Over here!", 2.5, false, "solicitation")
 		
 		# Play gender-specific customer voice line (Spatial) with a natural delay
 		var delay = randf_range(0.3, 0.6)

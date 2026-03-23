@@ -24,6 +24,7 @@ config/icon="res://icon.svg"
 AudioManager="*res://GAME/scripts/audio_manager.gd"
 HeatManager="*res://GAME/systems/heat/HeatManager.gd"
 DetectionManager="*res://GAME/systems/police/DetectionManager.gd"
+BarkManager="*res://GAME/scripts/components/bark_manager.gd"
 
 [display]
 

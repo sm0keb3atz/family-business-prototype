@@ -83,6 +83,23 @@ theme_override_styles/fill = SubResource("StyleBoxTexture_1o6fb")
 max_value = 1000.0
 value = 500.0
 
+[node name="PlayerLevelLabel" type="Label" parent="Hud" unique_id=2000000006]
+layout_mode = 0
+offset_left = 26.0
+offset_top = 1055.0
+offset_right = 274.0
+offset_bottom = 1078.0
+theme_override_colors/font_color = Color(0, 0.8039216, 0.9764706, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.752941)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("6_o4n1q")
+theme_override_font_sizes/font_size = 14
+text = "Level 1      0/500 XP"
+horizontal_alignment = 1
+
 [node name="MoneyLabel" type="Label" parent="Hud" unique_id=935028863]
 layout_mode = 0
 offset_left = 22.0
@@ -157,6 +174,20 @@ scale = Vector2(1.5, 0.5)
 theme = ExtResource("3_iw68g")
 theme_override_colors/font_color = Color(0, 0, 0, 0)
 theme_override_styles/fill = SubResource("StyleBoxTexture_lqaif")
+
+[node name="HeatBuffLabel" type="Label" parent="Hud" unique_id=234567891]
+layout_mode = 0
+offset_left = 1708.0001
+offset_top = 9.0
+offset_right = 1864.0001
+offset_bottom = 31.0
+scale = Vector2(1.5, 1.5)
+theme_override_colors/font_color = Color(1, 0, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("6_o4n1q")
+theme_override_font_sizes/font_size = 10
+text = "HEAT DEACY Buff: +0%"
 
 [node name="StarsContainer" type="Control" parent="Hud" unique_id=987654321]
 anchors_preset = 0
