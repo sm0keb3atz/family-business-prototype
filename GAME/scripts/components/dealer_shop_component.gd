@@ -33,7 +33,10 @@ func buy(amount: int) -> void:
 	if can_buy(amount):
 		current_stock -= amount
 
-func get_price(drug_id: StringName) -> int:
+func get_price(drug_id: StringName, buyer: Node = null) -> int:
+	var base_price := 10
 	if current_territory:
-		return current_territory.get_drug_price(drug_id)
-	return 10 # Default fallback
+		base_price = current_territory.get_drug_price(drug_id)
+	if buyer and buyer.has_method("get_dealer_price_multiplier"):
+		base_price = max(1, roundi(float(base_price) * buyer.get_dealer_price_multiplier()))
+	return base_price

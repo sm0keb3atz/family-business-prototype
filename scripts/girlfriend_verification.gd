@@ -19,6 +19,8 @@ func _init():
 	var gf = GirlfriendResource.new()
 	gf.npc_name = "Test Keisha"
 	gf.is_following = true
+	gf.level = 1
+	gf.relationship = 50.0
 	inv.add_girlfriend(gf)
 	
 	if inv.girlfriends.size() == 1:
@@ -29,21 +31,28 @@ func _init():
 	print("CHECKING HEAT DECAY MULTIPLIER...")
 	var hm = get_root().get_node_or_null("HeatManager")
 	if hm:
-		# HeatManager.gd lines 174-184 logic check
-		var gf_multiplier = 1.0
-		var active_count = 0
+		var expected_multiplier = 1.0
 		for g in inv.girlfriends:
-			if g.is_following:
-				active_count += 1
-		gf_multiplier += (active_count * 0.1)
+			if not g.is_following:
+				continue
+			var level_buff = 0.0
+			match g.level:
+				1: level_buff = 0.10
+				2: level_buff = 0.25
+				3: level_buff = 0.50
+				_: level_buff = 0.10 * g.level
+			var rel_mult: float = lerp(0.5, 1.5, g.relationship / 100.0)
+			expected_multiplier += level_buff * rel_mult
 		
-		print("Active GFs: ", active_count)
-		print("Decay Multiplier: ", gf_multiplier)
+		var actual_multiplier = hm.get_gf_heat_multiplier()
 		
-		if gf_multiplier == 1.1:
-			print("SUCCESS: Heat decay multiplier correct")
+		print("Expected Multiplier: ", expected_multiplier)
+		print("Actual Multiplier: ", actual_multiplier)
+		
+		if is_equal_approx(actual_multiplier, expected_multiplier):
+			print("SUCCESS: Heat decay multiplier matches live formula")
 		else:
-			print("FAILED: Heat decay multiplier incorrect (Expected 1.1, got ", gf_multiplier, ")")
+			print("FAILED: Heat decay multiplier incorrect")
 	else:
 		print("WARNING: HeatManager not found (likely not autoloaded in script runner)")
 

@@ -91,7 +91,6 @@ func _ready() -> void:
 	collision_layer = 2
 	collision_mask = 1
 	
-	_randomize_gender_and_appearance()
 	_inject_dependencies()
 	_setup_connections()
 	_setup_bt()
@@ -355,17 +354,35 @@ func _trigger_girlfriend_request() -> void:
 func _decline_girlfriend_request() -> void:
 	gf_is_requesting = false
 	gf_resource.set_relationship(gf_resource.relationship - 10.0)
+	if gf_resource and gf_resource.relationship <= 0.0:
+		break_up_due_to_relationship()
+		return
 	bark("Fine, ignore me then!", 3.0, true)
 	gf_request_timer = randf_range(45.0, 90.0)
-	
-	# CRITICAL: Force unregister from player to prevent interaction prompt hanging
-	var player = get_tree().get_first_node_in_group("player")
-	if player:
-		if player.has_method("unregister_interactable"):
-			player.unregister_interactable(self)
-			if player.get("current_interactable") == self:
-				player._is_interacting = false
-				player.current_interactable = null
+	_clear_interaction_with_player()
+
+func _clear_interaction_with_player(player: Node2D = null) -> void:
+	if player == null:
+		player = get_tree().get_first_node_in_group("player")
+	if not player:
+		return
+	if player.has_method("unregister_interactable"):
+		player.unregister_interactable(self)
+	if player.get("current_interactable") == self:
+		player._is_interacting = false
+		player.current_interactable = null
+
+func _reset_girlfriend_request_state() -> void:
+	gf_is_requesting = false
+	gf_request_amount = 0
+	gf_request_grace_timer = 0.0
+	if npc_ui:
+		npc_ui.hide_dialog_bubble()
+
+func break_up_due_to_relationship() -> void:
+	if not gf_resource:
+		return
+	dismiss(true)
 
 func _on_velocity_computed(safe_velocity: Vector2) -> void:
 	if movement_component:
@@ -635,21 +652,28 @@ func _handle_solicited_interaction(player: Node2D) -> void:
 				
 		if found_drug_id != "" and inv.has_drug(found_drug_id, grams):
 			inv.remove_drug(found_drug_id, grams)
-			player.get("progression").money += payout
+			var sale_payout: int = int(payout)
+			if player.has_method("get_sale_payout_multiplier"):
+				sale_payout = roundi(float(payout) * player.get_sale_payout_multiplier())
+			player.get("progression").money += sale_payout
 			
 			# Apply Heat
 			# In a larger system, we'd lookup the actual resource. Using def values here.
 			var sale_heat = HeatConfig.BASE_HEAT_PER_GRAM * grams * HeatConfig.SALE_RISK_MULTIPLIER
+			if player.has_method("get_sale_heat_multiplier"):
+				sale_heat *= player.get_sale_heat_multiplier()
 			if has_node("/root/HeatManager"):
 				get_node("/root/HeatManager").add_heat(sale_heat)
 			
 			# XP and Indicators
 			var sale_xp = int(grams * 25) # Balanced: 25 XP per gram
+			if player.has_method("get_sale_xp_multiplier"):
+				sale_xp = roundi(float(sale_xp) * player.get_sale_xp_multiplier())
 			player.get("progression").add_xp(sale_xp)
 			
 			var pui = player.get("player_ui")
 			if pui:
-				pui.spawn_indicator("money_up", "+$" + str(payout))
+				pui.spawn_indicator("money_up", "+$" + str(sale_payout))
 				pui.spawn_indicator("product", "-" + str(grams) + "g")
 				pui.spawn_indicator("xp", "+" + str(sale_xp) + " XP")
 			
@@ -694,7 +718,10 @@ func _handle_solicited_interaction(player: Node2D) -> void:
 					npc_ui.hide_dialog_bubble()
 	else:
 		if npc_ui:
-			bark("I need " + str(grams) + "g. Give you $" + str(payout) + ".\n(Press Space)", 2.5, true, "solicitation")
+			var shown_payout: int = int(payout)
+			if player and player.has_method("get_sale_payout_multiplier"):
+				shown_payout = roundi(float(payout) * player.get_sale_payout_multiplier())
+			bark("I need " + str(grams) + "g. Give you $" + str(shown_payout) + ".\n(Press Space)", 2.5, true, "solicitation")
 
 func _handle_girlfriend_money_request(player: Node2D) -> void:
 	if not player or not player.get("progression"): return
@@ -715,12 +742,7 @@ func _handle_girlfriend_money_request(player: Node2D) -> void:
 		var thanks_barks = ["Thanks baby!", "You're the best!", "I love a man with cash.", "You're so sweet!"]
 		bark(thanks_barks.pick_random(), 3.0, true, "gf_request")
 		
-		# CRITICAL: Force unregister from player to prevent re-interaction prompt
-		if player.has_method("unregister_interactable"):
-			player.unregister_interactable(self)
-			if player.get("current_interactable") == self:
-				player._is_interacting = false
-				player.current_interactable = null
+		_clear_interaction_with_player(player)
 	else:
 		var broke_barks = ["You're broke?!", "Don't play with me.", "I need a real provider.", "Maybe next time then."]
 		bark(broke_barks.pick_random(), 3.0, true, "gf_request")
@@ -761,6 +783,8 @@ func _handle_girlfriend_recruitment(player: Node2D) -> void:
 	
 	is_potential_girlfriend = false
 	_is_interacting = false
+	if blackboard:
+		blackboard.set_var(&"is_interacting", false)
 	
 	# Create Resource
 	gf_resource = GirlfriendResource.new()
@@ -839,6 +863,11 @@ func _boost_girlfriend_speed() -> void:
 	
 func dismiss(is_breakup: bool = false) -> void:
 	is_potential_girlfriend = false
+	_reset_girlfriend_request_state()
+	_clear_interaction_with_player()
+	_is_interacting = false
+	if blackboard:
+		blackboard.set_var(&"is_interacting", false)
 	if gf_resource:
 		gf_resource.is_following = false
 	
@@ -860,6 +889,8 @@ func dismiss(is_breakup: bool = false) -> void:
 func call_back(target_pos: Vector2) -> void:
 	if gf_resource:
 		gf_resource.is_following = true
+	_reset_girlfriend_request_state()
+	gf_request_timer = randf_range(45.0, 90.0)
 	
 	modulate.a = 0.0
 	# Spawn just outside current stop range
@@ -928,6 +959,8 @@ func _on_died() -> void:
 		get_node("/root/HeatManager").on_kill(role)
 	
 	if gf_resource:
+		_reset_girlfriend_request_state()
+		_clear_interaction_with_player()
 		var player = get_tree().get_first_node_in_group("player")
 		if player and player.get("inventory_component"):
 			player.inventory_component.remove_girlfriend(gf_resource)

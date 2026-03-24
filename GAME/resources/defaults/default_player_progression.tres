@@ -8,3 +8,7 @@ money = 1000
 xp = 0
 level = 1
 skill_points = 0
+combat_skill_level = 0
+sales_skill_level = 0
+social_skill_level = 0
+strength_skill_level = 0

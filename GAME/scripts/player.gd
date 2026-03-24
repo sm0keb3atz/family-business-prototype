@@ -33,6 +33,7 @@ var inventory_component: InventoryComponent
 var inventory_ui: InventoryUI
 var shop_ui: ShopUI
 var solicitation_component: SolicitationComponent
+var _base_stats: CharacterStatsResource
 
 @export var solicitation_config: SolicitationConfigResource
 
@@ -47,15 +48,21 @@ var current_weapon_index: int = 1
 func _ready() -> void:
 	add_to_group("player")
 	z_index = 1
+	if stats:
+		stats = stats.duplicate(true)
+		_base_stats = stats.duplicate(true)
 	_inject_dependencies()
 	_setup_connections()
 	_apply_appearance()
 	_setup_inventory()
+	_apply_skill_bonuses()
 	
 	_update_weapon()
 	
 	if arrest_component:
 		arrest_component.progress_changed.connect(_on_arrest_progress_changed)
+	if progression and not progression.skills_changed.is_connected(_on_skill_changed):
+		progression.skills_changed.connect(_on_skill_changed)
 
 func _setup_inventory() -> void:
 	inventory_component = InventoryComponent.new()
@@ -65,7 +72,7 @@ func _setup_inventory() -> void:
 	var ui_scene = preload("res://GAME/scenes/ui/inventory_ui.tscn")
 	inventory_ui = ui_scene.instantiate()
 	get_tree().root.call_deferred("add_child", inventory_ui)
-	inventory_ui.setup(inventory_component)
+	inventory_ui.setup(inventory_component, self)
 	
 	var shop_ui_scene = preload("res://GAME/scenes/ui/shop_ui.tscn")
 	shop_ui = shop_ui_scene.instantiate()
@@ -204,8 +211,11 @@ func interact() -> void:
 
 # --- Damage Interface ---
 func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO, hit_direction: Vector2 = Vector2.ZERO, shooter: Node2D = null) -> void:
+	var final_amount := amount
+	if shooter and shooter.is_in_group("npc"):
+		final_amount = max(1, roundi(float(amount) * get_incoming_damage_multiplier()))
 	if health_component:
-		health_component.take_damage(amount)
+		health_component.take_damage(final_amount)
 	
 	if source_position != Vector2.ZERO and blood_effect_component:
 		blood_effect_component.spawn_blood(source_position, hit_direction)
@@ -325,3 +335,79 @@ func respawn(spawn_pos: Vector2) -> void:
 		hb.set_deferred("collision_mask", 0)
 	
 	print("Player: Respawned at ", spawn_pos)
+
+func _on_skill_changed(_skill_id: StringName, _new_level: int) -> void:
+	_apply_skill_bonuses()
+
+func _apply_skill_bonuses() -> void:
+	if not stats or not _base_stats:
+		return
+	var previous_max_health := stats.max_health
+	stats.max_health = _base_stats.max_health
+	stats.health_regen = _base_stats.health_regen
+	stats.move_speed = _base_stats.move_speed
+	stats.sprint_speed = _base_stats.sprint_speed
+	stats.defense = _base_stats.defense
+
+	var strength_level := progression.get_skill_level(PlayerSkills.STRENGTH) if progression else 0
+	var strength_multiplier := PlayerSkills.get_strength_multiplier(strength_level)
+	stats.max_health = roundi(float(_base_stats.max_health) * strength_multiplier)
+	stats.health_regen = _base_stats.health_regen * strength_multiplier
+
+	var combat_level := progression.get_skill_level(PlayerSkills.COMBAT) if progression else 0
+	stats.sprint_speed = _base_stats.sprint_speed * PlayerSkills.get_sprint_multiplier(combat_level)
+
+	if health_component:
+		if previous_max_health <= 0:
+			health_component.setup(stats)
+		else:
+			var health_ratio := float(health_component.current_health) / float(previous_max_health)
+			health_component.stats = stats
+			var minimum_health := 0 if health_component.current_health <= 0 else 1
+			health_component.current_health = clampi(roundi(stats.max_health * health_ratio), minimum_health, stats.max_health)
+			health_component.health_changed.emit(health_component.current_health, stats.max_health)
+
+func get_outgoing_damage_multiplier() -> float:
+	if not progression:
+		return 1.0
+	return PlayerSkills.get_damage_multiplier(progression.get_skill_level(PlayerSkills.COMBAT))
+
+func get_reload_time_multiplier() -> float:
+	if not progression:
+		return 1.0
+	return PlayerSkills.get_reload_time_multiplier(progression.get_skill_level(PlayerSkills.COMBAT))
+
+func get_sale_payout_multiplier() -> float:
+	if not progression:
+		return 1.0
+	return PlayerSkills.get_sales_multiplier(progression.get_skill_level(PlayerSkills.SALES))
+
+func get_sale_xp_multiplier() -> float:
+	if not progression:
+		return 1.0
+	return PlayerSkills.get_sales_multiplier(progression.get_skill_level(PlayerSkills.SALES))
+
+func get_sale_heat_multiplier() -> float:
+	if not progression:
+		return 1.0
+	return PlayerSkills.get_sale_heat_multiplier(progression.get_skill_level(PlayerSkills.SALES))
+
+func ignores_customer_follow_heat() -> bool:
+	if not progression:
+		return false
+	return PlayerSkills.ignores_customer_follow_heat(progression.get_skill_level(PlayerSkills.SALES))
+
+func get_dealer_price_multiplier() -> float:
+	if not progression:
+		return 1.0
+	return PlayerSkills.get_social_price_multiplier(progression.get_skill_level(PlayerSkills.SOCIAL))
+
+func get_solicitation_chance_multiplier() -> float:
+	if not progression:
+		return 1.0
+	return PlayerSkills.get_solicitation_multiplier(progression.get_skill_level(PlayerSkills.SOCIAL))
+
+func get_incoming_damage_multiplier() -> float:
+	if not progression:
+		return 1.0
+	return PlayerSkills.get_incoming_damage_multiplier(progression.get_skill_level(PlayerSkills.STRENGTH))

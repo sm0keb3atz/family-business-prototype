@@ -4,18 +4,27 @@ class_name InventoryUI
 @onready var tabs: TabContainer = $Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer
 @onready var drugs_list: VBoxContainer = %DrugsList
 @onready var girlfriends_list: VBoxContainer = get_node_or_null("%GirlfriendsList")
+@onready var skills_list: VBoxContainer = get_node_or_null("%SkillsList")
+@onready var skill_points_label: Label = get_node_or_null("%SkillPointsLabel")
 @onready var main_control: Control = $Control
 
 var inventory_component: InventoryComponent
+var player: Player
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	main_control.hide()
 
-func setup(component: InventoryComponent) -> void:
+func setup(component: InventoryComponent, p_player: Player = null) -> void:
 	inventory_component = component
+	player = p_player
 	inventory_component.inventory_changed.connect(refresh_ui)
 	inventory_component.girlfriends_changed.connect(refresh_ui)
+	if player and player.progression:
+		if not player.progression.skill_points_changed.is_connected(_on_progression_changed):
+			player.progression.skill_points_changed.connect(_on_progression_changed)
+		if not player.progression.skills_changed.is_connected(_on_skill_changed):
+			player.progression.skills_changed.connect(_on_skill_changed)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("inventory") or (event is InputEventKey and event.keycode == KEY_I and event.pressed and not event.echo):
@@ -74,6 +83,19 @@ func refresh_ui() -> void:
 			girlfriends_list.add_child(card)
 			card.setup(gf, self)
 
+	if skill_points_label:
+		var points := player.progression.skill_points if player and player.progression else 0
+		skill_points_label.text = "Skill Points: %d" % points
+
+	if skills_list:
+		for child in skills_list.get_children():
+			child.queue_free()
+		if player and player.progression:
+			for skill_id in PlayerSkills.SKILL_ORDER:
+				var card: SkillCard = preload("res://GAME/scenes/ui/skill_card.tscn").instantiate()
+				skills_list.add_child(card)
+				card.setup(skill_id, player.progression, self)
+
 
 
 func _find_gf_node(resource: GirlfriendResource) -> NPC:
@@ -101,3 +123,9 @@ func _spawn_girlfriend_npc(resource: GirlfriendResource, pos: Vector2) -> void:
 	instance.modulate.a = 0.0
 	var tween = create_tween()
 	tween.tween_property(instance, "modulate:a", 1.0, 1.0)
+
+func _on_progression_changed(_new_amount: int) -> void:
+	refresh_ui()
+
+func _on_skill_changed(_skill_id: StringName, _new_level: int) -> void:
+	refresh_ui()

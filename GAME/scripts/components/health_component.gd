@@ -17,6 +17,18 @@ func setup(p_stats: CharacterStatsResource) -> void:
 		current_health = stats.max_health
 		health_changed.emit(current_health, stats.max_health)
 
+func refresh_from_stats(previous_max_health: int, keep_health_ratio: bool = true) -> void:
+	if not stats:
+		return
+	var health_ratio := 0.0
+	if previous_max_health > 0:
+		health_ratio = float(current_health) / float(previous_max_health)
+	if keep_health_ratio:
+		current_health = clampi(roundi(stats.max_health * health_ratio), 0, stats.max_health)
+	else:
+		current_health = min(current_health, stats.max_health)
+	health_changed.emit(current_health, stats.max_health)
+
 func take_damage(amount: int) -> void:
 	var actual_damage = clampi(amount - int(stats.defense if stats else 0.0), 0, amount)
 	current_health -= actual_damage

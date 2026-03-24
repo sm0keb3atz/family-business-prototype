@@ -80,7 +80,11 @@ func solicit() -> void:
 				continue
 				
 			if dist <= config.radius:
-				if randf() * 100.0 <= config.base_chance_percent:
+				var chance_percent := config.base_chance_percent
+				if player.has_method("get_solicitation_chance_multiplier"):
+					chance_percent *= player.get_solicitation_chance_multiplier()
+				chance_percent = minf(chance_percent, 100.0)
+				if randf() * 100.0 <= chance_percent:
 					_convert_to_customer(npc, player)
 		
 		elif npc.role == npc.Role.DEALER:

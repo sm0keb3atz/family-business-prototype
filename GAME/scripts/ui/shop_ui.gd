@@ -66,7 +66,7 @@ func _refresh_ui() -> void:
 	dealer_name_label.text = current_dealer.get("dealer_name") + " (Tier " + str(tier.get("tier_level")) + ")"
 	
 	var drug_id = drug.id
-	var price = current_dealer.get_price(drug_id)
+	var price = current_dealer.get_price(drug_id, current_player)
 	var is_brick_tier = (tier.get("tier_level") == 4)
 	
 	if is_brick_tier:
@@ -108,7 +108,7 @@ func _attempt_buy(amount: int) -> void:
 	if not tier or tier.get("allowed_drugs").is_empty(): return
 	var drug = tier.get("allowed_drugs")[0]
 	
-	var price = current_dealer.get_price(drug.id)
+	var price = current_dealer.get_price(drug.id, current_player)
 	var is_brick_tier = (tier.get("tier_level") == 4)
 	
 	var actual_gram_amount = amount
@@ -158,7 +158,7 @@ func _on_buy_max() -> void:
 	if not tier or tier.get("allowed_drugs").is_empty(): return
 	var drug = tier.get("allowed_drugs")[0]
 	
-	var price = current_dealer.get_price(drug.id)
+	var price = current_dealer.get_price(drug.id, current_player)
 	var is_brick_tier = (tier.get("tier_level") == 4)
 	var divisor = 100 if is_brick_tier else 1
 	

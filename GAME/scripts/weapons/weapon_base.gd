@@ -266,7 +266,7 @@ func reload() -> void:
 	if reload_sprite: reload_sprite.visible = true
 	
 	ammo_component.start_reload()
-	reload_timer.start()
+	reload_timer.start(_get_reload_duration())
 	
 	if animation_player:
 		if animation_player.has_animation("glock_reload"):
@@ -290,7 +290,10 @@ func _spawn_bullet() -> void:
 	dir = spread_component.get_spread_direction(dir)
 	
 	bullet.global_position = fire_point.global_position if fire_point else global_position
-	bullet.initialize(dir, weapon_data.damage, shooter if shooter else owner)
+	var outgoing_damage := weapon_data.damage
+	if shooter and shooter.has_method("get_outgoing_damage_multiplier"):
+		outgoing_damage = max(1, roundi(float(weapon_data.damage) * shooter.get_outgoing_damage_multiplier()))
+	bullet.initialize(dir, outgoing_damage, shooter if shooter else owner)
 	
 	get_tree().current_scene.add_child(bullet)
 
@@ -381,6 +384,12 @@ func is_aiming_blocked() -> bool:
 
 func _on_reload_timer_timeout() -> void:
 	ammo_component.finish_reload()
+
+func _get_reload_duration() -> float:
+	var duration := weapon_data.reload_time if weapon_data else reload_timer.wait_time
+	if shooter and shooter.has_method("get_reload_time_multiplier"):
+		duration *= shooter.get_reload_time_multiplier()
+	return maxf(0.05, duration)
 
 func _on_reload_finished() -> void:
 	is_reloading = false

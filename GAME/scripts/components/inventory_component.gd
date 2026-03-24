@@ -62,41 +62,41 @@ func add_girlfriend(resource: GirlfriendResource) -> void:
 	girlfriends_changed.emit()
 
 func remove_girlfriend(resource: GirlfriendResource) -> void:
+	if not girlfriends.has(resource):
+		return
 	girlfriends.erase(resource)
 	girlfriends_changed.emit()
 
 
 func _process(delta: float) -> void:
-	var broke_up: bool = false
+	var depleted: Array[GirlfriendResource] = []
 	for gf in girlfriends:
 		if gf.is_following:
 			# GirlfriendComponent on the NPC handles gain.
 			# If is_following is true but the NPC is gone, flip to at-home.
-			var npc_alive := _find_gf_npc(gf)
-			if not npc_alive:
+			var npc_node := _find_gf_npc(gf)
+			if npc_node == null:
 				gf.is_following = false
+			elif gf.relationship <= 0.0 and not depleted.has(gf):
+				depleted.append(gf)
 		else:
-			# NPC is at home (or gone) — decay here
+			# NPC is at home (or gone) â€” decay here
 			gf.set_relationship(gf.relationship - GF_DECAY_RATE * delta)
-			if gf.relationship <= 0.0:
-				broke_up = true
-				girlfriends_changed.emit() # trigger UI update
+			if gf.relationship <= 0.0 and not depleted.has(gf):
+				depleted.append(gf)
 	
-	if broke_up:
-		# Rebuild typed array to remove broken-up GFs (filter returns untyped Array)
-		var remaining: Array[GirlfriendResource] = []
-		for g: GirlfriendResource in girlfriends:
-			if g.relationship > 0.0:
-				remaining.append(g)
-		girlfriends = remaining
-		girlfriends_changed.emit()
+	for gf in depleted:
+		var npc_node := _find_gf_npc(gf)
+		if npc_node:
+			npc_node.break_up_due_to_relationship()
+		else:
+			remove_girlfriend(gf)
 
-func _find_gf_npc(resource: GirlfriendResource) -> bool:
+func _find_gf_npc(resource: GirlfriendResource) -> NPC:
 	var tree := get_tree()
 	if not tree:
-		return false
+		return null
 	for node in tree.get_nodes_in_group("girlfriend"):
 		if node is NPC and node.gf_resource == resource:
-			return true
-	return false
-
+			return node
+	return null

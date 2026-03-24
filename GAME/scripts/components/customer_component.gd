@@ -87,15 +87,26 @@ func complete_deal() -> void:
 			
 	if found_drug_id != "" and inv.has_drug(found_drug_id, requested_grams):
 		inv.remove_drug(found_drug_id, requested_grams)
-		player_node.progression.money += offered_payout
+		var sale_payout: int = int(offered_payout)
+		if player_node.has_method("get_sale_payout_multiplier"):
+			sale_payout = roundi(float(offered_payout) * player_node.get_sale_payout_multiplier())
+		player_node.progression.money += sale_payout
+		
+		var sale_heat = HeatConfig.BASE_HEAT_PER_GRAM * requested_grams * HeatConfig.SALE_RISK_MULTIPLIER
+		if player_node.has_method("get_sale_heat_multiplier"):
+			sale_heat *= player_node.get_sale_heat_multiplier()
+		if has_node("/root/HeatManager"):
+			get_node("/root/HeatManager").add_heat(sale_heat)
 		
 		# XP and Indicators
 		var sale_xp = int(requested_grams * 50) # Balanced: 50 XP per gram
+		if player_node.has_method("get_sale_xp_multiplier"):
+			sale_xp = roundi(float(sale_xp) * player_node.get_sale_xp_multiplier())
 		player_node.progression.add_xp(sale_xp)
 		
 		if player_node.get("player_ui"):
 			var pui = player_node.player_ui
-			pui.spawn_indicator("money_up", "+$" + str(offered_payout))
+			pui.spawn_indicator("money_up", "+$" + str(sale_payout))
 			pui.spawn_indicator("product", "-" + str(requested_grams) + "g")
 			pui.spawn_indicator("xp", "+" + str(sale_xp) + " XP")
 			

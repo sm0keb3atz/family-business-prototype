@@ -28,6 +28,12 @@ extends Node2D
 @export var normal_zoom: Vector2 = Vector2(2.0, 2.0)
 @export var aim_zoom: Vector2 = Vector2(1.2, 1.2)
 @export var zoom_speed: float = 5.0
+@export var aim_zoom_deadzone_radius: float = 120.0 ## Keep zoom stable while aiming close to the player
+@export var aim_zoom_response: float = 4.0 ## Lower values make aim zoom ramp more gently
+
+@export_group("Aim Follow Settings")
+@export var aim_deadzone_radius: float = 72.0 ## Ignore tiny cursor movement near the player to prevent erratic camera flips
+@export var aim_offset_smoothing: float = 12.0 ## How quickly aim camera offset catches up to the cursor
 
 var _active_aim_zoom: Vector2 = Vector2(1.0, 1.0)
 var _active_follow_dist: float = 0.0
@@ -45,6 +51,7 @@ var time: float = 0.0
 var _bob_phase: float = 0.0
 var _last_target_pos: Vector2 = Vector2.ZERO
 var _current_lead_offset: Vector2 = Vector2.ZERO
+var _current_aim_offset: Vector2 = Vector2.ZERO
 
 var noise: FastNoiseLite = FastNoiseLite.new()
 
@@ -77,20 +84,34 @@ func _process(delta: float) -> void:
 			var mouse_pos = get_global_mouse_position()
 			var to_mouse = mouse_pos - base_pos
 			
-			# DYNAMIC SCALING:
-			# Calculate how far the mouse is from the player relative to screen size
 			var viewport_size = get_viewport_rect().size
 			var screen_radius = min(viewport_size.x, viewport_size.y) * 0.4 # Use 40% of screen as max distance
 			var mouse_dist = to_mouse.length()
-			var stretch_factor = clamp(mouse_dist / screen_radius, 0.0, 1.0)
+
+			# Camera position follow: ignore the tiny close-range circle around the player.
+			var usable_radius = max(screen_radius - aim_deadzone_radius, 1.0)
+			var dist_past_deadzone = max(mouse_dist - aim_deadzone_radius, 0.0)
+			var stretch_factor = clamp(dist_past_deadzone / usable_radius, 0.0, 1.0)
 			
-			# Offset scales with distance
-			var offset = to_mouse.normalized() * (_active_follow_dist * stretch_factor)
-			base_pos += offset
+			var desired_aim_offset := Vector2.ZERO
+			if dist_past_deadzone > 0.0:
+				# Only normalize once we are safely outside the close-range deadzone.
+				var clamped_dist = min(dist_past_deadzone, usable_radius)
+				desired_aim_offset = to_mouse.normalized() * (_active_follow_dist * (clamped_dist / usable_radius))
 			
-			# Track zoom target dynamically
-			_dynamic_target_zoom = normal_zoom.lerp(_active_aim_zoom, stretch_factor)
+			_current_aim_offset = _current_aim_offset.lerp(desired_aim_offset, aim_offset_smoothing * delta)
+			base_pos += _current_aim_offset
+			
+			# Zoom uses a larger deadzone and eased response so it does not pulse while
+			# aiming at nearby targets or making fine mouse corrections.
+			var zoom_usable_radius = max(screen_radius - aim_zoom_deadzone_radius, 1.0)
+			var zoom_dist_past_deadzone = max(mouse_dist - aim_zoom_deadzone_radius, 0.0)
+			var zoom_factor = clamp(zoom_dist_past_deadzone / zoom_usable_radius, 0.0, 1.0)
+			zoom_factor = pow(zoom_factor, aim_zoom_response)
+			_dynamic_target_zoom = normal_zoom.lerp(_active_aim_zoom, zoom_factor)
 		else:
+			_current_aim_offset = _current_aim_offset.lerp(Vector2.ZERO, aim_offset_smoothing * delta)
+			base_pos += _current_aim_offset
 			_dynamic_target_zoom = normal_zoom
 
 		# Smoothly interpolate position towards base_pos (which may include mouse offset)

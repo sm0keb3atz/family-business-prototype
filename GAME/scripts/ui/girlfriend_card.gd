@@ -42,7 +42,7 @@ func _refresh() -> void:
 
 	name_label.text = _resource.npc_name
 	level_label.text = "Lv. " + str(_resource.level)
-	status_label.text = "Following 💚" if _resource.is_following else "At Home 🏠"
+	status_label.text = "Following" if _resource.is_following else "At Home"
 	toggle_btn.text = "Send Home" if _resource.is_following else "Call"
 
 	relationship_bar.value = _resource.relationship
@@ -55,7 +55,7 @@ func _setup_sprite_preview() -> void:
 		return
 	var app: AppearanceResource = _resource.appearance
 
-	# Body texture — show custom region defined in editor
+	# Body texture - show custom region defined in editor
 	if app.body_texture and body_preview:
 		body_preview.texture = app.body_texture
 
@@ -68,7 +68,7 @@ func _setup_sprite_preview() -> void:
 		hair_preview.texture = app.hair_texture
 
 func _tint_bar(value: float) -> void:
-	# Colour shifts: red (0) → orange (50) → green (100)
+	# Colour shifts: red (0) -> orange (50) -> green (100)
 	var colour: Color
 	if value >= 50.0:
 		colour = Color.ORANGE.lerp(Color.GREEN, (value - 50.0) / 50.0)

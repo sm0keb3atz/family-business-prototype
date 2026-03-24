@@ -184,7 +184,7 @@ func _physics_process(delta: float) -> void:
 					if dist <= detection_radius:
 						if npc.blackboard.get_var(&"is_interacting", false):
 							heat_manager.add_heat(HeatConfig.CUSTOMER_TALKING_HEAT_RATE * delta)
-						else:
+						elif not (is_instance_valid(player_ref) and player_ref.has_method("ignores_customer_follow_heat") and player_ref.ignores_customer_follow_heat()):
 							heat_manager.add_heat(HeatConfig.CUSTOMER_FOLLOWING_HEAT_RATE * delta)
 
 	if not is_player_inside or not is_instance_valid(player_ref):
