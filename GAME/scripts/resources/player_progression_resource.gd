@@ -24,6 +24,18 @@ signal skills_changed(skill_id: StringName, new_level: int)
 @export var social_skill_level: int = 0
 @export var strength_skill_level: int = 0
 
+func add_money(amount: int) -> void:
+	money += amount
+
+func set_money_amount(amount: int) -> void:
+	money = amount
+
+func set_level_value(new_level: int, reset_xp: bool = true) -> void:
+	level = max(new_level, 1)
+	if reset_xp:
+		xp = 0
+	xp_changed.emit(xp, get_required_xp())
+
 func add_xp(amount: int) -> void:
 	xp += amount
 	var required = get_required_xp()
