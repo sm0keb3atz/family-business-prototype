@@ -10,7 +10,9 @@ class_name TerritoryResource
 @export var price_multiplier: float = 1.0
 ## Base prices for drugs in this territory (Drug ID -> Price)
 @export var drug_prices: Dictionary = {
-	&"weed": 10
+	&"weed": 25,
+	&"coke": 65,
+	&"fetty": 125
 }
 
 @export_group("Spawning Limits")

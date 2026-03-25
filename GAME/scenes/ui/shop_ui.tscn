@@ -61,13 +61,14 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -251.0
-offset_top = 195.0
-offset_right = 149.0
-offset_bottom = 422.0
+offset_left = -246.0
+offset_top = 23.0
+offset_right = 154.0
+offset_bottom = 301.0
 grow_horizontal = 2
 grow_vertical = 2
 scale = Vector2(1.5, 1.5)
+theme = ExtResource("4_85s6u")
 theme_override_styles/panel = SubResource("StyleBoxTexture_hmc4t")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/PanelContainer" unique_id=1692146999]
@@ -135,6 +136,28 @@ theme_override_constants/shadow_offset_y = 4
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("3_0y6s5")
 text = "Stock: 50g"
+horizontal_alignment = 1
+
+[node name="DrugSelector" type="OptionButton" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=1893494329]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+theme = ExtResource("4_85s6u")
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+
+[node name="StockSummaryLabel" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=1413965077]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.42200002)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_0y6s5")
+theme_override_font_sizes/font_size = 12
+text = "Weed: 50g
+Coke: 15g"
 horizontal_alignment = 1
 
 [node name="HBoxContainer2" type="HBoxContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=874548148]

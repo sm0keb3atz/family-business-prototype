@@ -1,11 +1,17 @@
 [gd_resource type="Resource" script_class="DrugDefinitionResource" format=3 uid="uid://dweed123"]
 
 [ext_resource type="Script" path="res://GAME/scripts/resources/drug_definition_resource.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://GAME/assets/icons/WeedBaggie.png" id="2_gram"]
+[ext_resource type="Texture2D" path="res://GAME/assets/icons/WeedBrick.png" id="3_brick"]
 
 [resource]
 script = ExtResource("1_script")
 id = &"weed"
 display_name = "Weed"
 base_price = 10
+icon = ExtResource("2_gram")
+gram_icon = ExtResource("2_gram")
+brick_icon = ExtResource("3_brick")
+brick_grams = 100
 base_heat_per_gram = 1.0
 risk_multiplier = 1.0

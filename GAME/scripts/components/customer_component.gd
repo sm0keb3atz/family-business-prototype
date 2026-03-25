@@ -7,6 +7,8 @@ var target_npc: CharacterBody2D
 
 var requested_grams: int = 0
 var offered_payout: int = 0
+var requested_drug_id: StringName = &"weed"
+var customer_tier: int = 1
 
 var state: String = "APPROACHING"
 var current_territory: TerritoryArea
@@ -25,7 +27,7 @@ func _ready() -> void:
 	
 	var territory_price = 10 # Fallback
 	if current_territory:
-		territory_price = current_territory.get_drug_price(&"weed")
+		territory_price = current_territory.get_drug_price(requested_drug_id)
 	else:
 		territory_price = randi_range(config.min_payout_per_gram, config.max_payout_per_gram)
 		
@@ -63,7 +65,8 @@ func _physics_process(_delta: float) -> void:
 			if target_npc.movement_component:
 				target_npc.movement_component.move_velocity(Vector2.ZERO)
 			if target_npc.has_method("bark"):
-				target_npc.bark("I need " + str(requested_grams) + "g. Give you $" + str(offered_payout) + ".\n(Press Space inside E radius)", 2.5, true, "solicitation")
+				var drug_name := DrugCatalog.get_display_name(requested_drug_id)
+				target_npc.bark("I need %dg of %s. Give you $%d.\n(Press Space inside E radius)" % [requested_grams, drug_name, offered_payout], 2.5, true, "solicitation")
 
 	elif state == "WAITING":
 		if target_npc.animation_component:
@@ -77,22 +80,17 @@ func complete_deal() -> void:
 	if not player_node: return
 	
 	var inv = player_node.inventory_component
-	var found_drug_id = ""
-	
-	# Just checking keys case-insensitively since we might create "Weed" or "weed"
-	for k in inv.drugs.keys():
-		if str(k).to_lower() == "weed":
-			found_drug_id = k
-			break
-			
-	if found_drug_id != "" and inv.has_drug(found_drug_id, requested_grams):
-		inv.remove_drug(found_drug_id, requested_grams)
+	if inv.has_drug(requested_drug_id, requested_grams):
+		inv.remove_drug(requested_drug_id, requested_grams)
 		var sale_payout: int = int(offered_payout)
 		if player_node.has_method("get_sale_payout_multiplier"):
 			sale_payout = roundi(float(offered_payout) * player_node.get_sale_payout_multiplier())
 		player_node.progression.money += sale_payout
 		
-		var sale_heat = HeatConfig.BASE_HEAT_PER_GRAM * requested_grams * HeatConfig.SALE_RISK_MULTIPLIER
+		var definition := DrugCatalog.get_definition(requested_drug_id)
+		var base_heat := definition.base_heat_per_gram if definition else HeatConfig.BASE_HEAT_PER_GRAM
+		var risk_multiplier := definition.risk_multiplier if definition else 1.0
+		var sale_heat = base_heat * requested_grams * risk_multiplier * HeatConfig.SALE_RISK_MULTIPLIER
 		if player_node.has_method("get_sale_heat_multiplier"):
 			sale_heat *= player_node.get_sale_heat_multiplier()
 		if has_node("/root/HeatManager"):
@@ -107,7 +105,7 @@ func complete_deal() -> void:
 		if player_node.get("player_ui"):
 			var pui = player_node.player_ui
 			pui.spawn_indicator("money_up", "+$" + str(sale_payout))
-			pui.spawn_indicator("product", "-" + str(requested_grams) + "g")
+			pui.spawn_indicator("product", "-%dg %s" % [requested_grams, DrugCatalog.get_display_name(requested_drug_id)], DrugCatalog.get_product_icon(requested_drug_id, false))
 			pui.spawn_indicator("xp", "+" + str(sale_xp) + " XP")
 			
 		# Gain Reputation in Territory
@@ -129,7 +127,7 @@ func complete_deal() -> void:
 func interact_triggered() -> void:
 	if state == "WAITING":
 		if target_npc.has_method("bark"):
-			target_npc.bark("I said " + str(requested_grams) + "g for $" + str(offered_payout) + ".\n(Press Space)", 2.5, true, "solicitation")
+			target_npc.bark("I said %dg of %s for $%d.\n(Press Space)" % [requested_grams, DrugCatalog.get_display_name(requested_drug_id), offered_payout], 2.5, true, "solicitation")
 
 func _cancel() -> void:
 	if is_instance_valid(target_npc):

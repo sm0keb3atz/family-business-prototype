@@ -50,12 +50,23 @@ func refresh_ui() -> void:
 	for drug_id in inventory_component.bricks:
 		var qty = inventory_component.bricks[drug_id]
 		if qty <= 0: continue
+		var definition := DrugCatalog.get_definition(drug_id)
 		
 		var h_box = HBoxContainer.new()
 		drugs_list.add_child(h_box)
+
+		if definition and definition.brick_icon:
+			var icon_rect := TextureRect.new()
+			icon_rect.custom_minimum_size = Vector2(32, 32)
+			icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon_rect.texture = definition.brick_icon
+			h_box.add_child(icon_rect)
 		
 		var label = Label.new()
-		label.text = str(drug_id).capitalize() + " Brick: " + str(qty)
+		var display_name := definition.display_name if definition else str(drug_id).capitalize()
+		var brick_grams := definition.brick_grams if definition else 100
+		label.text = "%s Brick (%dg): %d" % [display_name, brick_grams, qty]
 		h_box.add_child(label)
 		
 		var break_btn = Button.new()
@@ -69,9 +80,22 @@ func refresh_ui() -> void:
 	# Show Grams
 	for drug_id in inventory_component.drugs:
 		var qty = inventory_component.drugs[drug_id]
+		var definition := DrugCatalog.get_definition(drug_id)
+		var h_box = HBoxContainer.new()
+		drugs_list.add_child(h_box)
+
+		if definition and definition.gram_icon:
+			var icon_rect := TextureRect.new()
+			icon_rect.custom_minimum_size = Vector2(32, 32)
+			icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon_rect.texture = definition.gram_icon
+			h_box.add_child(icon_rect)
+
 		var label = Label.new()
-		label.text = str(drug_id).capitalize() + ": " + str(qty) + "g"
-		drugs_list.add_child(label)
+		var display_name := definition.display_name if definition else str(drug_id).capitalize()
+		label.text = "%s: %dg" % [display_name, qty]
+		h_box.add_child(label)
 	
 	# Show Girlfriends
 	if girlfriends_list:

@@ -418,8 +418,10 @@ func _setup_bt() -> void:
 			blackboard.set_var(&"is_interacting", false)
 			blackboard.set_var(&"is_solicited", false)
 			blackboard.set_var(&"target", null)
+			blackboard.set_var(&"requested_drug_id", &"")
 			blackboard.set_var(&"requested_grams", 0)
 			blackboard.set_var(&"offered_payout", 0)
+			blackboard.set_var(&"customer_tier", 1)
 			blackboard.set_var(&"last_known_position", Vector2.ZERO)
 			blackboard.set_var(&"has_line_of_sight", false)
 			blackboard.set_var(&"is_searching", false)
@@ -639,27 +641,27 @@ func interact() -> void:
 		bark("Hey there! Can't talk right now.")
 
 func _handle_solicited_interaction(player: Node2D) -> void:
+	if not player:
+		return
 	var grams = blackboard.get_var(&"requested_grams", 0)
 	var payout = blackboard.get_var(&"offered_payout", 0)
+	var drug_id: StringName = blackboard.get_var(&"requested_drug_id", &"weed")
+	var drug_name := DrugCatalog.get_display_name(drug_id)
 	
 	if Input.is_action_just_pressed("ui_accept"): # Dealing with Space/Enter
-		var inv = player.get("inventory_component")
-		var found_drug_id = ""
-		for k in inv.drugs.keys():
-			if str(k).to_lower() == "weed":
-				found_drug_id = k
-				break
-				
-		if found_drug_id != "" and inv.has_drug(found_drug_id, grams):
-			inv.remove_drug(found_drug_id, grams)
+		var inv: InventoryComponent = player.get("inventory_component")
+		if inv and inv.has_drug(drug_id, grams):
+			inv.remove_drug(drug_id, grams)
 			var sale_payout: int = int(payout)
 			if player.has_method("get_sale_payout_multiplier"):
 				sale_payout = roundi(float(payout) * player.get_sale_payout_multiplier())
 			player.get("progression").money += sale_payout
 			
 			# Apply Heat
-			# In a larger system, we'd lookup the actual resource. Using def values here.
-			var sale_heat = HeatConfig.BASE_HEAT_PER_GRAM * grams * HeatConfig.SALE_RISK_MULTIPLIER
+			var definition := DrugCatalog.get_definition(drug_id)
+			var base_heat := definition.base_heat_per_gram if definition else HeatConfig.BASE_HEAT_PER_GRAM
+			var risk_multiplier := definition.risk_multiplier if definition else 1.0
+			var sale_heat = base_heat * grams * risk_multiplier * HeatConfig.SALE_RISK_MULTIPLIER
 			if player.has_method("get_sale_heat_multiplier"):
 				sale_heat *= player.get_sale_heat_multiplier()
 			if has_node("/root/HeatManager"):
@@ -674,7 +676,7 @@ func _handle_solicited_interaction(player: Node2D) -> void:
 			var pui = player.get("player_ui")
 			if pui:
 				pui.spawn_indicator("money_up", "+$" + str(sale_payout))
-				pui.spawn_indicator("product", "-" + str(grams) + "g")
+				pui.spawn_indicator("product", "-%dg %s" % [grams, drug_name], DrugCatalog.get_product_icon(drug_id, false))
 				pui.spawn_indicator("xp", "+" + str(sale_xp) + " XP")
 			
 			AudioManager.play_transaction()
@@ -721,7 +723,7 @@ func _handle_solicited_interaction(player: Node2D) -> void:
 			var shown_payout: int = int(payout)
 			if player and player.has_method("get_sale_payout_multiplier"):
 				shown_payout = roundi(float(payout) * player.get_sale_payout_multiplier())
-			bark("I need " + str(grams) + "g. Give you $" + str(shown_payout) + ".\n(Press Space)", 2.5, true, "solicitation")
+			bark("I need %dg of %s. Give you $%d.\n(Press Space)" % [grams, drug_name, shown_payout], 2.5, true, "solicitation")
 
 func _handle_girlfriend_money_request(player: Node2D) -> void:
 	if not player or not player.get("progression"): return

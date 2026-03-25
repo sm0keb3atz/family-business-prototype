@@ -9,7 +9,9 @@ display_name = "Hood East"
 territory_color = Color(1, 0.4, 0.4, 0.5)
 price_multiplier = 1.2
 drug_prices = {
-&"weed": 12
+&"coke": 55,
+&"fetty": 110,
+&"weed": 20
 }
 max_customers = 30
 max_police = 7

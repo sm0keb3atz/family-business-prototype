@@ -27,7 +27,9 @@ func break_brick(id: StringName) -> bool:
 		bricks[id] -= 1
 		if bricks[id] == 0:
 			bricks.erase(id)
-		add_drug(id, 100) # 1 brick = 100g
+		var definition := DrugCatalog.get_definition(id)
+		var grams_per_brick := definition.brick_grams if definition else 100
+		add_drug(id, grams_per_brick)
 		return true
 	return false
 
@@ -53,6 +55,20 @@ func get_drug_quantity(id: StringName) -> int:
 	if drugs.has(id):
 		return drugs[id]
 	return 0
+
+func get_brick_quantity(id: StringName) -> int:
+	if bricks.has(id):
+		return bricks[id]
+	return 0
+
+func get_total_grams_for_drug(id: StringName) -> int:
+	var loose_grams := get_drug_quantity(id)
+	var brick_count := get_brick_quantity(id)
+	if brick_count <= 0:
+		return loose_grams
+	var definition := DrugCatalog.get_definition(id)
+	var grams_per_brick := definition.brick_grams if definition else 100
+	return loose_grams + (brick_count * grams_per_brick)
 
 func has_drug(id: StringName, amount: int = 1) -> bool:
 	return get_drug_quantity(id) >= amount

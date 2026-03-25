@@ -9,3 +9,4 @@ class_name DealerTierResource
 @export var weapon_scene: PackedScene
 @export var restock_time_seconds: float = 60.0
 @export var allowed_drugs: Array[DrugDefinitionResource] = []
+@export var stock_options: Array[DealerStockOptionResource] = []

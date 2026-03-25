@@ -13,5 +13,7 @@ func _init():
 	data.max_police = 5
 	data.max_dealers = 2
 	data.drug_prices = {
-		&"weed": 12
+		&"weed": 20,
+		&"coke": 55,
+		&"fetty": 110
 	}

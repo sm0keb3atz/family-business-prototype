@@ -4,6 +4,17 @@ class_name SolicitationComponent
 @export var config: SolicitationConfigResource
 var cooldown_timer: float = 0.0
 
+const CUSTOMER_REQUEST_OPTIONS: Array[Dictionary] = [
+	{"tier": 1, "drug_id": &"weed", "min_grams": 1, "max_grams": 15},
+	{"tier": 2, "drug_id": &"weed", "min_grams": 15, "max_grams": 30},
+	{"tier": 2, "drug_id": &"coke", "min_grams": 1, "max_grams": 15},
+	{"tier": 3, "drug_id": &"coke", "min_grams": 15, "max_grams": 30},
+	{"tier": 3, "drug_id": &"fetty", "min_grams": 1, "max_grams": 15},
+	{"tier": 4, "drug_id": &"weed", "min_grams": 100, "max_grams": 100},
+	{"tier": 4, "drug_id": &"coke", "min_grams": 73, "max_grams": 73},
+	{"tier": 4, "drug_id": &"fetty", "min_grams": 50, "max_grams": 50}
+]
+
 var pulse_scene = preload("res://GAME/scenes/vfx/SolicitationPulse.tscn")
 
 var barks: Array[String] = [
@@ -110,17 +121,16 @@ func solicit() -> void:
 func _convert_to_customer(npc: Node2D, player: Player) -> void:
 	if npc is NPC and npc.blackboard:
 		print("Solicitation: Converting NPC ", npc.name, " to customer")
-		npc.blackboard.set_var(&"is_solicited", true)
-		var grams = randi_range(config.min_request_grams, config.max_request_grams)
-		npc.blackboard.set_var(&"requested_grams", grams)
-		
 		var territory = npc.get_meta(&"territory") if npc.has_meta(&"territory") else null
-		var territory_price = 10 # Fallback
-		if territory and territory.has_method("get_drug_price"):
-			territory_price = territory.get_drug_price(&"weed")
-		
-		var payout_per_gram = territory_price + randi_range(1, 10)
-		npc.blackboard.set_var(&"offered_payout", grams * payout_per_gram)
+		var request := _build_customer_request(player, territory)
+		if request.is_empty():
+			return
+
+		npc.blackboard.set_var(&"is_solicited", true)
+		npc.blackboard.set_var(&"requested_drug_id", request["drug_id"])
+		npc.blackboard.set_var(&"requested_grams", request["grams"])
+		npc.blackboard.set_var(&"offered_payout", request["payout"])
+		npc.blackboard.set_var(&"customer_tier", request["tier"])
 		
 		# Initialize movement vars for ApproachPlayer action
 		npc.blackboard.set_var(&"target", player)
@@ -138,4 +148,92 @@ func _convert_to_customer(npc: Node2D, player: Player) -> void:
 		get_tree().create_timer(delay).timeout.connect(
 			func(): if is_instance_valid(npc): AudioManager.play_customer_dialog(npc.gender, npc.global_position)
 		)
+
+func _build_customer_request(player: Player, territory: Variant) -> Dictionary:
+	var weighted_requests: Array[Dictionary] = []
+	var total_weight := 0.0
+
+	for option in CUSTOMER_REQUEST_OPTIONS:
+		var weight := _get_request_weight(player, option)
+		if weight <= 0.0:
+			continue
+		total_weight += weight
+		weighted_requests.append({
+			"option": option,
+			"cumulative_weight": total_weight
+		})
+
+	if weighted_requests.is_empty():
+		return {}
+
+	var roll := randf() * total_weight
+	for entry in weighted_requests:
+		if roll <= entry["cumulative_weight"]:
+			var option: Dictionary = entry["option"]
+			var grams := randi_range(option["min_grams"], option["max_grams"])
+			var drug_id: StringName = option["drug_id"]
+			var territory_price := 10
+			if territory and territory.has_method("get_drug_price"):
+				territory_price = territory.get_drug_price(drug_id)
+			else:
+				territory_price = _get_fallback_price(drug_id)
+			var payout_per_gram := territory_price + randi_range(1, 10)
+			return {
+				"tier": option["tier"],
+				"drug_id": drug_id,
+				"grams": grams,
+				"payout": grams * payout_per_gram
+			}
+
+	return {}
+
+func _get_request_weight(player: Player, option: Dictionary) -> float:
+	var tier: int = option["tier"]
+	var drug_id: StringName = option["drug_id"]
+	var min_grams: int = option["min_grams"]
+	var max_grams: int = option["max_grams"]
+	var target_grams := int(round((min_grams + max_grams) * 0.5))
+	var tier_weight := _get_customer_tier_weight(player, tier)
+	var inventory_weight := _get_inventory_match_weight(player, drug_id, min_grams, target_grams, tier)
+	return tier_weight * inventory_weight
+
+func _get_customer_tier_weight(player: Player, tier: int) -> float:
+	var player_level := player.progression.level if player and player.progression else 1
+	var social_level := player.progression.get_skill_level(PlayerSkills.SOCIAL) if player and player.progression else 0
+
+	match tier:
+		1:
+			return 1.0
+		2:
+			return clampf(0.35 + (0.05 * max(player_level - 1, 0)) + (0.30 * social_level), 0.35, 2.0)
+		3:
+			return clampf(0.08 + (0.02 * max(player_level - 1, 0)) + (0.22 * social_level), 0.08, 1.6)
+		4:
+			return clampf(0.01 + (0.008 * max(player_level - 1, 0)) + (0.12 * social_level), 0.01, 0.9)
+		_:
+			return 0.0
+
+func _get_inventory_match_weight(player: Player, drug_id: StringName, min_grams: int, target_grams: int, tier: int) -> float:
+	if not player or not player.inventory_component:
+		return 0.01
+
+	var total_available := player.inventory_component.get_total_grams_for_drug(drug_id)
+	if total_available >= target_grams:
+		return 1.0 + minf(1.5, float(total_available) / maxf(float(target_grams), 1.0) * 0.25)
+	if total_available >= min_grams:
+		return 0.35 if tier <= 2 else 0.12
+	if total_available > 0:
+		return 0.10 if tier <= 2 else 0.02
+	return 0.03 if tier <= 2 else 0.005
+
+func _get_fallback_price(drug_id: StringName) -> int:
+	match String(drug_id).to_lower():
+		"weed":
+			return 25
+		"coke":
+			return 65
+		"fetty":
+			return 125
+		_:
+			return 10
 

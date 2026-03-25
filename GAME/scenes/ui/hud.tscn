@@ -5,8 +5,11 @@
 [ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="3_iw68g"]
 [ext_resource type="Texture2D" uid="uid://cmbmd3uuppjex" path="res://GAME/assets/ui/Progress Bar/04.png" id="4_o4n1q"]
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="6_o4n1q"]
+[ext_resource type="Texture2D" uid="uid://bxloexmntqf1s" path="res://GAME/assets/icons/WeedBaggie.png" id="6_rc6iq"]
 [ext_resource type="Texture2D" uid="uid://dlg1l3sj3osod" path="res://GAME/assets/ui/star1.tres" id="6_vmk76"]
 [ext_resource type="Texture2D" uid="uid://na6mjqlqvl5g" path="res://GAME/assets/ui/star2.tres" id="7_3dept"]
+[ext_resource type="Texture2D" uid="uid://hlaiqen2ao6r" path="res://GAME/assets/icons/CokeBaggie.png" id="7_lc1f1"]
+[ext_resource type="Texture2D" uid="uid://c4wem0rilvmxu" path="res://GAME/assets/icons/FettyBaggie.png" id="8_422lj"]
 [ext_resource type="Texture2D" uid="uid://bv3imv0sm6ghi" path="res://GAME/assets/ui/star3.tres" id="8_lysu8"]
 [ext_resource type="Texture2D" uid="uid://bnqkr174lt236" path="res://GAME/assets/ui/star4.tres" id="9_5m11w"]
 [ext_resource type="Texture2D" uid="uid://bgg6ek4cdahh7" path="res://GAME/assets/ui/star5.tres" id="10_rc6iq"]
@@ -149,9 +152,9 @@ horizontal_alignment = 1
 [node name="PricesLabel" type="Label" parent="Hud" unique_id=2100000003]
 layout_mode = 0
 offset_left = 810.0
-offset_top = 102.0
+offset_top = 111.0
 offset_right = 1110.0
-offset_bottom = 130.0
+offset_bottom = 139.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -163,6 +166,87 @@ theme_override_fonts/font = ExtResource("6_o4n1q")
 theme_override_font_sizes/font_size = 16
 text = "Prices: Normal"
 horizontal_alignment = 1
+
+[node name="WeedPriceIcon" type="TextureRect" parent="Hud" unique_id=1579292204]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 0
+offset_left = 755.0
+offset_top = 81.0
+offset_right = 783.0
+offset_bottom = 109.0
+texture = ExtResource("6_rc6iq")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="WeedPriceLabel" type="Label" parent="Hud" unique_id=457945147]
+layout_mode = 0
+offset_left = 787.0
+offset_top = 84.0
+offset_right = 877.0
+offset_bottom = 108.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("6_o4n1q")
+theme_override_font_sizes/font_size = 14
+text = "$--/g"
+
+[node name="CokePriceIcon" type="TextureRect" parent="Hud" unique_id=1460563133]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 0
+offset_left = 912.0
+offset_top = 84.0
+offset_right = 940.0
+offset_bottom = 112.0
+texture = ExtResource("7_lc1f1")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CokePriceLabel" type="Label" parent="Hud" unique_id=1383904300]
+layout_mode = 0
+offset_left = 944.0
+offset_top = 87.0
+offset_right = 1034.0
+offset_bottom = 111.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("6_o4n1q")
+theme_override_font_sizes/font_size = 14
+text = "$--/g"
+
+[node name="FettyPriceIcon" type="TextureRect" parent="Hud" unique_id=588459895]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 0
+offset_left = 1070.0
+offset_top = 81.0
+offset_right = 1098.0
+offset_bottom = 109.0
+texture = ExtResource("8_422lj")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="FettyPriceLabel" type="Label" parent="Hud" unique_id=1885621206]
+layout_mode = 0
+offset_left = 1102.0
+offset_top = 84.0
+offset_right = 1192.0
+offset_bottom = 108.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("6_o4n1q")
+theme_override_font_sizes/font_size = 14
+text = "$--/g"
 
 [node name="HeatBar" type="ProgressBar" parent="Hud" unique_id=123456789]
 layout_mode = 0

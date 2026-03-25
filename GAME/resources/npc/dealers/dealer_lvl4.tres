@@ -1,18 +1,43 @@
-[gd_resource type="Resource" script_class="DealerTierResource" format=3 uid="uid://b1d2e3f4g4"]
+[gd_resource type="Resource" script_class="DealerTierResource" load_steps=8 format=3 uid="uid://b1d2e3f4g4"]
 
 [ext_resource type="Script" path="res://GAME/scripts/resources/dealer_tier_resource.gd" id="1_script"]
 [ext_resource type="Resource" path="res://GAME/resources/weapons/glock_lv4.tres" id="2_weapon"]
 [ext_resource type="PackedScene" path="res://GAME/scenes/Weapons/glock.tscn" id="3_scene"]
 
 [ext_resource type="Resource" uid="uid://dweed123" path="res://GAME/resources/products/weed.tres" id="4_drug"]
+[ext_resource type="Resource" path="res://GAME/resources/products/coke.tres" id="5_drug"]
+[ext_resource type="Resource" path="res://GAME/resources/products/fetty.tres" id="6_drug"]
+[ext_resource type="Script" path="res://GAME/scripts/resources/dealer_stock_option_resource.gd" id="7_stock_script"]
+
+[sub_resource type="Resource" id="Resource_stock_lvl4_weed"]
+script = ExtResource("7_stock_script")
+drug = ExtResource("4_drug")
+min_amount = 1
+max_amount = 5
+use_bricks = true
+
+[sub_resource type="Resource" id="Resource_stock_lvl4_coke"]
+script = ExtResource("7_stock_script")
+drug = ExtResource("5_drug")
+min_amount = 1
+max_amount = 5
+use_bricks = true
+
+[sub_resource type="Resource" id="Resource_stock_lvl4_fetty"]
+script = ExtResource("7_stock_script")
+drug = ExtResource("6_drug")
+min_amount = 1
+max_amount = 5
+use_bricks = true
 
 [resource]
 script = ExtResource("1_script")
 tier_level = 4
-min_stock = 100
-max_stock = 500
+min_stock = 1
+max_stock = 5
 max_health = 300
 weapon_data = ExtResource("2_weapon")
 weapon_scene = ExtResource("3_scene")
 restock_time_seconds = 60.0
-allowed_drugs = [ExtResource("4_drug")]
+allowed_drugs = [ExtResource("4_drug"), ExtResource("5_drug"), ExtResource("6_drug")]
+stock_options = [SubResource("Resource_stock_lvl4_weed"), SubResource("Resource_stock_lvl4_coke"), SubResource("Resource_stock_lvl4_fetty")]

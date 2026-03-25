@@ -81,6 +81,10 @@ func _setup_inventory() -> void:
 	var hud_scene = preload("res://GAME/scenes/ui/hud.tscn")
 	var hud = hud_scene.instantiate()
 	get_tree().root.call_deferred("add_child", hud)
+
+	var debug_console_scene = preload("res://GAME/scenes/ui/debug_console.tscn")
+	var debug_console = debug_console_scene.instantiate()
+	get_tree().root.call_deferred("add_child", debug_console)
 	
 	solicitation_component = SolicitationComponent.new()
 

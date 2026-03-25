@@ -5,6 +5,9 @@ class_name DrugDefinitionResource
 @export var display_name: String
 @export var base_price: int = 10
 @export var icon: Texture2D
+@export var gram_icon: Texture2D
+@export var brick_icon: Texture2D
+@export var brick_grams: int = 100
 @export_multiline var description: String = ""
 
 @export_group("Heat System")

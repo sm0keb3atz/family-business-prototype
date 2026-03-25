@@ -10,6 +10,12 @@ class_name HUD
 @onready var territory_rep_bar: ProgressBar = $Hud/TerritoryReputationBar
 @onready var territory_name_label: Label = $Hud/TerritoryNameLabel
 @onready var prices_label: Label = $Hud/PricesLabel
+@onready var weed_price_icon: TextureRect = get_node_or_null("Hud/WeedPriceIcon")
+@onready var weed_price_label: Label = get_node_or_null("Hud/WeedPriceLabel")
+@onready var coke_price_icon: TextureRect = get_node_or_null("Hud/CokePriceIcon")
+@onready var coke_price_label: Label = get_node_or_null("Hud/CokePriceLabel")
+@onready var fetty_price_icon: TextureRect = get_node_or_null("Hud/FettyPriceIcon")
+@onready var fetty_price_label: Label = get_node_or_null("Hud/FettyPriceLabel")
 @onready var clock_label: Label = $Hud/ClockLabel
 @onready var date_label: Label = $Hud/DateLabel
 
@@ -25,16 +31,10 @@ var displayed_money: float = 0.0
 var current_weapon: WeaponBase
 var current_territory: TerritoryArea
 var territory_tracking_ready: bool = false
-var debug_console: PanelContainer
-var debug_help_label: Label
-var debug_status_label: Label
-var debug_input: LineEdit
-var debug_console_visible: bool = false
 
 func _ready() -> void:
 	# Add nodes dynamically since the original tscn was just a TextureRect
 	_setup_ui_nodes()
-	_create_debug_console()
 	_reset_territory_ui()
 	
 	# Try to find player
@@ -64,144 +64,10 @@ func _setup_ui_nodes() -> void:
 				# They are pre-placed in the editor now
 				star_nodes.append(child)
 
-func _create_debug_console() -> void:
-	debug_console = PanelContainer.new()
-	debug_console.name = "DebugConsole"
-	debug_console.visible = false
-	debug_console.offset_left = 24.0
-	debug_console.offset_top = 24.0
-	debug_console.offset_right = 584.0
-	debug_console.offset_bottom = 188.0
-	debug_console.mouse_filter = Control.MOUSE_FILTER_STOP
-	debug_console.modulate = Color(1.0, 1.0, 1.0, 0.95)
-	add_child(debug_console)
-
-	var margin: MarginContainer = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_bottom", 12)
-	debug_console.add_child(margin)
-
-	var layout: VBoxContainer = VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 8)
-	margin.add_child(layout)
-
-	debug_help_label = Label.new()
-	debug_help_label.text = "Debug Console (`)\nadd money <amount>\nadd skill point <amount>\nplayer level <amount>"
-	debug_help_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	layout.add_child(debug_help_label)
-
-	debug_status_label = Label.new()
-	debug_status_label.text = "Enter a command and press Enter."
-	debug_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	layout.add_child(debug_status_label)
-
-	debug_input = LineEdit.new()
-	debug_input.placeholder_text = "Example: add money 500"
-	debug_input.text_submitted.connect(_on_debug_command_submitted)
-	layout.add_child(debug_input)
-
-func _input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo and event.physical_keycode == KEY_QUOTELEFT:
-		_toggle_debug_console()
-		get_viewport().set_input_as_handled()
-
-func _toggle_debug_console() -> void:
-	debug_console_visible = not debug_console_visible
-	debug_console.visible = debug_console_visible
-	_set_player_input_locked(debug_console_visible)
-
-	if debug_console_visible:
-		debug_input.clear()
-		debug_input.grab_focus()
-		debug_status_label.text = "Enter a command and press Enter."
-	else:
-		debug_input.release_focus()
-
-func _set_player_input_locked(is_locked: bool) -> void:
-	if not player:
-		player = get_tree().get_first_node_in_group("player")
-	if not player:
-		return
-
-	player.velocity = Vector2.ZERO
-
-	if player.input_component:
-		player.input_component.set_process(not is_locked)
-		player.input_component.set_process_unhandled_input(not is_locked)
-
-	if player.state_machine:
-		player.state_machine.set_process(not is_locked)
-		player.state_machine.set_physics_process(not is_locked)
-
-func _on_debug_command_submitted(command_text: String) -> void:
-	var trimmed: String = command_text.strip_edges()
-	if trimmed.is_empty():
-		debug_status_label.text = "Enter a command first."
-		return
-
-	var result: String = _run_debug_command(trimmed)
-	debug_status_label.text = result
-	debug_input.clear()
-
-func _run_debug_command(command_text: String) -> String:
-	if not player:
-		player = get_tree().get_first_node_in_group("player")
-	if not player or not player.progression:
-		return "Player progression is not ready yet."
-
-	var parts: PackedStringArray = command_text.split(" ", false)
-	if parts.is_empty():
-		return "Unknown command."
-
-	var root: String = parts[0].to_lower()
-	match root:
-		"help":
-			return "Commands: add money <amount>, add skill point <amount>, player level <amount>"
-		"add":
-			return _handle_add_command(parts)
-		"player":
-			return _handle_player_command(parts)
-		_:
-			return "Unknown command. Try: help"
-
-func _handle_add_command(parts: PackedStringArray) -> String:
-	if parts.size() == 3 and parts[1].to_lower() == "money":
-		if not parts[2].is_valid_int():
-			return "Money amount must be a whole number."
-
-		var amount: int = parts[2].to_int()
-		player.progression.add_money(amount)
-		return "Money updated to $%d." % player.progression.money
-
-	if parts.size() == 4 and parts[1].to_lower() == "skill" and parts[2].to_lower() == "point":
-		if not parts[3].is_valid_int():
-			return "Skill point amount must be a whole number."
-
-		var amount: int = parts[3].to_int()
-		player.progression.skill_points += amount
-		return "Skill points updated to %d." % player.progression.skill_points
-
-	return "Usage: add money <amount> or add skill point <amount>"
-
-func _handle_player_command(parts: PackedStringArray) -> String:
-	if parts.size() != 3 or parts[1].to_lower() != "level":
-		return "Usage: player level <amount>"
-
-	if not parts[2].is_valid_int():
-		return "Level must be a whole number."
-
-	var target_level: int = max(parts[2].to_int(), 1)
-	player.progression.set_level_value(target_level)
-	return "Player level set to %d." % player.progression.level
-
 func _process(delta: float) -> void:
 	if not player:
 		player = get_tree().get_first_node_in_group("player")
 		if player:
-			if debug_console_visible:
-				_set_player_input_locked(true)
 			# Initial Setup when player is first found
 			if player.health_component:
 				player.health_component.health_changed.connect(_on_health_changed)
@@ -347,8 +213,11 @@ func _update_territory_ui() -> void:
 		territory_name_label.text = "Territory: " + current_territory.territory_data.display_name
 	
 	if is_instance_valid(prices_label):
-		var weed_price = current_territory.get_drug_price(&"weed")
-		prices_label.text = "Prices: $" + str(weed_price) + "/g"
+		prices_label.visible = false
+
+	_set_price_entry(weed_price_icon, weed_price_label, &"weed")
+	_set_price_entry(coke_price_icon, coke_price_label, &"coke")
+	_set_price_entry(fetty_price_icon, fetty_price_label, &"fetty")
 	
 	_on_reputation_changed(current_territory.reputation_component.get_reputation() if current_territory.reputation_component else 0.0)
 
@@ -356,9 +225,24 @@ func _reset_territory_ui() -> void:
 	if is_instance_valid(territory_name_label):
 		territory_name_label.text = "Territory: Neutral"
 	if is_instance_valid(prices_label):
-		prices_label.text = "Prices: Normal"
+		prices_label.visible = false
+	_set_price_entry(weed_price_icon, weed_price_label, &"weed", false)
+	_set_price_entry(coke_price_icon, coke_price_label, &"coke", false)
+	_set_price_entry(fetty_price_icon, fetty_price_label, &"fetty", false)
 	if is_instance_valid(territory_rep_bar):
 		territory_rep_bar.value = 50.0
+
+func _set_price_entry(icon_node: TextureRect, label_node: Label, drug_id: StringName, has_prices: bool = true) -> void:
+	var definition := DrugCatalog.get_definition(drug_id)
+	if icon_node:
+		icon_node.texture = definition.gram_icon if definition else null
+		icon_node.visible = has_prices
+	if label_node:
+		if has_prices and current_territory:
+			label_node.text = "$%d/g" % current_territory.get_drug_price(drug_id)
+		else:
+			label_node.text = "$--/g"
+		label_node.visible = has_prices
 
 func _on_heat_changed(value: float) -> void:
 	if is_instance_valid(heat_bar):

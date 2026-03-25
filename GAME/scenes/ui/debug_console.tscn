@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://cdebugconsole123"]
+
+[ext_resource type="Script" path="res://GAME/scripts/ui/debug_console.gd" id="1_debug_console"]
+
+[node name="DebugConsole" type="CanvasLayer"]
+layer = 110
+script = ExtResource("1_debug_console")
+
+[node name="Panel" type="PanelContainer" parent="."]
+visible = false
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 584.0
+offset_bottom = 188.0
+mouse_filter = 1
+modulate = Color(1, 1, 1, 0.95)
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+offset_right = 560.0
+offset_bottom = 164.0
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Layout" type="VBoxContainer" parent="Panel/Margin"]
+offset_right = 536.0
+offset_bottom = 140.0
+theme_override_constants/separation = 8
+
+[node name="HelpLabel" type="Label" parent="Panel/Margin/Layout"]
+layout_mode = 2
+text = "Debug Console"
+autowrap_mode = 3
+
+[node name="StatusLabel" type="Label" parent="Panel/Margin/Layout"]
+layout_mode = 2
+text = "Enter a command and press Enter."
+autowrap_mode = 3
+
+[node name="CommandInput" type="LineEdit" parent="Panel/Margin/Layout"]
+layout_mode = 2
+placeholder_text = "Example: add money 500"

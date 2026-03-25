@@ -9,8 +9,6 @@ class_name NpcUI
 @onready var arrest_bar = get_node_or_null("ArrestBar")
 
 var FLOATING_INDICATOR = load("res://GAME/scenes/components/floating_indicator.tscn")
-const WEED_ICON = preload("res://GAME/assets/icons/WeedBaggie.png")
-const BRICK_ICON = preload("res://GAME/assets/icons/WeedBrick.png")
 const MONEY_ICON = preload("res://GAME/assets/icons/money.png")
 
 var _last_indicator_index: int = 0
@@ -149,10 +147,5 @@ func spawn_indicator(type: String, value: String, custom_icon: Texture2D = null)
 				use_icon = MONEY_ICON
 		"product":
 			color = Color.WHITE
-			if not use_icon:
-				if "brick" in value.to_lower():
-					use_icon = BRICK_ICON
-				else:
-					use_icon = WEED_ICON
 				
 	indicator.setup(value, color, use_icon)
