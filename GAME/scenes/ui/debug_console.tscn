@@ -1,43 +1,41 @@
-[gd_scene format=3 uid="uid://cdebugconsole123"]
+[gd_scene format=3 uid="uid://cpxd0y2fc4171"]
 
-[ext_resource type="Script" path="res://GAME/scripts/ui/debug_console.gd" id="1_debug_console"]
+[ext_resource type="Script" uid="uid://drv5xr4i45of7" path="res://GAME/scripts/ui/debug_console.gd" id="1_debug_console"]
 
-[node name="DebugConsole" type="CanvasLayer"]
+[node name="DebugConsole" type="CanvasLayer" unique_id=1978734142]
 layer = 110
 script = ExtResource("1_debug_console")
 
-[node name="Panel" type="PanelContainer" parent="."]
+[node name="Panel" type="PanelContainer" parent="." unique_id=65093172]
 visible = false
+modulate = Color(1, 1, 1, 0.95)
 offset_left = 24.0
 offset_top = 24.0
 offset_right = 584.0
 offset_bottom = 188.0
 mouse_filter = 1
-modulate = Color(1, 1, 1, 0.95)
 
-[node name="Margin" type="MarginContainer" parent="Panel"]
-offset_right = 560.0
-offset_bottom = 164.0
+[node name="Margin" type="MarginContainer" parent="Panel" unique_id=1094533682]
+layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
-[node name="Layout" type="VBoxContainer" parent="Panel/Margin"]
-offset_right = 536.0
-offset_bottom = 140.0
+[node name="Layout" type="VBoxContainer" parent="Panel/Margin" unique_id=1818364174]
+layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="HelpLabel" type="Label" parent="Panel/Margin/Layout"]
+[node name="HelpLabel" type="Label" parent="Panel/Margin/Layout" unique_id=2126757645]
 layout_mode = 2
 text = "Debug Console"
 autowrap_mode = 3
 
-[node name="StatusLabel" type="Label" parent="Panel/Margin/Layout"]
+[node name="StatusLabel" type="Label" parent="Panel/Margin/Layout" unique_id=784988517]
 layout_mode = 2
 text = "Enter a command and press Enter."
 autowrap_mode = 3
 
-[node name="CommandInput" type="LineEdit" parent="Panel/Margin/Layout"]
+[node name="CommandInput" type="LineEdit" parent="Panel/Margin/Layout" unique_id=251699910]
 layout_mode = 2
 placeholder_text = "Example: add money 500"

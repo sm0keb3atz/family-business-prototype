@@ -33,6 +33,16 @@ func break_brick(id: StringName) -> bool:
 		return true
 	return false
 
+func remove_brick(id: StringName, amount: int) -> bool:
+	if amount <= 0: return false
+	if bricks.has(id) and bricks[id] >= amount:
+		bricks[id] -= amount
+		if bricks[id] == 0:
+			bricks.erase(id)
+		inventory_changed.emit()
+		return true
+	return false
+
 func add_drug(id: StringName, amount: int) -> void:
 	if amount <= 0: return
 	if drugs.has(id):

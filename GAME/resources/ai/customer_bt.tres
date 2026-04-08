@@ -7,6 +7,9 @@
 [ext_resource type="Script" uid="uid://dj5s67moij08n" path="res://GAME/scripts/ai/bt_action_chat_nearby.gd" id="5_chat"]
 [ext_resource type="Script" uid="uid://bseobl0qulstk" path="res://GAME/scripts/ai/bt_action_approach_player.gd" id="6_approach"]
 [ext_resource type="Script" uid="uid://cp0bpo7qu50oy" path="res://GAME/scripts/ai/bt_condition_is_solicited.gd" id="7_solicited"]
+[ext_resource type="Script" uid="uid://5mpmk78aatqq" path="res://GAME/scripts/ai/bt_condition_is_dealer_customer.gd" id="8_dealercust"]
+[ext_resource type="Script" uid="uid://c130ji7d857ii" path="res://GAME/scripts/ai/bt_action_approach_blackboard_target.gd" id="9_appr_tgt"]
+[ext_resource type="Script" uid="uid://3opnhj1m7tqq" path="res://GAME/scripts/ai/bt_action_complete_dealer_purchase.gd" id="10_cmp_buy"]
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_customer"]
 
@@ -29,6 +32,19 @@ distance_threshold = 60.0
 [sub_resource type="BTSequence" id="solicited_seq"]
 children = [SubResource("check_solicited"), SubResource("approach_1")]
 
+[sub_resource type="BTCondition" id="check_dealer_customer"]
+script = ExtResource("8_dealercust")
+
+[sub_resource type="BTAction" id="approach_dealer"]
+script = ExtResource("9_appr_tgt")
+distance_threshold = 70.0
+
+[sub_resource type="BTAction" id="complete_dealer_buy"]
+script = ExtResource("10_cmp_buy")
+
+[sub_resource type="BTSequence" id="dealer_buy_seq"]
+children = [SubResource("check_dealer_customer"), SubResource("approach_dealer"), SubResource("complete_dealer_buy")]
+
 [sub_resource type="BTAction" id="path_1"]
 script = ExtResource("3_path")
 
@@ -49,7 +65,7 @@ forever = true
 children = [SubResource("walk_cycle")]
 
 [sub_resource type="BTDynamicSelector" id="root_sel"]
-children = [SubResource("flee_seq"), SubResource("solicited_seq"), SubResource("walk_loop")]
+children = [SubResource("flee_seq"), SubResource("solicited_seq"), SubResource("dealer_buy_seq"), SubResource("walk_loop")]
 
 [resource]
 blackboard_plan = SubResource("BlackboardPlan_customer")

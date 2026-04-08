@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="PropertyResource" format=3 uid="uid://0suotm8n6s26"]
+
+[ext_resource type="Script" uid="uid://dqv0nnyengj26" path="res://GAME/scripts/resources/property_resource.gd" id="1_abcde"]
+
+[resource]
+script = ExtResource("1_abcde")
+property_id = &"stash_01"
+display_name = "First Stash"

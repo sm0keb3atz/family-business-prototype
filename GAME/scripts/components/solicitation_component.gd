@@ -89,7 +89,9 @@ func solicit() -> void:
 		if npc.role == npc.Role.CUSTOMER and not npc.has_node("CustomerComponent"):
 			if npc.is_potential_girlfriend or npc.gf_resource != null:
 				continue
-				
+			if npc.blackboard and npc.blackboard.has_var(&"is_dealer_customer") and npc.blackboard.get_var(&"is_dealer_customer", false):
+				continue
+
 			if dist <= config.radius:
 				var chance_percent := config.base_chance_percent
 				if player.has_method("get_solicitation_chance_multiplier"):

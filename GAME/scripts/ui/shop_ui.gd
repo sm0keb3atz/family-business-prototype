@@ -102,7 +102,7 @@ func _refresh_ui() -> void:
 		btn_20g.text = "Buy 20g"
 	
 	# Update button states
-	var player_money = current_player.get("progression").get("money")
+	var player_money: int = NetworkManager.economy.dirty_money
 	if is_brick_tier:
 		btn_5g.disabled = current_stock < brick_grams or player_money < price * brick_grams
 		btn_10g.disabled = current_stock < (2 * brick_grams) or player_money < price * (2 * brick_grams)
@@ -142,7 +142,7 @@ func _attempt_buy(amount: int) -> void:
 	else:
 		cost = amount * price
 	
-	if current_player.get("progression").get("money") < cost:
+	if NetworkManager.economy.dirty_money < cost:
 		error_label.text = "Not enough money!"
 		return
 	if not current_dealer.can_buy_drug(drug.id, actual_gram_amount):
@@ -150,7 +150,7 @@ func _attempt_buy(amount: int) -> void:
 		return
 		
 	current_dealer.buy_drug(drug.id, actual_gram_amount)
-	current_player.get("progression").set("money", current_player.get("progression").get("money") - cost)
+	NetworkManager.economy.spend_dirty(cost)
 	
 	if is_brick_tier:
 		current_player.get("inventory_component").add_brick(drug.id, int(actual_gram_amount / brick_grams))
@@ -180,7 +180,7 @@ func _on_buy_max() -> void:
 	var divisor = current_dealer.get_brick_grams_for(drug.id) if is_brick_tier else 1
 	var current_stock := current_dealer.get_stock_amount(drug.id)
 	
-	var max_affordable = floor(current_player.get("progression").get("money") / (price * divisor))
+	var max_affordable = floor(NetworkManager.economy.dirty_money / (price * divisor))
 	var max_buyable = min(max_affordable, current_stock / divisor)
 	
 	if max_buyable > 0:
@@ -188,7 +188,7 @@ func _on_buy_max() -> void:
 		var total_cost = max_buyable * price * divisor
 		
 		current_dealer.buy_drug(drug.id, gram_amount)
-		current_player.get("progression").set("money", current_player.get("progression").get("money") - total_cost)
+		NetworkManager.economy.spend_dirty(total_cost)
 		
 		if is_brick_tier:
 			current_player.get("inventory_component").add_brick(drug.id, int(max_buyable))

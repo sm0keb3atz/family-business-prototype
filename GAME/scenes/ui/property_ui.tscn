@@ -1,0 +1,190 @@
+[gd_scene format=3 uid="uid://bfm52m6x1l3h4"]
+
+[ext_resource type="Script" uid="uid://ctrcaraesv6j4" path="res://GAME/scripts/ui/property_ui.gd" id="1_abcde"]
+[ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="2_bg"]
+[ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="3_font"]
+[ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="4_theme"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bg"]
+texture = ExtResource("2_bg")
+texture_margin_left = 3.0
+texture_margin_top = 4.0
+texture_margin_right = 3.0
+texture_margin_bottom = 4.0
+region_rect = Rect2(32, 32, 96, 64)
+
+[node name="PropertyUI" type="CanvasLayer" unique_id=1524464187]
+process_mode = 3
+script = ExtResource("1_abcde")
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=806431873]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("4_theme")
+theme_override_styles/panel = SubResource("StyleBoxTexture_bg")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer" unique_id=815498985]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=1317271972]
+layout_mode = 2
+theme_override_constants/separation = 13
+
+[node name="TitleLabel" type="Label" parent="PanelContainer/VBoxContainer/Header" unique_id=860152406]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.42800003)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 24
+text = "Property Name"
+horizontal_alignment = 1
+
+[node name="QuickStashBtn" type="Button" parent="PanelContainer/VBoxContainer/Header" unique_id=2062609579]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quick Stash"
+
+[node name="CloseBtn" type="Button" parent="PanelContainer/VBoxContainer/Header" unique_id=1909508667]
+unique_name_in_owner = true
+layout_mode = 2
+text = "X"
+
+[node name="CapacityHBox" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=1670211212]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="CapacityLabel" type="Label" parent="PanelContainer/VBoxContainer/CapacityHBox" unique_id=1273550977]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Capacity: 0 / 500"
+
+[node name="CapacityBar" type="ProgressBar" parent="PanelContainer/VBoxContainer/CapacityHBox" unique_id=38376102]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(350, 0)
+layout_mode = 2
+max_value = 500.0
+
+[node name="SupportInfo" type="VBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=1707226541]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SupportRoleLabel" type="Label" parent="PanelContainer/VBoxContainer/SupportInfo" unique_id=1376278229]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Support Role: Not assigned"
+
+[node name="LinkedTerritoryLabel" type="Label" parent="PanelContainer/VBoxContainer/SupportInfo" unique_id=1310067789]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Linked Territory: None"
+
+[node name="SupportStatusLabel" type="Label" parent="PanelContainer/VBoxContainer/SupportInfo" unique_id=985229314]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Dealer Support: Idle"
+
+[node name="MainContent" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=1512832014]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="PlayerSide" type="VBoxContainer" parent="PanelContainer/VBoxContainer/MainContent" unique_id=2057655017]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/MainContent/PlayerSide" unique_id=1278775000]
+layout_mode = 2
+text = "Player Inventory"
+horizontal_alignment = 1
+
+[node name="DirtyCashLabel" type="Label" parent="PanelContainer/VBoxContainer/MainContent/PlayerSide" unique_id=1368344555]
+unique_name_in_owner = true
+layout_mode = 2
+text = "$0"
+
+[node name="PlayerScroll" type="ScrollContainer" parent="PanelContainer/VBoxContainer/MainContent/PlayerSide" unique_id=2119046238]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayerDrugList" type="VBoxContainer" parent="PanelContainer/VBoxContainer/MainContent/PlayerSide/PlayerScroll" unique_id=1651058172]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="StashSide" type="VBoxContainer" parent="PanelContainer/VBoxContainer/MainContent" unique_id=1614333562]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/MainContent/StashSide" unique_id=694845657]
+layout_mode = 2
+text = "Stash Inventory"
+horizontal_alignment = 1
+
+[node name="StashCashLabel" type="Label" parent="PanelContainer/VBoxContainer/MainContent/StashSide" unique_id=139081579]
+unique_name_in_owner = true
+layout_mode = 2
+text = "$0"
+
+[node name="StashScroll" type="ScrollContainer" parent="PanelContainer/VBoxContainer/MainContent/StashSide" unique_id=1141469536]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="StashDrugList" type="VBoxContainer" parent="PanelContainer/VBoxContainer/MainContent/StashSide/StashScroll" unique_id=1727987782]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Controls" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=102604308]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="PanelContainer/VBoxContainer/Controls" unique_id=438490410]
+layout_mode = 2
+text = "Transfer Amount:"
+
+[node name="TransferAmountSpinBox" type="SpinBox" parent="PanelContainer/VBoxContainer/Controls" unique_id=1562043849]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 10000.0
+value = 10.0
+alignment = 1
+
+[node name="Actions" type="HBoxContainer" parent="PanelContainer/VBoxContainer" unique_id=1677467291]
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="DepositAllCashBtn" type="Button" parent="PanelContainer/VBoxContainer/Actions" unique_id=1525149411]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Deposit All Cash"
+
+[node name="DepositCashBtn" type="Button" parent="PanelContainer/VBoxContainer/Actions" unique_id=563434893]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Deposit Cash"
+
+[node name="WithdrawCashBtn" type="Button" parent="PanelContainer/VBoxContainer/Actions" unique_id=98885664]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Withdraw Cash"

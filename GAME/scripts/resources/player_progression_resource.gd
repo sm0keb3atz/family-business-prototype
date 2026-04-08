@@ -3,14 +3,9 @@ class_name PlayerProgressionResource
 
 signal xp_changed(current: int, required: int)
 signal leveled_up(new_level: int)
-signal money_changed(new_amount: int)
 signal skill_points_changed(new_amount: int)
 signal skills_changed(skill_id: StringName, new_level: int)
 
-@export var money: int = 0:
-	set(v):
-		money = v
-		money_changed.emit(money)
 
 @export var xp: int = 0
 @export var level: int = 1
@@ -24,11 +19,6 @@ signal skills_changed(skill_id: StringName, new_level: int)
 @export var social_skill_level: int = 0
 @export var strength_skill_level: int = 0
 
-func add_money(amount: int) -> void:
-	money += amount
-
-func set_money_amount(amount: int) -> void:
-	money = amount
 
 func set_level_value(new_level: int, reset_xp: bool = true) -> void:
 	level = max(new_level, 1)

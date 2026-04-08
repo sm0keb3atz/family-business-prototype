@@ -109,7 +109,6 @@ offset_right = 286.0
 offset_bottom = 183.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(2, 2)
 pivot_offset = Vector2(300, 200)
 theme_override_styles/panel = SubResource("StyleBoxTexture_dbb7i")
 
@@ -160,7 +159,6 @@ tab_alignment = 1
 current_tab = 0
 
 [node name="Drugs" type="ScrollContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer" unique_id=2089470543]
-visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_aovdg")
 metadata/_tab_index = 0
@@ -187,6 +185,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Girlfriends" type="Control" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer" unique_id=99661499]
+visible = false
 layout_mode = 2
 metadata/_tab_index = 2
 
@@ -204,12 +203,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme = ExtResource("4_1dcgg")
 
-[node name="Skills" type="Control" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer"]
+[node name="Skills" type="Control" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer" unique_id=1253428308]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 3
 
-[node name="SkillsVBox" type="VBoxContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Skills"]
+[node name="SkillsVBox" type="VBoxContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Skills" unique_id=494279472]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -218,7 +217,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 6
 
-[node name="SkillPointsLabel" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Skills/SkillsVBox"]
+[node name="SkillPointsLabel" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Skills/SkillsVBox" unique_id=238445150]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.5, 1)
@@ -228,22 +227,27 @@ theme_override_fonts/font = ExtResource("3_dbb7i")
 theme_override_font_sizes/font_size = 14
 text = "Skill Points: 0"
 
-[node name="SkillsScroll" type="ScrollContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Skills/SkillsVBox"]
+[node name="SkillsScroll" type="ScrollContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Skills/SkillsVBox" unique_id=1408114877]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxTexture_aovdg")
 
-[node name="SkillsList" type="VBoxContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Skills/SkillsVBox/SkillsScroll"]
+[node name="SkillsList" type="VBoxContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Skills/SkillsVBox/SkillsScroll" unique_id=1735667096]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme = ExtResource("4_1dcgg")
 theme_override_constants/separation = 6
 
-[node name="Properties" type="Control" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer" unique_id=1168754454]
+[node name="Territories" type="Control" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer" unique_id=1754320011]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 4
+
+[node name="Properties" type="Control" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer" unique_id=1168754454]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 5
 
 [node name="Label" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Properties" unique_id=1127870621]
 layout_mode = 1

@@ -61,13 +61,12 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -246.0
-offset_top = 23.0
-offset_right = 154.0
-offset_bottom = 301.0
+offset_left = -213.0
+offset_top = 25.0
+offset_right = 187.0
+offset_bottom = 305.0
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(1.5, 1.5)
 theme = ExtResource("4_85s6u")
 theme_override_styles/panel = SubResource("StyleBoxTexture_hmc4t")
 

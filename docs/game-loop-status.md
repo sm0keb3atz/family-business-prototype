@@ -1,136 +1,128 @@
 # Game Loop Status and System Checklist
 
 ## Purpose
-This document explains where the project currently stands relative to the intended game loop in [game-plan.md](C:/Users/jphil/Documents/family-business-prototype/docs/game-plan.md). It is meant to help future agents quickly understand what is already present in the prototype, what is only partially present, and what major systems still need to be built to reach the target early, mid, and end-game flow.
+This document explains where the project currently stands relative to the intended game loop in [game-plan.md](game-plan.md). It is meant to help future agents quickly understand what is already present in the prototype, what is only partially present, and what major systems still need to be built to reach the target early, mid, and end-game flow.
 
-## Current Project State
-The project is currently strongest in the early-game street hustle loop. The player can move around the world, buy product from dealers, solicit nearby NPCs, complete direct sales, carry inventory, gain money and XP, build territory reputation, and generate police heat. The game also already has a working in-world clock and territory-specific pricing, which gives the foundation for demand, risk, and territory identity.
+For the **intended next vertical slice** (one property, stash transfers, then owned dealers, then laundering), see [order of operations.md](order%20of%20operations.md).
 
-At a high level, the project is not yet in the management-game phase. There is no true property ownership layer yet, no stash network, no autonomous dealer operation, no runners, no continuous laundering economy, no territory control claim system, and no court or debt economy. The current build supports the manual hustle fantasy well enough to anchor the final loop, but the empire systems still need to be added.
+---
 
-## Systems Already Implemented
+## Current project state (checkpoint)
+
+The prototype still excels at the **early-game street hustle** (movement, dealer buys, solicitation, hand-to-hand sales, inventory, XP, territory reputation, heat, police pressure, clock, territory pricing).
+
+A **bare-bones operations foundation** is now in place:
+
+1. **Three-way money** — `dirty_money`, `clean_money`, and `debt` live on a dedicated `EconomyState` and are wired into gameplay for dirty cash (sales, dealer shop, property purchase). Clean money and debt exist in code and HUD/debug, but **there is no real earning loop for clean money** and **no gameplay hook that adds debt** yet (e.g. hospital/court).
+2. **First-property slice** — The player can **buy at least one predefined property** with **dirty money**, and **stash drugs, bricks, and dirty cash** in that property’s `StashInventory` via a **Property UI**. World hooks (`PropertyComponent`, exterior door, stash interact) connect the building to `NetworkManager.owned_properties`.
+
+The project is **not** yet in the full management-game phase: **no laundering tick**, **no stash-linked owned dealers** (dirty cash pool / restock), **no runners**, **no territory claim minigame or multi-state control machine**, **no raids**, **no court/debt gameplay**. A **territory control stub** and **hired dealer spawning** plus **civilian→dealer foot traffic** are in place (see below).
+
+---
+
+## Where things live (for navigation)
+
+| Area | Main locations |
+|------|----------------|
+| Global economy + owned properties + territory stub | `GAME/scripts/systems/network_manager.gd` — `controlled_territory_ids`, `hired_dealer_slots` / `HiredDealerSlot`, signals `territory_control_changed`, `hired_dealers_changed` |
+| Civilian dealer traffic | `GAME/scripts/components/territory_dealer_traffic_component.gd` on `TerritoryArea.tscn`; `customer_bt.tres` dealer-buy branch; `bt_action_approach_blackboard_target.gd`, `bt_condition_is_dealer_customer.gd`, `bt_action_complete_dealer_purchase.gd` |
+| Dealer NPC shop (civilian purchase) | `DealerShopComponent.npc_purchase()` |
+| Dirty / clean / debt resource | `GAME/scripts/resources/economy_state.gd` |
+| Property definition data | `GAME/scripts/resources/property_resource.gd` — `PropertyType` (`STASH_TRAP`, `FRONT_BUSINESS`), `stash_capacity`, `purchase_price`, `laundering_rate` (rate **not** used in simulation yet) |
+| Per-owned-property state | `GAME/scripts/resources/owned_property_state.gd` — holds `PropertyResource` + `StashInventory` |
+| Stash contents | `GAME/scripts/resources/stash_inventory.gd` — drugs, bricks, `dirty_cash`, capacity |
+| World / purchase / UI | `GAME/scripts/components/property_component.gd`, `property_exterior_door_trigger.gd`, `stash_interact_area.gd`, `GAME/scripts/ui/property_ui.gd`, `GAME/scenes/ui/property_ui.tscn` |
+| Example property asset | `GAME/resources/properties/first_stash.tres` (minimal; script defaults fill in price/capacity if not overridden) |
+| Money from sales | `GAME/scripts/components/customer_component.gd`, `GAME/scripts/npc.gd` → `NetworkManager.economy.add_dirty` |
+| Dealer shop spends dirty | `GAME/scripts/ui/shop_ui.gd` |
+| HUD money | `GAME/scripts/ui/hud.gd` — primary label = **dirty**; clean/debt labels when non-zero |
+| Debug economy / territory | `GAME/scripts/ui/debug_console.gd` — `territory control <id> on\|off`, `territory hire <id> [tier]`, `territory clear hires <id>` |
+
+**Note:** `PlayerProgressionResource` no longer carries a generic `money` field; progression is **XP / level / skills only**. Cash is entirely under `NetworkManager.economy`.
+
+---
+
+## Systems already implemented
 
 ### Street-level selling loop
-- Player can buy stock from world dealers through the current dealer shop flow.
-- Player can carry loose drugs and bricks through the current inventory component.
-- Player can solicit customers and convert nearby NPCs into active buyers.
-- Player can complete direct hand-to-hand sales for money, XP, territory reputation, and heat.
+- Player can buy stock from world dealers through the dealer shop flow (**dirty money**).
+- Player can carry loose drugs and bricks through the inventory component.
+- Player can solicit customers and complete direct sales for **dirty money**, XP, territory reputation, and heat.
 
-### Territory foundation
-- Territories already exist as world areas.
-- Territories already have territory-specific pricing data.
-- Territories already track reputation through a dedicated reputation component.
-- The HUD already reflects current territory context and pricing.
+### Three-way economy (foundation)
+- **`EconomyState`**: `dirty_money`, `clean_money`, `debt`; add/spend for dirty and clean; `pay_debt` (clean first, then dirty).
+- **`NetworkManager`**: owns the runtime `EconomyState`, starts the player with **$1000 dirty** (see `network_manager.gd` — adjust if design calls for a different start), tracks **`owned_properties`** by `property_id`, emits `property_purchased`.
+- **Illegal income** routes to **dirty** (customer + NPC sale paths).
+- **HUD** shows dirty as the main cash; clean and debt appear when non-zero.
+- **Debug console** can set dirty/clean/debt for testing.
 
-### Pressure and law enforcement foundation
-- Heat and wanted-star escalation already exist.
-- Police response and detection systems are already present.
-- Arrest pressure already exists at the player level.
-- The game already has supporting police AI and pursuit behavior systems.
+### Property + stash (first vertical slice, bare bones)
+- **Purchase**: Pay **dirty** `purchase_price` via `NetworkManager.purchase_property` (exterior door interaction when not owned).
+- **Stash**: Each owned property has a `StashInventory` with capacity, drugs, bricks, and **dirty cash** stored separately from the player’s wallet.
+- **Transfers**: `PropertyUI` moves **drugs/bricks** between player inventory and stash (respects capacity), and moves **dirty cash** between `NetworkManager.economy` and stash `dirty_cash`.
 
-### Core player and economy foundation
-- Player progression exists for money, XP, level, and skills.
-- Player inventory exists for drugs, bricks, and companions.
-- In-world time and date already exist and update continuously.
-- The current HUD already shows money, heat, time, and territory context.
+### Territory, pressure, progression (unchanged from before)
+- Territories, territory pricing, reputation, heat, police systems, in-world time, player progression (XP/level/skills) — still present and wired as in earlier prototypes.
 
-## Systems Partially Implemented
+### Territory control stub + dealer population (foundation)
+- **`NetworkManager`**: per-`territory_id` **controlled** flag and **hired dealer slot list** (`HiredDealerSlot` with `tier_level` 1–4). Separate from **property** ownership.
+- **`TerritorySpawner`**: If territory **not** controlled, fills **ambient** dealers up to `TerritoryResource.max_dealers`. If **controlled**, **no** ambient dealers; spawns **only** hired dealers (zero until slots are added). Control/slot changes **despawn and resync** dealers.
+- **Civilian→dealer traffic**: `TerritoryDealerTrafficComponent` periodically assigns customers a blackboard task to **navigate to a dealer** and call **`npc_purchase`** (stock only; **no** cash to the player). Capped concurrent buyers; **mutually exclusive** with player solicitation (`is_dealer_customer` vs `is_solicited`).
+
+---
+
+## Systems partially implemented
+
+### Property / network layer
+- **Data model** includes `FRONT_BUSINESS` and `laundering_rate`, but **no process** converts dirty→clean over time yet.
+- Only the **first-property** path is exercised in content; expanding to multiple properties is mostly a matter of more `PropertyResource` assets + world scenes **if** `NetworkManager` stays the single source of truth.
+- **Persistence**: `NetworkManager` state is **runtime only** unless something else saves it (no dedicated save/load for economy + properties documented here).
+
+### Clean money and debt
+- **Clean**: Can be adjusted via debug; **no** laundering front, legal job payout, or other in-world source in normal play.
+- **Debt**: Can be adjusted via debug; **`pay_debt` is not exposed in player-facing UI**; no death/hospital/court flow yet.
 
 ### Dealers
-Dealers exist today as buy-from NPCs and territory population entities. They do not yet function as owned members of the player's network. The project has the beginnings of dealer tiers, stock, and territory-aware pricing, but not the management version of dealers that sell for the player over time.
+- **Ambient + hired** dealers use the same **player shop** (`DealerShopComponent`); civilians drain stock via **`npc_purchase`**. **Not** yet: stash-backed stock, **dirty cash pool** for the player, or manual collect from hired corners.
 
 ### Territory gameplay
-Territory reputation exists, but territory control does not. There is no full claim flow, no controlled-versus-contested state, no territory ownership benefits, and no degradation rules that push a territory back out of player control.
+- **Boolean “player controls territory”** + **debug hire** exist; **no** reputation/claim fee/gang-war **claim flow**, **no** contested/controlled **state machine** beyond the stub.
 
 ### Risk systems
-Heat and police pressure are already real, but raids are not yet a full property-management loop. The current pressure systems are aimed more at the player in the street than at a multi-property criminal network.
+- Street-level heat/police; **no** property raid loop.
 
-## Systems Needed For The Target Game Loop
+---
 
-### 1. Property ownership system
-- The game needs a real owned-property model.
-- Properties need types, at minimum stash or trap properties and front businesses for v1.
-- Every owned property needs stash capacity.
-- Properties need capacity, security, and operational identity.
-- Properties need to exist as player-owned network nodes, not just world scenery.
+## Systems still needed for the target game loop
 
-### 2. Stash and distributed inventory system
-- The game needs inventory that can live in multiple properties, not only on the player.
-- The player needs to move product and cash between personal inventory and property stashes.
-- The game needs stash capacity limits and consequences for storing too much in risky locations.
-- The game needs the ability to relocate stash contents during raid warnings.
+The following remain **out of scope or stubbed** relative to [game-plan.md](game-plan.md) and [order of operations.md](order%20of%20operations.md):
 
-### 3. Dirty money and clean money split
-- The economy needs strict separation between dirty money and clean money.
-- Illegal sales should generate dirty money.
-- Major legal purchases and territory control fees should require clean money.
-- The project needs a central economy model that can track both currencies, plus debt.
+1. **Laundering** — Continuous dirty→clean conversion using front properties; throughput cap; risk; UI feedback.
+2. **Clean-money sinks** — Meaningful spends that require **clean** (e.g. future territory claim fee, legal upgrades); property purchase is currently **dirty-only** by design in code.
+3. **Owned dealer system (management)** — Assign to property, consume **stash** stock, **dirty cash pool** for pickup, manual restock/collect (beyond hire + tier spawn).
+4. **Runner automation** — Routes between player, stashes, dealers, fronts.
+5. **Territory control (full)** — Claim flow, fees, contested/controlled states, gang war alternate path (beyond debug toggle + hire list).
+6. **Raids** — Warnings, stash relocation pressure, consequences.
+7. **Court / legal / debt from gameplay** — Arrest → outcomes; hospital bills; debt as pressure (beyond `EconomyState.pay_debt`).
+8. **Management UI breadth** — Single-property stash UI exists; full network dashboard, laundering, dealers, runners still needed.
 
-### 4. Laundering system
-- Front businesses need to convert dirty money into clean money continuously over time.
-- Laundering needs throughput, efficiency, and risk values.
-- The game needs consequences when the player's dirty income outpaces laundering capacity.
-- Laundering needs to feel like required infrastructure, not an optional side activity.
+---
 
-### 5. Owned dealer system
-- Dealers need a second mode where they belong to the player's operation.
-- Owned dealers need to be assigned to a property or stash hub.
-- Owned dealers need stock consumption, dirty cash generation, and assignment rules.
-- Early management should require manual restocking and manual collection before automation is unlocked.
+## Recommended build order (updated from current checkpoint)
 
-### 6. Runner automation system
-- The game needs runners who can move product and collect money.
-- Runners should automate routes between player inventory, stashes, dealers, and fronts.
-- Runner routes need cost, travel time, and interception or failure risk.
-- Runner automation should unlock after the player has already felt the pain of doing logistics manually.
+The shared **economy split** and **first-property stash** foundations are in place. Next steps should follow the vertical slice in [order of operations.md](order%20of%20operations.md):
 
-### 7. Territory control state machine
-- Territories need explicit states such as uncontrolled, contested, and controlled.
-- The player must reach 100 reputation to begin a claim.
-- A claim must then resolve through either a clean-money control fee or three gang war wins.
-- Controlled territories must be able to fall back into contested status if neglected or damaged.
+1. **Owned dealer (minimal)** — One dealer tied to owned property stash: stock drain, dirty cash pool, manual pickup into `NetworkManager.economy`, stop when stash empty.
+2. **Laundering front** — Use `laundering_rate` (or equivalent) on a `FRONT_BUSINESS` property: tick dirty→clean over time, cap throughput, surface in UI/HUD.
+3. **Clean-money gate** — At least one real spend that requires **clean** (could be second property, upgrade, or placeholder territory fee).
+4. **Territory control → raids → runners → court/gang wars** — After the first-property loop is playable end-to-end.
 
-### 8. Gang war events
-- The game needs live gang war territory events.
-- Gang wars should act as a conflict route for claiming or stabilizing territory.
-- Gang wars should reinforce the hybrid fantasy by requiring player action in the world.
+---
 
-### 9. Raid system for owned properties
-- Properties need raid warnings and raid timers.
-- The player needs to physically respond by moving illegal inventory and exposed cash.
-- Raid outcomes need to affect stash contents, territory stability, or business pressure.
-- Because every property has stash capacity in the target design, raids should create meaningful routing decisions.
+## Quick reality check
 
-### 10. Court and legal consequence system
-- Arrest needs to flow into a court outcome instead of stopping at wanted-level pressure.
-- Court outcomes should depend on evidence, charges, and legal spending.
-- Court needs to create fines, seizures, and operating penalties instead of acting like a full reset button.
+**What phase is the game in?**  
+Early-game street loop **plus** **economy + stash property** **plus** a **territory/dealer foundation**: debug **territory control**, **hired dealer spawning**, and **NPCs walking to dealers** to buy (stock sink only). Still **not** the full empire loop (laundering, stash-linked dealers, runners, real territory claims, raids).
 
-### 11. Death and debt system
-- Death needs to remove all carried drugs and guns.
-- Death needs to create a hospital bill.
-- The hospital bill needs a lump-sum payment option and a daily-payment option.
-- Debt should become an economic pressure layer that the player can play out of.
-
-### 12. Management UI and reporting layer
-- The game needs UI for owned properties, stash contents, laundering throughput, dealer assignments, runner routes, and warnings.
-- The game needs to show dirty money, clean money, and debt separately.
-- The player needs enough visibility to manage a network without losing the grounded feel of the game.
-
-## Recommended Build Order
-The cleanest path is to build the systems in layers that match the intended progression.
-
-1. Add the economy split for dirty money, clean money, and debt.
-2. Add owned properties with stash capacity.
-3. Add stash inventory transfer between player and property.
-4. Add owned dealers tied to property stock.
-5. Add manual restocking and manual cash collection gameplay.
-6. Add laundering fronts with continuous throughput.
-7. Add territory control states and claim rules.
-8. Add raid warnings and property stash relocation.
-9. Add runners for logistics automation.
-10. Add court outcomes and full debt consequences.
-11. Add gang war events and deeper territory pushback.
-
-## Quick Reality Check
-If a future agent asks "what phase is the game actually in right now," the answer is this: the project is in the early game with some strong foundational systems for pressure, territory, and progression, but it has not yet crossed into true property-driven management gameplay. The current prototype supports the start of the fantasy, not yet the full empire loop.
+**Where should the next agent start?**  
+Wire **hired/ambient dealer stock** to **property stash** and add **player collectible dirty cash** from corners, **or** implement **laundering** — read `network_manager.gd`, `territory_spawner.gd`, `territory_dealer_traffic_component.gd`, `dealer_shop_component.gd`, and `property_ui.gd` / `owned_property_state.gd` for integration points.

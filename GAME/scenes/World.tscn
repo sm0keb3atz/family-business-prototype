@@ -1,20 +1,16 @@
-[gd_scene format=4 uid="uid://ctstmap123"]
+[gd_scene format=3 uid="uid://ctstmap123"]
 
 [ext_resource type="Script" uid="uid://debyafhbeb0s7" path="res://GAME/scripts/map_manager.gd" id="1_nqdoh"]
-[ext_resource type="Script" uid="uid://d3vo4fw0uy67h" path="res://GAME/scripts/door_trigger.gd" id="2_ahy43"]
 [ext_resource type="PackedScene" uid="uid://b5mjmb4g3lyim" path="res://GAME/scenes/map/map.scn" id="3_i66ib"]
 [ext_resource type="Texture2D" uid="uid://ctg0qy2x8x6uv" path="res://GAME/assets/tilesets/Condo_Door_48x48_4.png" id="4_hnl4b"]
-[ext_resource type="TileSet" uid="uid://b5lo6l4xvqa7w" path="res://GAME/resources/tilesets/maintileset.tres" id="5_j7dm0"]
 [ext_resource type="PackedScene" uid="uid://ca7t6y2ynjken" path="res://GAME/scenes/characters/player.tscn" id="6_pxu16"]
 [ext_resource type="Script" uid="uid://b6c56sc2m1g5a" path="res://GAME/scripts/MapInitializer.gd" id="8_32me2"]
+[ext_resource type="PackedScene" uid="uid://df7j4ksk312m" path="res://GAME/scenes/buildings/property_building.tscn" id="11_hnl4b"]
 [ext_resource type="PackedScene" uid="uid://cfot8raibprqo" path="res://GAME/scenes/TerritoryArea.tscn" id="12_territory"]
 [ext_resource type="Resource" uid="uid://cu0uh1y7iskio" path="res://GAME/resources/territories/hood_east.tres" id="13_hood_east"]
 [ext_resource type="Script" uid="uid://bco7ototxsvst" path="res://GAME/scripts/logic/time_manager.gd" id="14_time"]
 [ext_resource type="Script" uid="uid://dqo3pawhyqnh4" path="res://GAME/scripts/logic/day_night_cycle.gd" id="15_cycle"]
 [ext_resource type="Gradient" uid="uid://bb6k1pxb08cg7" path="res://GAME/resources/visuals/day_night_gradient.tres" id="16_grad"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
-size = Vector2(96, 26)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mwopj"]
 atlas = ExtResource("4_hnl4b")
@@ -154,32 +150,19 @@ y_sort_enabled = true
 [node name="MapManager" type="Node" parent="." unique_id=816788286 node_paths=PackedStringArray("exterior_node", "interior_node") groups=["map_manager"]]
 script = ExtResource("1_nqdoh")
 exterior_node = NodePath("../Exterior")
-interior_node = NodePath("../Interior")
+interior_node = NodePath("")
 
 [node name="Exterior" type="Node2D" parent="." unique_id=929174303]
 z_index = -1
 y_sort_enabled = true
 
-[node name="DoorToInterior" type="Area2D" parent="Exterior" unique_id=106877095 node_paths=PackedStringArray("spawn_point", "door_node")]
-z_index = 1
-position = Vector2(2952, -810)
-script = ExtResource("2_ahy43")
-spawn_point = NodePath("../../Interior/SpawnPoint")
-door_node = NodePath("../BuildingDoor1")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Exterior/DoorToInterior" unique_id=667553450]
-shape = SubResource("RectangleShape2D_door")
-
 [node name="HospitalSpawn" type="Marker2D" parent="Exterior" unique_id=171000]
 position = Vector2(-203, -693)
-
-[node name="SpawnPoint" type="Marker2D" parent="Exterior" unique_id=57227611]
-z_index = 1
-position = Vector2(2958, -743)
 
 [node name="Map" parent="Exterior" unique_id=769079878 instance=ExtResource("3_i66ib")]
 
 [node name="BuildingDoor1" type="AnimatedSprite2D" parent="Exterior" unique_id=1303187391]
+visible = false
 z_index = 1
 position = Vector2(2952, -872)
 sprite_frames = SubResource("SpriteFrames_mpri2")
@@ -188,28 +171,6 @@ animation = &"door_open"
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="Exterior" unique_id=575016145]
 visible = false
 navigation_polygon = SubResource("NavigationPolygon_mpri2")
-
-[node name="Interior" type="Node2D" parent="." unique_id=505746236]
-z_index = -1
-y_sort_enabled = true
-
-[node name="DoorToExterior" type="Area2D" parent="Interior" unique_id=1736740845 node_paths=PackedStringArray("spawn_point", "door_node")]
-top_level = true
-position = Vector2(507, 562)
-script = ExtResource("2_ahy43")
-leads_to_interior = false
-spawn_point = NodePath("../../Exterior/SpawnPoint")
-door_node = NodePath("../../Exterior/BuildingDoor1")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Interior/DoorToExterior" unique_id=756164672]
-shape = SubResource("RectangleShape2D_door")
-
-[node name="SpawnPoint" type="Marker2D" parent="Interior" unique_id=568013558]
-position = Vector2(506, 508)
-
-[node name="TileMapLayer" type="TileMapLayer" parent="Interior" unique_id=1827242283]
-tile_map_data = PackedByteArray("AAAEAAIACAA3AFQAAAAEAAMACAA3AFUAAAAFAAIACAA4AFQAAAAFAAMACAA4AFUAAAAGAAIACAA3AFQAAAAGAAMACAA3AFUAAAAHAAIACAA4AFQAAAAHAAMACAA4AFUAAAAIAAIACAA3AFQAAAAIAAMACAA3AFUAAAAJAAIACAA4AFQAAAAJAAMACAA4AFUAAAAKAAIACAA3AFQAAAAKAAMACAA3AFUAAAALAAIACAA4AFQAAAALAAMACAA4AFUAAAAMAAIACAA3AFQAAAAMAAMACAA3AFUAAAANAAIACAA4AFQAAAANAAMACAA4AFUAAAAOAAIACAA3AFQAAAAOAAMACAA3AFUAAAAPAAIACAA4AFQAAAAPAAMACAA4AFUAAAAQAAIACAA3AFQAAAAQAAMACAA3AFUAAAARAAIACAA5AFIAAAARAAMACAA5AFMAAAARAAQACAA5AFQAAAARAAUACAA5AFQAAAARAAYACAA5AFQAAAARAAcACAA5AFQAAAARAAgACAA5AFQAAAARAAkACAA5AFQAAAARAAoACAA5AFQAAAARAAsACAA5AFQAAAAOAAwACAA3AFcAAAAPAAwACAA3AFcAAAAQAAwACAA4AFcAAAARAAwACAA5AFcAAAANAAwACAA3AFcAAAAMAAwACAA3AFcAAAALAAwACAA3AFcAAAAKAAwACAAXAAMAAAAJAAwACAA3AFcAAAAIAAwACAA3AFcAAAAHAAwACAA3AFcAAAAGAAwACAA3AFcAAAAFAAwACAA3AFcAAAAEAAwACAA3AFcAAAADAAsACAA2AFQAAAADAAoACAA2AFQAAAADAAkACAA2AFQAAAADAAgACAA2AFQAAAADAAcACAA2AFQAAAADAAYACAA2AFQAAAADAAUACAA2AFQAAAADAAQACAA2AFQAAAADAAIACAA2AFIAAAADAAMACAA2AFMAAAADAAwACAA2AFcAAAAEAAQACAAiACkAAAAEAAUACAAiACoAAAAFAAQACAAjACkAAAAFAAUACAAjACoAAAAGAAQACAAkACkAAAAGAAUACAAkACoAAAAEAAYACAAiACkAAAAEAAcACAAiACoAAAAFAAYACAAjACkAAAAFAAcACAAjACoAAAAGAAYACAAkACkAAAAGAAcACAAkACoAAAAEAAgACAAiACkAAAAEAAkACAAiACoAAAAFAAgACAAjACkAAAAFAAkACAAjACoAAAAGAAgACAAkACkAAAAGAAkACAAkACoAAAAEAAoACAAiACkAAAAEAAsACAAiACoAAAAFAAoACAAjACkAAAAFAAsACAAjACoAAAAGAAoACAAkACkAAAAGAAsACAAkACoAAAAHAAQACAAiACkAAAAHAAUACAAiACoAAAAIAAQACAAjACkAAAAIAAUACAAjACoAAAAJAAQACAAkACkAAAAJAAUACAAkACoAAAAHAAYACAAiACkAAAAHAAcACAAiACoAAAAIAAYACAAjACkAAAAIAAcACAAjACoAAAAJAAYACAAkACkAAAAJAAcACAAkACoAAAAHAAgACAAiACkAAAAHAAkACAAiACoAAAAIAAgACAAjACkAAAAIAAkACAAjACoAAAAJAAgACAAkACkAAAAJAAkACAAkACoAAAAHAAoACAAiACkAAAAHAAsACAAiACoAAAAIAAoACAAjACkAAAAIAAsACAAjACoAAAAJAAoACAAkACkAAAAJAAsACAAkACoAAAAKAAQACAAiACkAAAAKAAUACAAiACoAAAALAAQACAAjACkAAAALAAUACAAjACoAAAAMAAQACAAkACkAAAAMAAUACAAkACoAAAAKAAYACAAiACkAAAAKAAcACAAiACoAAAALAAYACAAjACkAAAALAAcACAAjACoAAAAMAAYACAAkACkAAAAMAAcACAAkACoAAAAKAAgACAAiACkAAAAKAAkACAAiACoAAAALAAgACAAjACkAAAALAAkACAAjACoAAAAMAAgACAAkACkAAAAMAAkACAAkACoAAAAKAAoACAAiACkAAAAKAAsACAAiACoAAAALAAoACAAjACkAAAALAAsACAAjACoAAAAMAAoACAAkACkAAAAMAAsACAAkACoAAAANAAQACAAiACkAAAANAAUACAAiACoAAAAOAAQACAAjACkAAAAOAAUACAAjACoAAAAPAAQACAAkACkAAAAPAAUACAAkACoAAAANAAYACAAiACkAAAANAAcACAAiACoAAAAOAAYACAAjACkAAAAOAAcACAAjACoAAAAPAAYACAAkACkAAAAPAAcACAAkACoAAAANAAgACAAiACkAAAANAAkACAAiACoAAAAOAAgACAAjACkAAAAOAAkACAAjACoAAAAPAAgACAAkACkAAAAPAAkACAAkACoAAAANAAoACAAiACkAAAANAAsACAAiACoAAAAOAAoACAAjACkAAAAOAAsACAAjACoAAAAPAAoACAAkACkAAAAPAAsACAAkACoAAAAQAAQACAAiACkAAAAQAAUACAAiACoAAAAQAAYACAAiACkAAAAQAAcACAAiACoAAAAQAAgACAAiACkAAAAQAAkACAAiACoAAAAQAAoACAAiACkAAAAQAAsACAAiACoAAAA=")
-tile_set = ExtResource("5_j7dm0")
 
 [node name="Player" parent="." unique_id=1668827685 instance=ExtResource("6_pxu16")]
 z_as_relative = false
@@ -301,3 +262,23 @@ script = ExtResource("14_time")
 script = ExtResource("15_cycle")
 time_manager = NodePath("../TimeManager")
 day_night_gradient = ExtResource("16_grad")
+
+[node name="PropertyBuilding" parent="." unique_id=104110780 instance=ExtResource("11_hnl4b")]
+
+[node name="Exterior" parent="PropertyBuilding" index="1" unique_id=148752322]
+position = Vector2(2952, -869)
+
+[node name="DoorSprite" parent="PropertyBuilding/Exterior" index="0" unique_id=878840216]
+sprite_frames = SubResource("SpriteFrames_mpri2")
+animation = &"door_open"
+
+[node name="DoorToInterior" parent="PropertyBuilding/Exterior" index="1" unique_id=817790428]
+position = Vector2(4, 68)
+
+[node name="Interior" parent="PropertyBuilding" index="2" unique_id=572991576]
+position = Vector2(-1125, 652)
+
+[node name="ExteriorSpawnPoint" parent="PropertyBuilding" index="3" unique_id=1199339619]
+position = Vector2(2958, -759)
+
+[editable path="PropertyBuilding"]

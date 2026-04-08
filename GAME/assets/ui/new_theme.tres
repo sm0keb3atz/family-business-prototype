@@ -60,25 +60,79 @@ texture = ExtResource("1_0v40e")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1g5sb"]
 texture = ExtResource("3_q57i6")
-texture_margin_left = 10.0
-texture_margin_top = 2.0
-texture_margin_right = 10.0
-texture_margin_bottom = 2.0
-expand_margin_left = 4.0
-expand_margin_top = 7.0
-expand_margin_right = 4.0
-expand_margin_bottom = 7.0
-region_rect = Rect2(0, 19, 48, 11)
+texture_margin_left = 4.0
+texture_margin_top = 4.0
+texture_margin_right = 4.0
+texture_margin_bottom = 5.0
+expand_margin_left = 3.0
+expand_margin_top = 3.0
+expand_margin_right = 3.0
+expand_margin_bottom = 3.0
+region_rect = Rect2(6, 131, 38, 11)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hc6lp"]
 texture = ExtResource("3_q57i6")
 texture_margin_left = 10.0
+texture_margin_top = 1.0
 texture_margin_right = 10.0
-expand_margin_left = 1.0
-expand_margin_top = 1.0
-expand_margin_right = 1.0
-expand_margin_bottom = 1.0
-region_rect = Rect2(51, 54, 42, 5)
+texture_margin_bottom = 1.0
+region_rect = Rect2(57, 181, 32, 5)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_sjcy7"]
+texture = ExtResource("1_0v40e")
+texture_margin_left = 2.0
+texture_margin_top = 3.0
+texture_margin_right = 2.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(32, 160, 32, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_85hqq"]
+texture = ExtResource("1_0v40e")
+texture_margin_left = 3.0
+texture_margin_top = 3.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(128, 128, 32, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_vnf4b"]
+texture = ExtResource("1_0v40e")
+texture_margin_left = 3.0
+texture_margin_top = 3.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(128, 160, 32, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dg62n"]
+texture = ExtResource("1_0v40e")
+texture_margin_left = 2.0
+texture_margin_top = 3.0
+texture_margin_right = 2.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(32, 160, 32, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_k6plb"]
+texture = ExtResource("1_0v40e")
+texture_margin_left = 2.0
+texture_margin_top = 3.0
+texture_margin_right = 2.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(32, 160, 32, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gh50o"]
+texture = ExtResource("1_0v40e")
+texture_margin_left = 3.0
+texture_margin_top = 3.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(128, 128, 32, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dmqr3"]
+texture = ExtResource("1_0v40e")
+texture_margin_left = 3.0
+texture_margin_top = 3.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(128, 160, 32, 32)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_q57i6"]
 texture = ExtResource("1_0v40e")
@@ -125,6 +179,9 @@ Button/styles/focus = SubResource("StyleBoxEmpty_q57i6")
 Button/styles/hover = SubResource("StyleBoxTexture_nxi86")
 Button/styles/normal = SubResource("StyleBoxTexture_fn1hy")
 Button/styles/pressed = SubResource("StyleBoxTexture_j24ss")
+Label/colors/font_outline_color = Color(0, 0, 0, 1)
+Label/constants/outline_size = 4
+Label/fonts/font = ExtResource("1_rticl")
 OptionButton/fonts/font = ExtResource("1_rticl")
 OptionButton/icons/arrow = SubResource("AtlasTexture_q57i6")
 OptionButton/styles/hover = SubResource("StyleBoxTexture_nxi86")
@@ -142,6 +199,15 @@ PopupMenu/styles/panel = SubResource("StyleBoxTexture_40mk3")
 PopupPanel/styles/panel = SubResource("StyleBoxTexture_p7403")
 ProgressBar/styles/background = SubResource("StyleBoxTexture_1g5sb")
 ProgressBar/styles/fill = SubResource("StyleBoxTexture_hc6lp")
+SpinBox/styles/down_background = SubResource("StyleBoxTexture_sjcy7")
+SpinBox/styles/down_background_hovered = SubResource("StyleBoxTexture_85hqq")
+SpinBox/styles/down_background_pressed = SubResource("StyleBoxTexture_vnf4b")
+SpinBox/styles/field_and_buttons_separator = SubResource("StyleBoxTexture_dg62n")
+SpinBox/styles/up_background = SubResource("StyleBoxTexture_k6plb")
+SpinBox/styles/up_background_hovered = SubResource("StyleBoxTexture_gh50o")
+SpinBox/styles/up_background_pressed = SubResource("StyleBoxTexture_dmqr3")
+SpinBoxInnerLineEdit/base_type = &"SpinBox"
+SpinBoxInnerLineEdit/styles/down_background_disabled = null
 Tree/styles/button_hover = SubResource("StyleBoxTexture_q57i6")
 Tree/styles/hovered = SubResource("StyleBoxTexture_8rc6p")
 Tree/styles/hovered_selected = SubResource("StyleBoxTexture_oem28")

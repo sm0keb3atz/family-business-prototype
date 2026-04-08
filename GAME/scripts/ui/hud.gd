@@ -4,6 +4,8 @@ class_name HUD
 @onready var health_bar: ProgressBar = $Hud/HealthBar
 @onready var xp_bar: ProgressBar = $Hud/XPBar
 @onready var money_label: Label = $Hud/MoneyLabel
+@onready var clean_money_label: Label = $Hud/CleanMoneyLabel
+@onready var debt_label: Label = $Hud/DebtLabel
 @onready var heat_bar: ProgressBar = $Hud/HeatBar
 @onready var heat_buff_label: Label = $Hud/HeatBuffLabel
 @onready var stars_container: Control = $Hud/StarsContainer
@@ -35,6 +37,7 @@ var territory_tracking_ready: bool = false
 func _ready() -> void:
 	# Add nodes dynamically since the original tscn was just a TextureRect
 	_setup_ui_nodes()
+	_setup_economy_labels()
 	_reset_territory_ui()
 	
 	# Try to find player
@@ -64,6 +67,13 @@ func _setup_ui_nodes() -> void:
 				# They are pre-placed in the editor now
 				star_nodes.append(child)
 
+func _setup_economy_labels() -> void:
+	# Hide clean/debt labels initially (they appear when values > 0)
+	if is_instance_valid(clean_money_label):
+		clean_money_label.visible = false
+	if is_instance_valid(debt_label):
+		debt_label.visible = false
+
 func _process(delta: float) -> void:
 	if not player:
 		player = get_tree().get_first_node_in_group("player")
@@ -79,10 +89,9 @@ func _process(delta: float) -> void:
 			if player.weapon_holder_component and player.weapon_holder_component.current_weapon:
 				_on_weapon_changed(player.weapon_holder_component.current_weapon)
 
-			if player.get("progression"):
-				displayed_money = float(player.get("progression").get("money"))
-				if is_instance_valid(money_label):
-					money_label.text = "$" + str(roundi(displayed_money))
+			if is_instance_valid(money_label):
+				displayed_money = float(NetworkManager.economy.dirty_money)
+				money_label.text = "$" + str(roundi(displayed_money))
 			
 			_setup_territory_tracking()
 			
@@ -95,15 +104,24 @@ func _process(delta: float) -> void:
 				_on_date_updated(tm.current_day, tm.current_month, tm.current_year)
 		return
 		
-	# Update Money and XP dynamically for now
-	if is_instance_valid(money_label) and player.get("progression"):
-		var target_money: float = float(player.get("progression").get("money"))
+	# Update Money display — dirty money with smooth lerp
+	if is_instance_valid(money_label):
+		var target_money: float = float(NetworkManager.economy.dirty_money)
 		if abs(displayed_money - target_money) > 0.5:
 			displayed_money = lerp(displayed_money, target_money, 5.0 * delta)
 		else:
 			displayed_money = target_money
-			
 		money_label.text = "$" + str(roundi(displayed_money))
+	
+	# Update clean money label
+	if is_instance_valid(clean_money_label):
+		clean_money_label.text = "$" + str(NetworkManager.economy.clean_money)
+		clean_money_label.visible = NetworkManager.economy.clean_money > 0
+	
+	# Update debt label
+	if is_instance_valid(debt_label):
+		debt_label.text = "-$" + str(NetworkManager.economy.debt)
+		debt_label.visible = NetworkManager.economy.debt > 0
 	
 	if is_instance_valid(xp_bar) and player.get("progression"):
 		var current_xp = player.get("progression").get("xp")

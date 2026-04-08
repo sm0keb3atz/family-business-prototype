@@ -7,6 +7,7 @@
 [ext_resource type="BehaviorTree" uid="uid://djrt6v1dys2m5" path="res://GAME/resources/ai/dealer_bt.tres" id="5_xciht"]
 [ext_resource type="BehaviorTree" uid="uid://dxb0568i3p5h2" path="res://GAME/resources/npc/police_bt.tres" id="6_vx2jy"]
 [ext_resource type="BehaviorTree" uid="uid://b1qnqq3mh3j5u" path="res://GAME/resources/ai/customer_bt.tres" id="7_p6lgs"]
+[ext_resource type="Script" uid="uid://c2dealertraffic1" path="res://GAME/scripts/components/territory_dealer_traffic_component.gd" id="8_traffic"]
 
 [node name="TerritoryArea" type="Area2D"]
 y_sort_enabled = true
@@ -25,6 +26,9 @@ customer_scene = ExtResource("4_1uync")
 dealer_bt = ExtResource("5_xciht")
 police_bt = ExtResource("6_vx2jy")
 customer_bt = ExtResource("7_p6lgs")
+
+[node name="DealerTraffic" type="Node" parent="."]
+script = ExtResource("8_traffic")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=791756006]
 debug_color = Color(0.7, 0, 0, 0.42)

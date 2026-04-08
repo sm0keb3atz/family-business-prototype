@@ -31,6 +31,10 @@ func _on_body_exited(body: Node2D) -> void:
 
 func interact() -> void:
 	print("DoorTrigger: Interaction triggered for ", name, ". door_node is: ", door_node.name if door_node else "NULL")
+	var player = get_tree().get_first_node_in_group("player")
+	if player:
+		player.set("_is_interacting", false)
+		
 	var map_manager = get_tree().get_first_node_in_group("map_manager")
 	if map_manager and map_manager.has_method("interact_with_door"):
 		var target_pos = Vector2.ZERO

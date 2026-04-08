@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://d30d1v3o1bu8i"]
 
-[ext_resource type="Texture2D" uid="uid://dgf2olh1cwum4" path="res://GAME/assets/ui/newhud.png" id="1_al4ug"]
 [ext_resource type="Script" uid="uid://cgtlgcb34jpb6" path="res://GAME/scripts/ui/hud.gd" id="2_hud"]
+[ext_resource type="Texture2D" uid="uid://ds7per57ehgu5" path="res://GAME/assets/ui/newhud1.png" id="2_rc6iq"]
 [ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="3_iw68g"]
-[ext_resource type="Texture2D" uid="uid://cmbmd3uuppjex" path="res://GAME/assets/ui/Progress Bar/04.png" id="4_o4n1q"]
+[ext_resource type="Texture2D" uid="uid://eltexlfq1jvp" path="res://GAME/assets/ui/newhudPB.png" id="3_lc1f1"]
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="6_o4n1q"]
 [ext_resource type="Texture2D" uid="uid://bxloexmntqf1s" path="res://GAME/assets/icons/WeedBaggie.png" id="6_rc6iq"]
 [ext_resource type="Texture2D" uid="uid://dlg1l3sj3osod" path="res://GAME/assets/ui/star1.tres" id="6_vmk76"]
@@ -15,18 +15,40 @@
 [ext_resource type="Texture2D" uid="uid://bgg6ek4cdahh7" path="res://GAME/assets/ui/star5.tres" id="10_rc6iq"]
 [ext_resource type="Texture2D" uid="uid://fvkq6n2gwyf7" path="res://GAME/assets/sprites/weapons/pistol/glocklv1.png" id="11_3dept"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1o6fb"]
-texture = ExtResource("4_o4n1q")
-texture_margin_left = 10.0
-texture_margin_right = 10.0
-region_rect = Rect2(51, 38, 42, 5)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_422lj"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lqaif"]
-texture = ExtResource("4_o4n1q")
-texture_margin_left = 10.0
-texture_margin_right = 10.0
-region_rect = Rect2(51, 6, 42, 5)
-modulate_color = Color(5.2618666, 5.2618666, 0, 1)
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_glqp8"]
+texture = ExtResource("3_lc1f1")
+texture_margin_left = 1.0
+texture_margin_bottom = 1.0
+region_rect = Rect2(17, 659, 173, 7)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_83f4h"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_oe41a"]
+texture = ExtResource("3_lc1f1")
+texture_margin_left = 1.0
+texture_margin_right = 1.0
+texture_margin_bottom = 1.0
+region_rect = Rect2(17, 688, 174, 7)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3yhhn"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_8s0dv"]
+texture = ExtResource("3_lc1f1")
+texture_margin_left = 1.0
+texture_margin_top = 1.0
+texture_margin_right = 1.0
+texture_margin_bottom = 1.0
+region_rect = Rect2(495, 100, 287, 14)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_nahip"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_rimug"]
+texture = ExtResource("3_lc1f1")
+texture_margin_right = 1.0
+texture_margin_bottom = 1.0
+region_rect = Rect2(1168, 70, 81, 7)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_lc1f1"]
 animations = [{
@@ -59,57 +81,57 @@ script = ExtResource("2_hud")
 texture_filter = 1
 offset_right = 40.0
 offset_bottom = 40.0
-texture = ExtResource("1_al4ug")
+texture = ExtResource("2_rc6iq")
 
 [node name="HealthBar" type="ProgressBar" parent="Hud" unique_id=1584514550]
-custom_minimum_size = Vector2(10, 10)
 layout_mode = 0
-offset_left = 26.0
-offset_top = 994.0
-offset_right = 149.0
-offset_bottom = 1021.0
-scale = Vector2(2, 0.5)
-theme = ExtResource("3_iw68g")
+offset_left = 19.0
+offset_top = 639.0
+offset_right = 326.0
+offset_bottom = 666.45
+scale = Vector2(1, 0.4)
 theme_override_colors/font_color = Color(0, 0, 0, 0)
+theme_override_styles/background = SubResource("StyleBoxEmpty_422lj")
+theme_override_styles/fill = SubResource("StyleBoxTexture_glqp8")
 value = 100.0
 
 [node name="XPBar" type="ProgressBar" parent="Hud" unique_id=1943781171]
 layout_mode = 0
-offset_left = 26.0
-offset_top = 1033.0
-offset_right = 149.0
-offset_bottom = 1060.0
-scale = Vector2(2, 0.5)
-theme = ExtResource("3_iw68g")
+offset_left = 19.0
+offset_top = 668.0
+offset_right = 326.0
+offset_bottom = 695.45
+scale = Vector2(1, 0.4)
 theme_override_colors/font_color = Color(0, 0, 0, 0)
-theme_override_styles/fill = SubResource("StyleBoxTexture_1o6fb")
+theme_override_styles/background = SubResource("StyleBoxEmpty_83f4h")
+theme_override_styles/fill = SubResource("StyleBoxTexture_oe41a")
 max_value = 1000.0
 value = 500.0
 
 [node name="PlayerLevelLabel" type="Label" parent="Hud" unique_id=2000000006]
 layout_mode = 0
-offset_left = 26.0
-offset_top = 1055.0
-offset_right = 274.0
-offset_bottom = 1078.0
-theme_override_colors/font_color = Color(0, 0.8039216, 0.9764706, 1)
+offset_left = 47.0
+offset_top = 691.0
+offset_right = 295.0
+offset_bottom = 714.0
+theme_override_colors/font_color = Color(0.2901961, 0.5568628, 0.9019608, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.752941)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("6_o4n1q")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 16
 text = "Level 1      0/500 XP"
 horizontal_alignment = 1
 
 [node name="MoneyLabel" type="Label" parent="Hud" unique_id=935028863]
 layout_mode = 0
-offset_left = 22.0
-offset_top = 930.0
-offset_right = 222.0
-offset_bottom = 958.0
-theme_override_colors/font_color = Color(0.2, 0.8, 0.2, 1)
+offset_left = 19.0
+offset_top = 590.0
+offset_right = 219.0
+offset_bottom = 618.0
+theme_override_colors/font_color = Color(0.4, 1, 0.4, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.753)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/line_spacing = 3
@@ -120,41 +142,59 @@ theme_override_fonts/font = ExtResource("6_o4n1q")
 theme_override_font_sizes/font_size = 20
 text = "$0"
 
-[node name="TerritoryReputationBar" type="ProgressBar" parent="Hud" unique_id=2100000001]
+[node name="CleanMoneyLabel" type="Label" parent="Hud" unique_id=935028864]
 layout_mode = 0
-offset_left = 810.0
-offset_top = 137.0
-offset_right = 1010.0
-offset_bottom = 164.0
-scale = Vector2(1.5, 0.7)
-theme = ExtResource("3_iw68g")
-theme_override_colors/font_color = Color(0, 0, 0, 0)
-value = 50.0
-
-[node name="TerritoryNameLabel" type="Label" parent="Hud" unique_id=2100000002]
-layout_mode = 0
-offset_left = 791.0
-offset_top = 48.0
-offset_right = 1139.0
-offset_bottom = 81.0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+offset_left = 19.0
+offset_top = 567.0
+offset_right = 219.0
+offset_bottom = 595.0
+theme_override_colors/font_color = Color(0.2901961, 0.5568628, 0.9019608, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.753)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/line_spacing = 3
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 4
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("6_o4n1q")
-theme_override_font_sizes/font_size = 30
-text = "Territory: Neutral"
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 20
+text = "$0"
 
-[node name="PricesLabel" type="Label" parent="Hud" unique_id=2100000003]
+[node name="DebtLabel" type="Label" parent="Hud" unique_id=935028865]
 layout_mode = 0
-offset_left = 810.0
-offset_top = 111.0
-offset_right = 1110.0
-offset_bottom = 139.0
+offset_left = 352.0
+offset_top = 696.0
+offset_right = 552.0
+offset_bottom = 719.0
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.753)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/line_spacing = 3
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("6_o4n1q")
+theme_override_font_sizes/font_size = 8
+text = "-$0"
+
+[node name="TerritoryReputationBar" type="ProgressBar" parent="Hud" unique_id=2100000001]
+layout_mode = 0
+offset_left = 495.0
+offset_top = 111.00001
+offset_right = 781.985
+offset_bottom = 134.34
+scale = Vector2(1, 0.6)
+theme = ExtResource("3_iw68g")
+theme_override_colors/font_color = Color(0, 0, 0, 0)
+theme_override_styles/background = SubResource("StyleBoxEmpty_3yhhn")
+theme_override_styles/fill = SubResource("StyleBoxTexture_8s0dv")
+value = 50.0
+
+[node name="TerritoryNameLabel" type="Label" parent="Hud" unique_id=2100000002]
+layout_mode = 0
+offset_left = 470.0
+offset_top = 42.0
+offset_right = 818.0
+offset_bottom = 75.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -164,26 +204,44 @@ theme_override_constants/shadow_offset_y = 4
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("6_o4n1q")
 theme_override_font_sizes/font_size = 16
+text = "Territory: Neutral"
+horizontal_alignment = 1
+
+[node name="PricesLabel" type="Label" parent="Hud" unique_id=2100000003]
+layout_mode = 0
+offset_left = 496.0
+offset_top = 85.0
+offset_right = 796.0
+offset_bottom = 113.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/line_spacing = 3
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 4
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("6_o4n1q")
+theme_override_font_sizes/font_size = 10
 text = "Prices: Normal"
 horizontal_alignment = 1
 
 [node name="WeedPriceIcon" type="TextureRect" parent="Hud" unique_id=1579292204]
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(20, 20)
 layout_mode = 0
-offset_left = 755.0
-offset_top = 81.0
-offset_right = 783.0
-offset_bottom = 109.0
+offset_left = 495.0
+offset_top = 66.0
+offset_right = 515.0
+offset_bottom = 86.0
 texture = ExtResource("6_rc6iq")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="WeedPriceLabel" type="Label" parent="Hud" unique_id=457945147]
 layout_mode = 0
-offset_left = 787.0
-offset_top = 84.0
-offset_right = 877.0
-offset_bottom = 108.0
+offset_left = 515.0
+offset_top = 66.0
+offset_right = 605.0
+offset_bottom = 90.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -191,26 +249,26 @@ theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 4
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("6_o4n1q")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = "$--/g"
 
 [node name="CokePriceIcon" type="TextureRect" parent="Hud" unique_id=1460563133]
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(20, 20)
 layout_mode = 0
-offset_left = 912.0
-offset_top = 84.0
-offset_right = 940.0
-offset_bottom = 112.0
+offset_left = 603.0
+offset_top = 66.0
+offset_right = 623.0
+offset_bottom = 86.0
 texture = ExtResource("7_lc1f1")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="CokePriceLabel" type="Label" parent="Hud" unique_id=1383904300]
 layout_mode = 0
-offset_left = 944.0
-offset_top = 87.0
-offset_right = 1034.0
-offset_bottom = 111.0
+offset_left = 623.0
+offset_top = 66.0
+offset_right = 713.0
+offset_bottom = 90.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -218,26 +276,26 @@ theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 4
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("6_o4n1q")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = "$--/g"
 
 [node name="FettyPriceIcon" type="TextureRect" parent="Hud" unique_id=588459895]
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(20, 20)
 layout_mode = 0
-offset_left = 1070.0
-offset_top = 81.0
-offset_right = 1098.0
-offset_bottom = 109.0
+offset_left = 727.0
+offset_top = 66.0
+offset_right = 747.0
+offset_bottom = 86.0
 texture = ExtResource("8_422lj")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="FettyPriceLabel" type="Label" parent="Hud" unique_id=1885621206]
 layout_mode = 0
-offset_left = 1102.0
-offset_top = 84.0
-offset_right = 1192.0
-offset_bottom = 108.0
+offset_left = 747.0
+offset_top = 66.0
+offset_right = 837.0
+offset_bottom = 90.0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -245,43 +303,47 @@ theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 4
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("6_o4n1q")
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 12
 text = "$--/g"
 
 [node name="HeatBar" type="ProgressBar" parent="Hud" unique_id=123456789]
 layout_mode = 0
-offset_left = 1721.0001
-offset_top = 48.0
-offset_right = 1836.0001
-offset_bottom = 75.0
-scale = Vector2(1.5, 0.5)
-theme = ExtResource("3_iw68g")
+offset_left = 1128.0
+offset_top = 81.0
+offset_right = 1249.0
+offset_bottom = 104.37
+scale = Vector2(1, 0.3)
 theme_override_colors/font_color = Color(0, 0, 0, 0)
-theme_override_styles/fill = SubResource("StyleBoxTexture_lqaif")
+theme_override_styles/background = SubResource("StyleBoxEmpty_nahip")
+theme_override_styles/fill = SubResource("StyleBoxTexture_rimug")
+value = 50.0
 
 [node name="HeatBuffLabel" type="Label" parent="Hud" unique_id=234567891]
 layout_mode = 0
-offset_left = 1708.0001
-offset_top = 9.0
-offset_right = 1864.0001
-offset_bottom = 31.0
+offset_left = 1114.0
+offset_top = 10.0
+offset_right = 1270.0
+offset_bottom = 32.0
 scale = Vector2(1.5, 1.5)
 theme_override_colors/font_color = Color(1, 0, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("6_o4n1q")
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 8
 text = "HEAT DEACY Buff: +0%"
 
 [node name="StarsContainer" type="Control" parent="Hud" unique_id=987654321]
+texture_filter = 1
 anchors_preset = 0
-offset_left = 1728.0
-offset_top = 68.0
-offset_right = 1978.0
-offset_bottom = 108.0
+offset_left = 1124.0
+offset_top = 45.0
+offset_right = 1374.0
+offset_bottom = 85.0
+scale = Vector2(0.8, 0.8)
 
 [node name="Stars" type="AnimatedSprite2D" parent="Hud/StarsContainer" unique_id=1368590803]
 position = Vector2(1, 13)
+scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_lc1f1")
 frame = 4
 frame_progress = 0.182108
@@ -289,41 +351,45 @@ flip_h = true
 
 [node name="Stars2" type="AnimatedSprite2D" parent="Hud/StarsContainer" unique_id=1162165162]
 position = Vector2(33, 13)
+scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_lc1f1")
 flip_h = true
 
 [node name="Stars3" type="AnimatedSprite2D" parent="Hud/StarsContainer" unique_id=1266332875]
 position = Vector2(65, 13)
+scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_lc1f1")
 flip_h = true
 
 [node name="Stars4" type="AnimatedSprite2D" parent="Hud/StarsContainer" unique_id=10225528]
 position = Vector2(97, 13)
+scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_lc1f1")
 flip_h = true
 
 [node name="Stars5" type="AnimatedSprite2D" parent="Hud/StarsContainer" unique_id=1064644851]
 position = Vector2(129, 13)
+scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_lc1f1")
 flip_h = true
 
 [node name="Stars6" type="AnimatedSprite2D" parent="Hud/StarsContainer" unique_id=1447400415]
 position = Vector2(161, 13)
+scale = Vector2(1.5, 1.5)
 sprite_frames = SubResource("SpriteFrames_lc1f1")
 flip_h = true
 
 [node name="WeaponIcon" type="Sprite2D" parent="Hud" unique_id=640222834]
-position = Vector2(1711, 1019)
-scale = Vector2(1.5, 1.5)
+position = Vector2(1099, 672)
 texture = ExtResource("11_3dept")
 hframes = 12
 
 [node name="LevelLabel" type="Label" parent="Hud" unique_id=2000000003]
 layout_mode = 0
-offset_left = 1685.0001
-offset_top = 1037.0
-offset_right = 1749.0001
-offset_bottom = 1059.0
+offset_left = 1073.0
+offset_top = 680.0
+offset_right = 1137.0
+offset_bottom = 702.0
 scale = Vector2(1.5, 1.5)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
@@ -333,23 +399,24 @@ text = "LVL 1"
 
 [node name="AmmoLabel" type="Label" parent="Hud" unique_id=2000000004]
 layout_mode = 0
-offset_left = 1766.0
-offset_top = 1003.0
-offset_right = 1843.0
-offset_bottom = 1029.0
+offset_left = 1147.0
+offset_top = 659.0
+offset_right = 1224.0
+offset_bottom = 685.0
 scale = Vector2(1.5, 1.5)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("6_o4n1q")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 text = "17/60"
 
 [node name="UnarmedLabel" type="Label" parent="Hud" unique_id=2000000005]
+visible = false
 layout_mode = 0
-offset_left = 1708.0001
-offset_top = 1003.00006
-offset_right = 1831.0001
-offset_bottom = 1029.0
+offset_left = 1079.0
+offset_top = 659.0
+offset_right = 1202.0
+offset_bottom = 685.0
 scale = Vector2(1.5, 1.5)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
@@ -359,32 +426,32 @@ text = "UNARMED"
 
 [node name="ClockLabel" type="Label" parent="Hud" unique_id=-1294967295]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 48.0
-offset_right = 210.0
-offset_bottom = 76.0
+offset_left = -11.0
+offset_top = 45.0
+offset_right = 189.0
+offset_bottom = 73.0
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 4
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("6_o4n1q")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 16
 text = "08:00 AM"
 horizontal_alignment = 1
 
 [node name="DateLabel" type="Label" parent="Hud" unique_id=-1294967294]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 80.0
-offset_right = 210.0
-offset_bottom = 108.0
+offset_left = -11.0
+offset_top = 67.0
+offset_right = 189.0
+offset_bottom = 95.0
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 4
 theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("6_o4n1q")
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "Jan 01, 2026"
 horizontal_alignment = 1

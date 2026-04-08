@@ -85,7 +85,7 @@ func complete_deal() -> void:
 		var sale_payout: int = int(offered_payout)
 		if player_node.has_method("get_sale_payout_multiplier"):
 			sale_payout = roundi(float(offered_payout) * player_node.get_sale_payout_multiplier())
-		player_node.progression.money += sale_payout
+		NetworkManager.economy.add_dirty(sale_payout)
 		
 		var definition := DrugCatalog.get_definition(requested_drug_id)
 		var base_heat := definition.base_heat_per_gram if definition else HeatConfig.BASE_HEAT_PER_GRAM

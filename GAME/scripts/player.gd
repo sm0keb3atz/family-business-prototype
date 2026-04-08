@@ -32,6 +32,7 @@ var _is_interacting: bool = false
 var inventory_component: InventoryComponent
 var inventory_ui: InventoryUI
 var shop_ui: ShopUI
+var property_ui: PropertyUI
 var solicitation_component: SolicitationComponent
 var _base_stats: CharacterStatsResource
 
@@ -77,6 +78,10 @@ func _setup_inventory() -> void:
 	var shop_ui_scene = preload("res://GAME/scenes/ui/shop_ui.tscn")
 	shop_ui = shop_ui_scene.instantiate()
 	get_tree().root.call_deferred("add_child", shop_ui)
+	
+	var property_ui_scene = preload("res://GAME/scenes/ui/property_ui.tscn")
+	property_ui = property_ui_scene.instantiate()
+	get_tree().root.call_deferred("add_child", property_ui)
 	
 	var hud_scene = preload("res://GAME/scenes/ui/hud.tscn")
 	var hud = hud_scene.instantiate()

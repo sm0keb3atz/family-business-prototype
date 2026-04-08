@@ -5,6 +5,7 @@ class_name TerritoryArea
 
 @onready var reputation_component: TerritoryReputationComponent = get_node_or_null("ReputationComponent")
 @onready var spawner: TerritorySpawner = get_node_or_null("TerritorySpawner")
+@onready var dealer_traffic_component: TerritoryDealerTrafficComponent = get_node_or_null("DealerTraffic")
 @onready var collision_shape: CollisionShape2D = get_node_or_null("CollisionShape2D")
 
 func _ready() -> void:
@@ -75,3 +76,85 @@ func get_drug_price(drug_id: StringName) -> int:
 	
 	var base_price = territory_data.drug_prices.get(drug_id, 10)
 	return int(base_price * territory_data.price_multiplier)
+
+
+func get_territory_id() -> StringName:
+	return territory_data.territory_id if territory_data else &""
+
+
+func get_reputation() -> float:
+	return reputation_component.get_reputation() if reputation_component else 0.0
+
+
+func is_controlled() -> bool:
+	var territory_id: StringName = get_territory_id()
+	if territory_id == &"":
+		return false
+	return NetworkManager.is_territory_controlled(territory_id)
+
+
+func get_hired_dealer_count() -> int:
+	var territory_id: StringName = get_territory_id()
+	if territory_id == &"":
+		return 0
+	return NetworkManager.get_hired_dealer_slots(territory_id).size()
+
+
+func get_support_property_id() -> StringName:
+	var territory_id: StringName = get_territory_id()
+	if territory_id == &"":
+		return &""
+	return NetworkManager.get_territory_support_property_id(territory_id)
+
+
+func get_support_property() -> OwnedPropertyState:
+	var territory_id: StringName = get_territory_id()
+	if territory_id == &"":
+		return null
+	return NetworkManager.get_territory_support_property(territory_id)
+
+
+func get_support_property_name() -> String:
+	var property_state: OwnedPropertyState = get_support_property()
+	if property_state and property_state.property_data:
+		return property_state.property_data.display_name
+	return "None linked"
+
+
+func get_support_stash_dirty_cash() -> int:
+	var territory_id: StringName = get_territory_id()
+	if territory_id == &"":
+		return 0
+	var stash: StashInventory = NetworkManager.get_territory_support_stash(territory_id)
+	return stash.dirty_cash if stash else 0
+
+
+func get_support_status() -> Dictionary:
+	var territory_id: StringName = get_territory_id()
+	if territory_id == &"":
+		return {}
+	return NetworkManager.get_territory_support_status(territory_id)
+
+
+func has_support_property() -> bool:
+	return get_support_property() != null
+
+
+func is_support_network_productive() -> bool:
+	return bool(get_support_status().get("is_productive", false))
+
+
+func get_active_customer_count() -> int:
+	return spawner.get_active_customer_count() if spawner else 0
+
+
+func get_active_hired_dealer_count() -> int:
+	return spawner.get_active_hired_dealer_count() if spawner else 0
+
+
+func get_active_ambient_dealer_count() -> int:
+	return spawner.get_active_ambient_dealer_count() if spawner else 0
+
+
+func get_active_dealer_traffic_count() -> int:
+	return dealer_traffic_component.get_active_dealer_customer_count() if dealer_traffic_component else 0

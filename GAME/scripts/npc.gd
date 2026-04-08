@@ -189,7 +189,9 @@ func _update_ui_icon() -> void:
 		npc_ui.hide_request_badge()
 	
 	# Proactive check: if we just became interactable and player is already here, register!
-	var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false)) or is_potential_girlfriend
+	var is_dealer_customer: bool = blackboard and blackboard.has_var(&"is_dealer_customer") and blackboard.get_var(&"is_dealer_customer", false)
+	var solicited_ok: bool = blackboard and blackboard.get_var(&"is_solicited", false) and not is_dealer_customer
+	var can_interact = (role == Role.DEALER) or solicited_ok or is_potential_girlfriend
 	if can_interact and interact_area:
 		for body in interact_area.get_overlapping_bodies():
 			if body.is_in_group("player"):
@@ -326,7 +328,18 @@ func _physics_process(delta: float) -> void:
 		if player and global_position.distance_to(player.global_position) > 800.0:
 			blackboard.set_var(&"is_solicited", false)
 			_update_ui_icon()
-			
+
+	if blackboard and blackboard.has_var(&"is_dealer_customer") and blackboard.get_var(&"is_dealer_customer", false):
+		var dealer_node: Node2D = null
+		if blackboard.has_var(&"dealer_purchase_target"):
+			var raw_dealer: Variant = blackboard.get_var(&"dealer_purchase_target", null)
+			if is_instance_valid(raw_dealer) and raw_dealer is Node2D:
+				dealer_node = raw_dealer
+		if not is_instance_valid(dealer_node):
+			_reset_dealer_customer_state()
+		elif global_position.distance_to(dealer_node.global_position) > 1400.0:
+			_reset_dealer_customer_state()
+
 	# Girlfriend Request Logic
 	if gf_resource and gf_resource.is_following and not gf_is_requesting:
 		if gf_request_timer > 0.0:
@@ -443,6 +456,11 @@ func _setup_bt() -> void:
 			blackboard.set_var(&"last_known_velocity", Vector2.ZERO)
 			blackboard.set_var(&"heard_gunfire", false) # Track if gunshot was heard
 			blackboard.set_var(&"path_markers", []) # Ensure path_markers exists even for non-path characters
+			blackboard.set_var(&"is_dealer_customer", false)
+			blackboard.set_var(&"approach_target", null)
+			blackboard.set_var(&"dealer_purchase_target", null)
+			blackboard.set_var(&"dealer_purchase_drug_id", &"")
+			blackboard.set_var(&"dealer_purchase_grams", 0)
 
 	_setup_panic_audio()
 
@@ -664,7 +682,7 @@ func _handle_solicited_interaction(player: Node2D) -> void:
 		var sale_payout: int = int(payout)
 		if player.has_method("get_sale_payout_multiplier"):
 			sale_payout = roundi(float(payout) * player.get_sale_payout_multiplier())
-		player.get("progression").money += sale_payout
+		NetworkManager.economy.add_dirty(sale_payout)
 
 		# Apply Heat
 		var definition := DrugCatalog.get_definition(drug_id)
@@ -729,10 +747,10 @@ func _handle_solicited_interaction(player: Node2D) -> void:
 				npc_ui.hide_dialog_bubble()
 
 func _handle_girlfriend_money_request(player: Node2D) -> void:
-	if not player or not player.get("progression"): return
+	if not player: return
 	
-	if player.get("progression").money >= gf_request_amount:
-		player.get("progression").money -= gf_request_amount
+	if NetworkManager.economy.dirty_money >= gf_request_amount:
+		NetworkManager.economy.spend_dirty(gf_request_amount)
 		gf_resource.set_relationship(gf_resource.relationship + 10.0)
 		gf_is_requesting = false
 		gf_request_timer = randf_range(45.0, 90.0)
@@ -905,12 +923,25 @@ func call_back(target_pos: Vector2) -> void:
 	_boost_girlfriend_speed()
 
 
+func _reset_dealer_customer_state() -> void:
+	if not blackboard:
+		return
+	blackboard.set_var(&"is_dealer_customer", false)
+	blackboard.set_var(&"approach_target", null)
+	blackboard.set_var(&"dealer_purchase_target", null)
+	blackboard.set_var(&"dealer_purchase_drug_id", &"")
+	blackboard.set_var(&"dealer_purchase_grams", 0)
+	_update_ui_icon()
+
+
 func _evaluate_girlfriend_status() -> void:
 	if role != Role.CUSTOMER or gender != Gender.FEMALE or gf_resource != null or is_potential_girlfriend:
 		return
 		
 	# Don't solicit customers who are already in a transaction
 	if blackboard and blackboard.get_var(&"is_solicited", false):
+		return
+	if blackboard and blackboard.has_var(&"is_dealer_customer") and blackboard.get_var(&"is_dealer_customer", false):
 		return
 	
 	if randf() < 0.2: # 20% chance
@@ -923,7 +954,9 @@ func _on_interact_area_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player") and body.has_method("register_interactable"):
 		_evaluate_girlfriend_status()
 		# Only allow interaction if we are a dealer OR a solicited customer OR a potential GF OR requesting money
-		var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false)) or is_potential_girlfriend or gf_is_requesting
+		var is_dealer_customer: bool = blackboard and blackboard.has_var(&"is_dealer_customer") and blackboard.get_var(&"is_dealer_customer", false)
+		var solicited_enter: bool = blackboard and blackboard.get_var(&"is_solicited", false) and not is_dealer_customer
+		var can_interact = (role == Role.DEALER) or solicited_enter or is_potential_girlfriend or gf_is_requesting
 		if can_interact:
 			body.register_interactable(self)
 			if role == Role.DEALER:
