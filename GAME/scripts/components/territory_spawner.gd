@@ -5,6 +5,7 @@ class_name TerritorySpawner
 @export var dealer_scene: PackedScene
 @export var police_scene: PackedScene
 @export var customer_scene: PackedScene
+signal initial_spawn_complete
 
 @export_group("AI Resources")
 @export var dealer_bt: BehaviorTree
@@ -26,8 +27,11 @@ var _suspend_npc_removed_respawn: bool = false
 @onready var parent_territory: TerritoryArea = get_parent() as TerritoryArea
 
 func _ready() -> void:
+	add_to_group("territory_spawner")
 	if not parent_territory:
 		push_error("TerritorySpawner must be a child of a TerritoryArea")
+		# Emit even on failure so MapManager doesn't hang
+		initial_spawn_complete.emit()
 		return
 
 	if not NetworkManager.territory_control_changed.is_connected(_on_territory_control_changed):
@@ -47,9 +51,7 @@ func _on_ready_deferred_spawn() -> void:
 func _initial_spawn() -> void:
 	print("TerritorySpawner: Running initial spawn for ", parent_territory.name if parent_territory else "Unknown")
 	_check_and_spawn()
-
-func _process(_delta: float) -> void:
-	pass
+	initial_spawn_complete.emit()
 
 func get_active_dealers() -> Array[NPC]:
 	return _active_dealers.duplicate()

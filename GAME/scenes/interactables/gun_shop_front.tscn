@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://GAME/scripts/components/front_business_interact_area.gd" id="1_script"]
+[ext_resource type="Script" path="res://GAME/scripts/components/front_business_customer_traffic_component.gd" id="2_traffic"]
+[ext_resource type="Resource" path="res://GAME/resources/businesses/gun_shop_front.tres" id="3_business"]
+
+[sub_resource type="RectangleShape2D" id="1_shape"]
+size = Vector2(128, 49)
+
+[node name="GunShopFront" type="Area2D" unique_id=1575976419]
+script = ExtResource("1_script")
+business_data = ExtResource("3_business")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=647144106]
+position = Vector2(0, -23.5)
+shape = SubResource("1_shape")
+
+[node name="SalesAnchor" type="Marker2D" parent="." unique_id=1688322851]
+position = Vector2(-1, 12)
+
+[node name="FrontBusinessCustomerTrafficComponent" type="Node" parent="." unique_id=1437580487 node_paths=PackedStringArray("business_area", "sales_anchor")]
+script = ExtResource("2_traffic")
+business_area = NodePath("..")
+sales_anchor = NodePath("../SalesAnchor")

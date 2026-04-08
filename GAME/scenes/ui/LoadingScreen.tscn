@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b5laaw1tfo6bw"]
 
-[ext_resource type="Script" uid="uid://bndjwh5tkhj36" path="res://GAME/scripts/UI/LoadingScreen.gd" id="1_loading_screen"]
+[ext_resource type="Script" uid="uid://bndjwh5tkhj36" path="res://GAME/scripts/ui/LoadingScreen.gd" id="1_loading_screen"]
 [ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="2_xr606"]
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="3_1vj6p"]
 

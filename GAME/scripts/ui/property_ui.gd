@@ -140,7 +140,9 @@ func _update_ui() -> void:
 		stash_drug_list.add_child(_create_stash_row(drug_id, stash.bricks[drug_id], true))
 
 func _update_support_labels() -> void:
-	var property_id: StringName = current_property.property_data.property_id if current_property and current_property.property_data else &""
+	var property_id: StringName = &""
+	if current_property and current_property.property_data:
+		property_id = current_property.property_data.property_id
 	var supported_territory_id: StringName = NetworkManager.get_supported_territory_for_property(property_id)
 	if supported_territory_id == &"":
 		support_role_label.text = "Support Role: Not assigned as a territory hub"
@@ -207,7 +209,7 @@ func _on_deposit_drug(drug_id: StringName, is_brick: bool, all: bool) -> void:
 	var unit_weight = 100 if is_brick else 1
 	var free_space = stash.get_free_capacity()
 
-	var max_affordable_units = free_space / unit_weight
+	var max_affordable_units: int = int(free_space / unit_weight)
 	var actual_amount = clampi(req_amount, 0, min(qty_owned, max_affordable_units))
 
 	if actual_amount > 0:

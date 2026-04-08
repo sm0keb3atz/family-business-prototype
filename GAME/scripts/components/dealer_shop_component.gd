@@ -28,7 +28,10 @@ func _process(delta: float) -> void:
 	if not tier_config:
 		return
 	if _is_hired_dealer():
-		_sync_current_drug(current_drug_definition.id if current_drug_definition else &"")
+		var preferred_id: StringName = &""
+		if current_drug_definition:
+			preferred_id = current_drug_definition.id
+		_sync_current_drug(preferred_id)
 		return
 
 	if _is_depleted():
@@ -58,7 +61,9 @@ func _configure_hired_inventory_profile() -> void:
 
 	var options := tier_config.stock_options
 	if options.is_empty():
-		current_drug_definition = tier_config.allowed_drugs[0] if not tier_config.allowed_drugs.is_empty() else null
+		current_drug_definition = null
+		if not tier_config.allowed_drugs.is_empty():
+			current_drug_definition = tier_config.allowed_drugs[0]
 		current_stock_uses_bricks = tier_config.tier_level == 4
 		if current_drug_definition:
 			stock_by_drug[current_drug_definition.id] = 0
@@ -88,7 +93,9 @@ func _roll_stock() -> void:
 
 	var options := tier_config.stock_options
 	if options.is_empty():
-		current_drug_definition = tier_config.allowed_drugs[0] if not tier_config.allowed_drugs.is_empty() else null
+		current_drug_definition = null
+		if not tier_config.allowed_drugs.is_empty():
+			current_drug_definition = tier_config.allowed_drugs[0]
 		current_stock_uses_bricks = tier_config.tier_level == 4
 		if current_drug_definition:
 			var amount := randi_range(tier_config.min_stock, tier_config.max_stock)
@@ -135,7 +142,9 @@ func _get_hired_stock_amount(drug_id: StringName) -> int:
 func _sync_current_drug(preferred_drug_id: StringName = &"") -> void:
 	if _is_hired_dealer():
 		var supported_ids: Array[StringName] = get_available_drug_ids()
-		var selected_id: StringName = preferred_drug_id if preferred_drug_id != &"" and supported_ids.has(preferred_drug_id) else &""
+		var selected_id: StringName = &""
+		if preferred_drug_id != &"" and supported_ids.has(preferred_drug_id):
+			selected_id = preferred_drug_id
 		if selected_id == &"":
 			for drug_id in supported_ids:
 				if _get_hired_stock_amount(drug_id) > 0:
@@ -154,7 +163,7 @@ func _sync_current_drug(preferred_drug_id: StringName = &"") -> void:
 		current_stock_uses_bricks = bool(stock_mode_by_drug.get(preferred_drug_id, false))
 		return
 
-	var selected_id := &""
+	var selected_id: StringName = &""
 	for drug_id in stock_by_drug.keys():
 		if int(stock_by_drug[drug_id]) > 0:
 			selected_id = drug_id
@@ -181,7 +190,9 @@ func _is_depleted() -> bool:
 
 func get_available_drug_ids() -> Array[StringName]:
 	var ids: Array[StringName] = []
-	var source: Dictionary = stock_mode_by_drug if _is_hired_dealer() else stock_by_drug
+	var source: Dictionary = stock_by_drug
+	if _is_hired_dealer():
+		source = stock_mode_by_drug
 	for drug_id in source.keys():
 		ids.append(drug_id)
 	return ids
@@ -196,11 +207,15 @@ func is_brick_stock_for(drug_id: StringName) -> bool:
 
 func get_brick_grams_for(drug_id: StringName) -> int:
 	var definition := DrugCatalog.get_definition(drug_id)
-	return definition.brick_grams if definition else 100
+	if definition:
+		return definition.brick_grams
+	return 100
 
 func get_brick_count_for(drug_id: StringName) -> int:
 	var brick_grams := get_brick_grams_for(drug_id)
-	return int(get_stock_amount(drug_id) / brick_grams) if brick_grams > 0 else 0
+	if brick_grams <= 0:
+		return 0
+	return int(get_stock_amount(drug_id) / brick_grams)
 
 func select_drug(drug_id: StringName) -> void:
 	_sync_current_drug(drug_id)
@@ -218,7 +233,8 @@ func can_buy_drug(drug_id: StringName, amount: int) -> bool:
 func npc_purchase(drug_id: StringName, amount: int) -> bool:
 	if not can_buy_drug(drug_id, amount):
 		return false
-	buy_drug(drug_id, amount)
+	if _is_hired_dealer():
+		buy_drug(drug_id, amount)
 	_apply_npc_sale_feedback(drug_id, amount)
 	return true
 
@@ -230,10 +246,12 @@ func _apply_npc_sale_feedback(drug_id: StringName, amount: int) -> void:
 			stash.add_dirty_cash(payout)
 
 	var parent_npc := get_parent() as NPC
-	if parent_npc and parent_npc.npc_ui:
-		parent_npc.npc_ui.spawn_indicator("money_up", "+$" + str(payout))
-
-	AudioManager.play_transaction()
+	if parent_npc:
+		if parent_npc.npc_ui:
+			parent_npc.npc_ui.spawn_indicator("money_up", "+$" + str(payout))
+		AudioManager.play_spatial_transaction(parent_npc.global_position)
+	else:
+		AudioManager.play_transaction()
 
 func buy_drug(drug_id: StringName, amount: int) -> void:
 	if not can_buy_drug(drug_id, amount):
@@ -264,7 +282,10 @@ func buy_drug(drug_id: StringName, amount: int) -> void:
 	if _is_depleted():
 		restock_timer = tier_config.restock_time_seconds
 	else:
-		current_stock = int(stock_by_drug.get(current_drug_definition.id, 0)) if current_drug_definition else 0
+		if current_drug_definition:
+			current_stock = int(stock_by_drug.get(current_drug_definition.id, 0))
+		else:
+			current_stock = 0
 
 func can_buy(amount: int) -> bool:
 	return current_stock >= amount
@@ -282,14 +303,20 @@ func get_price(drug_id: StringName, buyer: Node = null) -> int:
 	return base_price
 
 func get_current_drug_id() -> StringName:
-	return current_drug_definition.id if current_drug_definition else &"weed"
+	if current_drug_definition:
+		return current_drug_definition.id
+	return &"weed"
 
 func is_brick_stock() -> bool:
 	return current_stock_uses_bricks
 
 func get_brick_grams() -> int:
-	return current_drug_definition.brick_grams if current_drug_definition else 100
+	if current_drug_definition:
+		return current_drug_definition.brick_grams
+	return 100
 
 func get_current_brick_count() -> int:
 	var brick_grams := get_brick_grams()
-	return int(current_stock / brick_grams) if brick_grams > 0 else 0
+	if brick_grams <= 0:
+		return 0
+	return int(current_stock / brick_grams)

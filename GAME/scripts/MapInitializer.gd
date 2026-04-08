@@ -3,6 +3,7 @@ extends Node
 ## MapInitializer - Runtime setup for camera and transparency mask.
 ## This script handles the plug-and-play integration of the cutout system.
 ## Drop this node into any scene containing a Map and Player, or add it via script.
+signal initialization_complete
 
 @export_group("Manual Node Overrides")
 ## Optional: Manually assign the Player. If empty, it will auto-discover via "player" group or name.
@@ -23,6 +24,7 @@ var cutout_material: ShaderMaterial
 var current_occlusion: float = 0.0
 
 func _ready() -> void:
+	add_to_group("map_initializer")
 	_initialize_system.call_deferred()
 
 func _initialize_system() -> void:
@@ -42,10 +44,10 @@ func _initialize_system() -> void:
 
 	# 2. Find BuildingsTop Node
 	var buildings_top = buildings_top_override
-	if !buildings_top:
+	if !is_instance_valid(buildings_top):
 		buildings_top = get_tree().get_root().find_child("BuildingsTop", true, false)
 	
-	if buildings_top and buildings_top is CanvasItem:
+	if is_instance_valid(buildings_top) and buildings_top is CanvasItem:
 		target_layers.append(buildings_top)
 		
 		# Runtime Y-Sorting setup
@@ -57,7 +59,7 @@ func _initialize_system() -> void:
 	
 	# Also find Buildings parent for Y-sorting
 	var buildings_parent = get_tree().get_root().find_child("Buildings", true, false)
-	if buildings_parent:
+	if is_instance_valid(buildings_parent):
 		_setup_y_sorting(buildings_parent)
 
 	# 3. Setup Shader Material
@@ -75,7 +77,12 @@ func _initialize_system() -> void:
 	game_camera.target = player
 	
 	# Add to same level as MapInitializer
-	get_parent().add_child(game_camera)
+	var parent = get_parent()
+	if is_instance_valid(parent):
+		parent.add_child(game_camera)
+	else:
+		# Fallback to root if for some reason we are orphan
+		get_tree().root.add_child(game_camera)
 	
 	# 5. Generate Footprints from collision
 	_generate_footprints()
@@ -93,6 +100,7 @@ func _initialize_system() -> void:
 		print("MapInitializer: Set GameCamera as current. Position: ", game_camera.global_position, " Zoom: ", cam_node.zoom)
 
 	print("MapInitializer: System fully initialized.")
+	initialization_complete.emit()
 
 func _generate_footprints() -> void:
 	# Look for BuildingColision (user spelled with one L)

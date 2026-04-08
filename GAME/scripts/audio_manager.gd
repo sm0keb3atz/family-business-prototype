@@ -88,6 +88,9 @@ func play_ui_menu() -> void:
 func play_transaction() -> void:
 	_play_sound(sound_transaction, "Transaction", 1.0)
 
+func play_spatial_transaction(pos: Vector2) -> void:
+	_play_sound_2d(sound_transaction, pos, "Transaction", 1.0)
+
 func play_random_solicitation() -> void:
 	if solicitation_sounds.is_empty(): return
 	var sound = solicitation_sounds.pick_random()

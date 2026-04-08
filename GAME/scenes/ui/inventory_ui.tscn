@@ -173,16 +173,20 @@ visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 
-[node name="Label" type="Label" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Weapons" unique_id=155666435]
+[node name="WeaponsScroll" type="ScrollContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Weapons" unique_id=613716716]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-text = "Weapons (Placeholder)"
-horizontal_alignment = 1
-vertical_alignment = 1
+theme_override_styles/panel = SubResource("StyleBoxTexture_aovdg")
+
+[node name="WeaponsList" type="VBoxContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Weapons/WeaponsScroll" unique_id=613716717]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("4_1dcgg")
 
 [node name="Girlfriends" type="Control" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer" unique_id=99661499]
 visible = false

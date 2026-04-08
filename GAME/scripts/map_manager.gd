@@ -25,14 +25,57 @@ func _ready() -> void:
 	_setup_fade_ui()
 	_current_is_interior = false
 	_apply_visibility()
+	
+	# Wait for systems before showing the world
+	_wait_for_world_ready()
+
+func _wait_for_world_ready() -> void:
+	# Small delay to ensure all _ready calls have finished and we find all nodes
+	await get_tree().process_frame
+	
+	# Failsafe timer: if everything takes too long, just fade in anyway
+	var failsafe_timer = get_tree().create_timer(5.0)
+	var timed_out = false
+	failsafe_timer.timeout.connect(func(): timed_out = true)
+	
+	var initializers = get_tree().get_nodes_in_group("map_initializer")
+	for init in initializers:
+		if is_instance_valid(init) and init.has_signal("initialization_complete"):
+			if not timed_out:
+				# Use a race between the signal and the failsafe
+				await _wait_for_signal_or_timeout(init, "initialization_complete", failsafe_timer)
+	
+	var spawners = get_tree().get_nodes_in_group("territory_spawner")
+	for spawner in spawners:
+		if is_instance_valid(spawner) and spawner.has_signal("initial_spawn_complete"):
+			if not timed_out:
+				await _wait_for_signal_or_timeout(spawner, "initial_spawn_complete", failsafe_timer)
+	
+	# Final frame to let lag spike settle
+	await get_tree().process_frame
+	fade_in_world()
+
+func _wait_for_signal_or_timeout(node: Node, signal_name: String, timer: SceneTreeTimer) -> void:
+	if not is_instance_valid(node) or timer.time_left <= 0:
+		return
+		
+	var completed = false
+	var on_signal = func(): completed = true
+	node.connect(signal_name, on_signal, CONNECT_ONE_SHOT)
+	
+	while not completed and timer.time_left > 0:
+		await get_tree().process_frame
+	
+	if node.is_connected(signal_name, on_signal):
+		node.disconnect(signal_name, on_signal)
 
 func _setup_fade_ui() -> void:
 	_fade_layer = CanvasLayer.new()
-	_fade_layer.layer = 100
+	_fade_layer.layer = 125
 	add_child(_fade_layer)
 	
 	_fade_rect = ColorRect.new()
-	_fade_rect.color = Color(0, 0, 0, 0)
+	_fade_rect.color = Color(0, 0, 0, 1.0) # Start Black
 	_fade_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fade_layer.add_child(_fade_rect)
@@ -41,6 +84,7 @@ func _setup_fade_ui() -> void:
 	var ui_container = Control.new()
 	ui_container.name = "DeathUIContainer"
 	ui_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ui_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_fade_layer.add_child(ui_container)
 	
 	_died_label = Label.new()
@@ -49,6 +93,7 @@ func _setup_fade_ui() -> void:
 	_died_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_died_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_died_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT) # Now it has a Control parent!
+	_died_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	# Load font
 	var font_path = "res://GAME/assets/ui/CyberpunkCraftpixPixel.otf"
@@ -146,6 +191,9 @@ func _wait_for_anim(node: Node) -> void:
 func _fade(target_alpha: float, duration: float = 0.4) -> void:
 	var tween = create_tween()
 	await tween.tween_property(_fade_rect, "color:a", target_alpha, duration).set_trans(Tween.TRANS_SINE).finished
+
+func fade_in_world() -> void:
+	await _fade(0.0, 1.0) # Slower reveal for a premium feel
 
 func swap_map(to_interior: bool, spawn_pos: Vector2 = Vector2.ZERO) -> void:
 	if _current_is_interior == to_interior:

@@ -11,6 +11,8 @@
 [ext_resource type="Script" uid="uid://bco7ototxsvst" path="res://GAME/scripts/logic/time_manager.gd" id="14_time"]
 [ext_resource type="Script" uid="uid://dqo3pawhyqnh4" path="res://GAME/scripts/logic/day_night_cycle.gd" id="15_cycle"]
 [ext_resource type="Gradient" uid="uid://bb6k1pxb08cg7" path="res://GAME/resources/visuals/day_night_gradient.tres" id="16_grad"]
+[ext_resource type="PackedScene" path="res://GAME/scenes/interactables/atm_interact_area.tscn" id="17_atm"]
+[ext_resource type="PackedScene" path="res://GAME/scenes/interactables/gun_shop_front.tscn" id="18_gun_shop"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mwopj"]
 atlas = ExtResource("4_hnl4b")
@@ -147,10 +149,9 @@ agent_radius = 50.0
 [node name="PrototypeMap" type="Node2D" unique_id=1024755768]
 y_sort_enabled = true
 
-[node name="MapManager" type="Node" parent="." unique_id=816788286 node_paths=PackedStringArray("exterior_node", "interior_node") groups=["map_manager"]]
+[node name="MapManager" type="Node" parent="." unique_id=816788286 node_paths=PackedStringArray("exterior_node") groups=["map_manager"]]
 script = ExtResource("1_nqdoh")
 exterior_node = NodePath("../Exterior")
-interior_node = NodePath("")
 
 [node name="Exterior" type="Node2D" parent="." unique_id=929174303]
 z_index = -1
@@ -190,7 +191,7 @@ territory_data = ExtResource("13_hood_east")
 [node name="DealerPoints" type="Node2D" parent="Territories/HoodEast" unique_id=325925676]
 
 [node name="Marker2D" type="Marker2D" parent="Territories/HoodEast/DealerPoints" unique_id=186708783]
-position = Vector2(-1557, -140)
+position = Vector2(-846, -354)
 
 [node name="Marker2D2" type="Marker2D" parent="Territories/HoodEast/DealerPoints" unique_id=548361448]
 position = Vector2(1145, -112)
@@ -262,6 +263,18 @@ script = ExtResource("14_time")
 script = ExtResource("15_cycle")
 time_manager = NodePath("../TimeManager")
 day_night_gradient = ExtResource("16_grad")
+
+[node name="ATMContainer" type="Node2D" parent="." unique_id=172046181]
+y_sort_enabled = true
+
+[node name="ATMInteractArea" parent="ATMContainer" unique_id=1476127505 instance=ExtResource("17_atm")]
+position = Vector2(3658, -1881)
+
+[node name="BusinessProperties" type="Node2D" parent="." unique_id=1090844666]
+y_sort_enabled = true
+
+[node name="GunShopFront" parent="BusinessProperties" unique_id=1929098976 instance=ExtResource("18_gun_shop")]
+position = Vector2(1563, -1872)
 
 [node name="PropertyBuilding" parent="." unique_id=104110780 instance=ExtResource("11_hnl4b")]
 

@@ -109,8 +109,14 @@ func complete_deal() -> void:
 			pui.spawn_indicator("xp", "+" + str(sale_xp) + " XP")
 			
 		# Gain Reputation in Territory
-		if current_territory and current_territory.reputation_component:
-			current_territory.reputation_component.add_reputation(1.0 + (requested_grams * 0.1))
+		var deal_territory: TerritoryArea = current_territory
+		for node in get_tree().get_nodes_in_group("territories"):
+			if node is TerritoryArea and node.get_overlapping_bodies().has(player_node):
+				deal_territory = node
+				break
+				
+		if deal_territory and deal_territory.reputation_component:
+			deal_territory.reputation_component.add_reputation(1.0 + (requested_grams * 0.1))
 			if player_node.get("player_ui"):
 				player_node.player_ui.spawn_indicator("money_up", "+REP") # Simple indicator for now
 			

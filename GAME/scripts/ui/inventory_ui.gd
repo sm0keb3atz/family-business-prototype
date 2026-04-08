@@ -3,6 +3,7 @@ class_name InventoryUI
 
 @onready var tabs: TabContainer = $Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer
 @onready var drugs_list: VBoxContainer = %DrugsList
+@onready var weapons_list: VBoxContainer = %WeaponsList
 @onready var girlfriends_list: VBoxContainer = get_node_or_null("%GirlfriendsList")
 @onready var skills_list: VBoxContainer = get_node_or_null("%SkillsList")
 @onready var skill_points_label: Label = get_node_or_null("%SkillPointsLabel")
@@ -157,7 +158,34 @@ func refresh_ui() -> void:
 				skills_list.add_child(card)
 				card.setup(skill_id, player.progression, self)
 
+	_refresh_weapons_ui()
 	_refresh_management_ui()
+
+func _refresh_weapons_ui() -> void:
+	if not weapons_list or not player:
+		return
+	
+	for child in weapons_list.get_children():
+		child.queue_free()
+	
+	var owned_level = player.get_owned_glock_level()
+	if owned_level > 0:
+		var card: InventoryWeaponCard = preload("res://GAME/scenes/ui/inventory_weapon_card.tscn").instantiate()
+		weapons_list.add_child(card)
+		
+		var weapon_data = player.glock_weapon_data_by_level.get(owned_level)
+		var weapon_name = "GLOCK LV %d" % owned_level
+		var icon = preload("res://GAME/assets/sprites/weapons/pistol/glocklv1.png") # Fallback to base icon for simplicity or logic if needed
+		
+		# More specific icon logic if possible
+		var icon_path = "res://GAME/assets/sprites/weapons/pistol/glocklv%d.png" % owned_level
+		if FileAccess.file_exists(icon_path):
+			icon = load(icon_path)
+			
+		var stats_text = "Dmg: %d | Rng: %d | Mag: %d" % [weapon_data.damage, 300, weapon_data.magazine_size]
+		var is_eq = player.weapon_state.is_equipped if player.weapon_state else false
+		
+		card.setup(weapon_name, icon, stats_text, is_eq)
 
 func _build_territories_ui() -> void:
 	if not territories_tab:

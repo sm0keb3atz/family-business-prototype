@@ -1,88 +1,59 @@
 extends Control
 
 @export var scene_to_load: String = "res://GAME/scenes/World.tscn"
-@export var prewarm_duration: float = 1.5
 @export var fade_duration: float = 0.5
 
 @onready var progress_bar: ProgressBar = $ProgressBar
-@onready var bg: ColorRect = $ColorRect
 
-var _is_loading: bool = false
-var _is_prewarming: bool = false
-var _loading_progress: Array = []
-var _cached_hud: CanvasLayer = null
+var _loading_started: bool = false
 
 func _ready() -> void:
-	# Ensure smooth start
 	modulate.a = 1.0
-	
-	# Start background load
+	progress_bar.value = 0.0
+	# Wait a frame to ensure the UI is visible before starting the thread
+	call_deferred("_begin_load")
+
+func _begin_load() -> void:
 	var err = ResourceLoader.load_threaded_request(scene_to_load)
-	if err == OK:
-		_is_loading = true
-		print("LoadingScreen: Started background load for %s" % scene_to_load)
-	else:
-		push_error("LoadingScreen: Failed to start loading %s. Error: %s" % [scene_to_load, err])
+	if err != OK:
+		push_error("LoadingScreen: Failed to initiate threaded load for %s (Error: %d)" % [scene_to_load, err])
+		return
+	_loading_started = true
 
 func _process(_delta: float) -> void:
-	if not _is_loading or _is_prewarming:
+	if not _loading_started:
 		return
 		
-	var status = ResourceLoader.load_threaded_get_status(scene_to_load, _loading_progress)
+	var progress = []
+	var status = ResourceLoader.load_threaded_get_status(scene_to_load, progress)
 	
 	match status:
 		ResourceLoader.THREAD_LOAD_IN_PROGRESS:
-			if _loading_progress.size() > 0:
-				progress_bar.value = _loading_progress[0] * 100.0
+			progress_bar.value = progress[0] * 100.0
 		ResourceLoader.THREAD_LOAD_LOADED:
+			_loading_started = false
 			progress_bar.value = 100.0
-			_is_loading = false
-			_start_prewarm_phase()
-		ResourceLoader.THREAD_LOAD_FAILED, ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
-			push_error("LoadingScreen: Background load failed!")
-			_is_loading = false
+			var packed_scene = ResourceLoader.load_threaded_get(scene_to_load) as PackedScene
+			# Small delay so user sees 100%
+			await get_tree().create_timer(0.5).timeout
+			_transition_to_scene(packed_scene)
+		ResourceLoader.THREAD_LOAD_FAILED:
+			_loading_started = false
+			push_error("LoadingScreen: Threaded load FAILED for %s" % scene_to_load)
+		ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+			_loading_started = false
+			push_error("LoadingScreen: Invalid resource path: %s" % scene_to_load)
 
-func _start_prewarm_phase() -> void:
-	print("LoadingScreen: Scene fully loaded. Starting pre-warm phase.")
-	_is_prewarming = true
-	
-	# Instance the loaded scene
-	var packed_scene = ResourceLoader.load_threaded_get(scene_to_load) as PackedScene
-	var new_scene = packed_scene.instantiate()
-	
-	# Add to root (behind this loading screen, which should be on top either via CanvasLayer or order)
-	var root = get_tree().root
-	root.add_child(new_scene)
-	get_tree().current_scene = new_scene
-	
-	# Find and hide HUD
-	_cached_hud = _find_hud(new_scene)
-	if _cached_hud:
-		_cached_hud.visible = false
-	
-	# Visual indication that we are pre-arming (spawning NPCs, etc)
-	# ProgressBar can stay at 100%
-	
-	print("LoadingScreen: Waiting %s seconds for system initialization and spawns..." % prewarm_duration)
-	await get_tree().create_timer(prewarm_duration).timeout
-	print("LoadingScreen: Pre-warm complete. Transitioning.")
-	
-	_finish_loading()
-
-func _finish_loading() -> void:
+func _transition_to_scene(packed_scene: PackedScene) -> void:
+	if not packed_scene:
+		push_error("LoadingScreen: Cannot transition, packed_scene is null")
+		return
+		
+	# Smoothly fade out the Loading Screen UI to black
 	var tween = create_tween()
 	tween.tween_property(self, "modulate:a", 0.0, fade_duration).set_ease(Tween.EASE_OUT)
-	tween.finished.connect(func():
-		if is_instance_valid(_cached_hud):
-			_cached_hud.visible = true
-		queue_free()
-	)
-
-func _find_hud(node: Node) -> CanvasLayer:
-	if node is HUD:
-		return node
-	for child in node.get_children():
-		var found = _find_hud(child)
-		if found:
-			return found
-	return null
+	await tween.finished
+	
+	# Transition to the black World scene.
+	# The World scene (via MapManager) will handle the synchronized fade-in.
+	get_tree().change_scene_to_packed(packed_scene)

@@ -112,9 +112,11 @@ func _refresh_ui() -> void:
 		btn_10g.disabled = current_stock < 10 or player_money < 10 * price
 		btn_20g.disabled = current_stock < 20 or player_money < 20 * price
 	
-	var divisor = brick_grams if is_brick_tier else 1
+	var divisor: int = 1
+	if is_brick_tier:
+		divisor = brick_grams
 	var max_affordable = floor(player_money / (price * divisor))
-	var max_buyable = min(max_affordable, current_stock / divisor)
+	var max_buyable = min(max_affordable, int(current_stock / divisor))
 	btn_max.disabled = max_buyable <= 0
 
 func _attempt_buy(amount: int) -> void:
@@ -163,7 +165,9 @@ func _attempt_buy(amount: int) -> void:
 	var pui = current_player.get("player_ui")
 	if pui:
 		pui.spawn_indicator("money_down", "-$" + str(cost))
-		var label_text = "+" + str(int(actual_gram_amount / brick_grams)) + " brick" if is_brick_tier else "+" + str(actual_gram_amount) + "g"
+		var label_text: String = "+" + str(actual_gram_amount) + "g"
+		if is_brick_tier:
+			label_text = "+" + str(int(actual_gram_amount / brick_grams)) + " brick"
 		pui.spawn_indicator("product", label_text, DrugCatalog.get_product_icon(drug.id, is_brick_tier))
 		
 	error_label.text = "Bought " + drug.display_name + "!"
@@ -177,11 +181,13 @@ func _on_buy_max() -> void:
 	
 	var price = current_dealer.get_price(drug.id, current_player)
 	var is_brick_tier = current_dealer.is_brick_stock_for(drug.id)
-	var divisor = current_dealer.get_brick_grams_for(drug.id) if is_brick_tier else 1
+	var divisor: int = 1
+	if is_brick_tier:
+		divisor = current_dealer.get_brick_grams_for(drug.id)
 	var current_stock := current_dealer.get_stock_amount(drug.id)
 	
 	var max_affordable = floor(NetworkManager.economy.dirty_money / (price * divisor))
-	var max_buyable = min(max_affordable, current_stock / divisor)
+	var max_buyable = min(max_affordable, int(current_stock / divisor))
 	
 	if max_buyable > 0:
 		var gram_amount = max_buyable * divisor
@@ -200,7 +206,9 @@ func _on_buy_max() -> void:
 		var pui = current_player.get("player_ui")
 		if pui:
 			pui.spawn_indicator("money_down", "-$" + str(total_cost))
-			var label_text = "+" + str(int(max_buyable)) + " brick" if is_brick_tier else "+" + str(gram_amount) + "g"
+			var label_text: String = "+" + str(gram_amount) + "g"
+			if is_brick_tier:
+				label_text = "+" + str(int(max_buyable)) + " brick"
 			pui.spawn_indicator("product", label_text, DrugCatalog.get_product_icon(drug.id, is_brick_tier))
 		
 		error_label.text = "Bought MAX!"
@@ -213,7 +221,9 @@ func _rebuild_selector(drug_ids: Array[StringName]) -> void:
 	for i in range(drug_ids.size()):
 		var drug_id := drug_ids[i]
 		var definition := DrugCatalog.get_definition(drug_id)
-		var label := definition.display_name if definition else String(drug_id).capitalize()
+		var label := String(drug_id).capitalize()
+		if definition:
+			label = definition.display_name
 		drug_selector.add_item(label)
 		drug_selector.set_item_metadata(i, String(drug_id))
 		if drug_id == previous_selection:
@@ -235,7 +245,9 @@ func _build_stock_summary(drug_ids: Array[StringName]) -> String:
 	var lines: Array[String] = []
 	for drug_id in drug_ids:
 		var definition := DrugCatalog.get_definition(drug_id)
-		var display_name := definition.display_name if definition else String(drug_id).capitalize()
+		var display_name := String(drug_id).capitalize()
+		if definition:
+			display_name = definition.display_name
 		if current_dealer.is_brick_stock_for(drug_id):
 			lines.append("%s: %d brick(s)" % [display_name, current_dealer.get_brick_count_for(drug_id)])
 		else:

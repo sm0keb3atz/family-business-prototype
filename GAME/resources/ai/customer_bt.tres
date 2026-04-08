@@ -10,6 +10,8 @@
 [ext_resource type="Script" uid="uid://5mpmk78aatqq" path="res://GAME/scripts/ai/bt_condition_is_dealer_customer.gd" id="8_dealercust"]
 [ext_resource type="Script" uid="uid://c130ji7d857ii" path="res://GAME/scripts/ai/bt_action_approach_blackboard_target.gd" id="9_appr_tgt"]
 [ext_resource type="Script" uid="uid://3opnhj1m7tqq" path="res://GAME/scripts/ai/bt_action_complete_dealer_purchase.gd" id="10_cmp_buy"]
+[ext_resource type="Script" uid="uid://dfr6fujlhldfx" path="res://GAME/scripts/ai/bt_condition_is_front_business_customer.gd" id="11_frontcust"]
+[ext_resource type="Script" uid="uid://csp26uaxmkx0d" path="res://GAME/scripts/ai/bt_action_complete_front_business_purchase.gd" id="12_frontbuy"]
 
 [sub_resource type="BlackboardPlan" id="BlackboardPlan_customer"]
 
@@ -45,6 +47,19 @@ script = ExtResource("10_cmp_buy")
 [sub_resource type="BTSequence" id="dealer_buy_seq"]
 children = [SubResource("check_dealer_customer"), SubResource("approach_dealer"), SubResource("complete_dealer_buy")]
 
+[sub_resource type="BTCondition" id="check_front_business_customer"]
+script = ExtResource("11_frontcust")
+
+[sub_resource type="BTAction" id="approach_front_business"]
+script = ExtResource("9_appr_tgt")
+distance_threshold = 65.0
+
+[sub_resource type="BTAction" id="complete_front_business_buy"]
+script = ExtResource("12_frontbuy")
+
+[sub_resource type="BTSequence" id="front_business_buy_seq"]
+children = [SubResource("check_front_business_customer"), SubResource("approach_front_business"), SubResource("complete_front_business_buy")]
+
 [sub_resource type="BTAction" id="path_1"]
 script = ExtResource("3_path")
 
@@ -65,7 +80,7 @@ forever = true
 children = [SubResource("walk_cycle")]
 
 [sub_resource type="BTDynamicSelector" id="root_sel"]
-children = [SubResource("flee_seq"), SubResource("solicited_seq"), SubResource("dealer_buy_seq"), SubResource("walk_loop")]
+children = [SubResource("flee_seq"), SubResource("solicited_seq"), SubResource("dealer_buy_seq"), SubResource("front_business_buy_seq"), SubResource("walk_loop")]
 
 [resource]
 blackboard_plan = SubResource("BlackboardPlan_customer")

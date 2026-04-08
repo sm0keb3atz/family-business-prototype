@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://GAME/scripts/components/atm_interact_area.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="1_shape"]
+size = Vector2(72, 37)
+
+[node name="ATMInteractArea" type="Area2D" unique_id=1069590886]
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1579423615]
+position = Vector2(0, -17.5)
+shape = SubResource("1_shape")

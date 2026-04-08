@@ -1,22 +1,22 @@
 # Game Loop Status and System Checklist
 
 ## Purpose
-This document explains where the project currently stands relative to the intended game loop in [game-plan.md](game-plan.md). It is meant to help future agents quickly understand what is already present in the prototype, what is only partially present, and what major systems still need to be built to reach the target early, mid, and end-game flow.
+This document explains where the project currently stands relative to the intended game loop in [game-plan.md](C:/Users/jphil/Documents/family-business-prototype/docs/game-plan.md). It is meant to help future agents quickly understand what is already present in the prototype, what is only partially present, and what still needs work.
 
-For the **intended next vertical slice** (one property, stash transfers, then owned dealers, then laundering), see [order of operations.md](order%20of%20operations.md).
+For the current "what should happen next" summary, see [next-slice-roadmap.md](C:/Users/jphil/Documents/family-business-prototype/docs/next-slice-roadmap.md).
 
 ---
 
 ## Current project state (checkpoint)
 
-The prototype still excels at the **early-game street hustle** (movement, dealer buys, solicitation, hand-to-hand sales, inventory, XP, territory reputation, heat, police pressure, clock, territory pricing).
+The prototype now supports:
 
-A **bare-bones operations foundation** is now in place:
+1. The early-game street hustle loop.
+2. A property/stash foundation.
+3. A territory-backed dealer foundation.
+4. The first laundering/front-business slice.
 
-1. **Three-way money** — `dirty_money`, `clean_money`, and `debt` live on a dedicated `EconomyState` and are wired into gameplay for dirty cash (sales, dealer shop, property purchase). Clean money and debt exist in code and HUD/debug, but **there is no real earning loop for clean money** and **no gameplay hook that adds debt** yet (e.g. hospital/court).
-2. **First-property slice** — The player can **buy at least one predefined property** with **dirty money**, and **stash drugs, bricks, and dirty cash** in that property’s `StashInventory` via a **Property UI**. World hooks (`PropertyComponent`, exterior door, stash interact) connect the building to `NetworkManager.owned_properties`.
-
-The project is **not** yet in the full management-game phase: **no laundering tick**, **no stash-linked owned dealers** (dirty cash pool / restock), **no runners**, **no territory claim minigame or multi-state control machine**, **no raids**, **no court/debt gameplay**. A **territory control stub** and **hired dealer spawning** plus **civilian→dealer foot traffic** are in place (see below).
+This is an important shift from the older checkpoint. Laundering is no longer "missing." It exists in playable form, but it still needs polish, clearer feedback, and loading-path stabilization.
 
 ---
 
@@ -24,105 +24,120 @@ The project is **not** yet in the full management-game phase: **no laundering ti
 
 | Area | Main locations |
 |------|----------------|
-| Global economy + owned properties + territory stub | `GAME/scripts/systems/network_manager.gd` — `controlled_territory_ids`, `hired_dealer_slots` / `HiredDealerSlot`, signals `territory_control_changed`, `hired_dealers_changed` |
-| Civilian dealer traffic | `GAME/scripts/components/territory_dealer_traffic_component.gd` on `TerritoryArea.tscn`; `customer_bt.tres` dealer-buy branch; `bt_action_approach_blackboard_target.gd`, `bt_condition_is_dealer_customer.gd`, `bt_action_complete_dealer_purchase.gd` |
-| Dealer NPC shop (civilian purchase) | `DealerShopComponent.npc_purchase()` |
+| Global economy + owned properties + front-business state | `GAME/scripts/systems/network_manager.gd` |
 | Dirty / clean / debt resource | `GAME/scripts/resources/economy_state.gd` |
-| Property definition data | `GAME/scripts/resources/property_resource.gd` — `PropertyType` (`STASH_TRAP`, `FRONT_BUSINESS`), `stash_capacity`, `purchase_price`, `laundering_rate` (rate **not** used in simulation yet) |
-| Per-owned-property state | `GAME/scripts/resources/owned_property_state.gd` — holds `PropertyResource` + `StashInventory` |
-| Stash contents | `GAME/scripts/resources/stash_inventory.gd` — drugs, bricks, `dirty_cash`, capacity |
-| World / purchase / UI | `GAME/scripts/components/property_component.gd`, `property_exterior_door_trigger.gd`, `stash_interact_area.gd`, `GAME/scripts/ui/property_ui.gd`, `GAME/scenes/ui/property_ui.tscn` |
-| Example property asset | `GAME/resources/properties/first_stash.tres` (minimal; script defaults fill in price/capacity if not overridden) |
-| Money from sales | `GAME/scripts/components/customer_component.gd`, `GAME/scripts/npc.gd` → `NetworkManager.economy.add_dirty` |
-| Dealer shop spends dirty | `GAME/scripts/ui/shop_ui.gd` |
-| HUD money | `GAME/scripts/ui/hud.gd` — primary label = **dirty**; clean/debt labels when non-zero |
-| Debug economy / territory | `GAME/scripts/ui/debug_console.gd` — `territory control <id> on\|off`, `territory hire <id> [tier]`, `territory clear hires <id>` |
-
-**Note:** `PlayerProgressionResource` no longer carries a generic `money` field; progression is **XP / level / skills only**. Cash is entirely under `NetworkManager.economy`.
+| Property definition data | `GAME/scripts/resources/property_resource.gd` |
+| Owned stash property state | `GAME/scripts/resources/owned_property_state.gd` |
+| Front-business definition/state | `GAME/scripts/resources/front_business_resource.gd`, `GAME/scripts/resources/owned_front_business_state.gd` |
+| Player-owned gun state | `GAME/scripts/resources/player_weapon_state.gd`, `GAME/scripts/player.gd` |
+| ATM interaction | `GAME/scripts/components/atm_interact_area.gd`, `GAME/scenes/interactables/atm_interact_area.tscn`, `GAME/scripts/ui/atm_ui.gd`, `GAME/scenes/ui/atm_ui.tscn` |
+| Gun-shop front interaction | `GAME/scripts/components/front_business_interact_area.gd`, `GAME/scenes/interactables/gun_shop_front.tscn`, `GAME/scripts/ui/gun_shop_ui.gd`, `GAME/scenes/ui/gun_shop_ui.tscn` |
+| Front-business customer traffic | `GAME/scripts/components/front_business_customer_traffic_component.gd`, `GAME/scripts/ai/bt_condition_is_front_business_customer.gd`, `GAME/scripts/ai/bt_action_complete_front_business_purchase.gd`, `GAME/resources/ai/customer_bt.tres` |
+| Territory-backed dealer traffic | `GAME/scripts/components/territory_dealer_traffic_component.gd` |
+| Property/stash world and UI | `GAME/scripts/components/property_component.gd`, `GAME/scripts/ui/property_ui.gd`, `GAME/scenes/ui/property_ui.tscn` |
+| Main world placement | `GAME/scenes/World.tscn` |
+| Current loading path | `project.godot`, `GAME/scenes/ui/LoadingScreen.tscn`, `GAME/scripts/ui/LoadingScreen.gd` |
 
 ---
 
 ## Systems already implemented
 
 ### Street-level selling loop
-- Player can buy stock from world dealers through the dealer shop flow (**dirty money**).
-- Player can carry loose drugs and bricks through the inventory component.
-- Player can solicit customers and complete direct sales for **dirty money**, XP, territory reputation, and heat.
+- Player can buy stock from world dealers through the dealer shop flow using dirty money.
+- Player can carry loose drugs and bricks.
+- Player can solicit customers and complete direct sales for dirty money, XP, territory reputation, and heat.
 
-### Three-way economy (foundation)
-- **`EconomyState`**: `dirty_money`, `clean_money`, `debt`; add/spend for dirty and clean; `pay_debt` (clean first, then dirty).
-- **`NetworkManager`**: owns the runtime `EconomyState`, starts the player with **$1000 dirty** (see `network_manager.gd` — adjust if design calls for a different start), tracks **`owned_properties`** by `property_id`, emits `property_purchased`.
-- **Illegal income** routes to **dirty** (customer + NPC sale paths).
-- **HUD** shows dirty as the main cash; clean and debt appear when non-zero.
-- **Debug console** can set dirty/clean/debt for testing.
+### Three-way economy
+- `EconomyState` supports `dirty_money`, `clean_money`, and `debt`.
+- Dirty and clean both have real gameplay uses now.
+- Dirty remains the core street-income currency.
+- Clean is now used by the laundering/front-business slice.
 
-### Property + stash (first vertical slice, bare bones)
-- **Purchase**: Pay **dirty** `purchase_price` via `NetworkManager.purchase_property` (exterior door interaction when not owned).
-- **Stash**: Each owned property has a `StashInventory` with capacity, drugs, bricks, and **dirty cash** stored separately from the player’s wallet.
-- **Transfers**: `PropertyUI` moves **drugs/bricks** between player inventory and stash (respects capacity), and moves **dirty cash** between `NetworkManager.economy` and stash `dirty_cash`.
+### Property + stash foundation
+- Player can buy at least one predefined property with dirty money.
+- Owned stash properties hold drugs, bricks, and dirty cash separately from the player wallet.
+- Property UI supports stash transfers between the player and stash inventory.
 
-### Territory, pressure, progression (unchanged from before)
-- Territories, territory pricing, reputation, heat, police systems, in-world time, player progression (XP/level/skills) — still present and wired as in earlier prototypes.
+### Territory-backed dealer foundation
+- Territory control stub exists.
+- Controlled territories can swap ambient dealers for hired dealer slots.
+- Civilian NPCs can route to dealer NPCs and consume dealer stock.
 
-### Territory control stub + dealer population (foundation)
-- **`NetworkManager`**: per-`territory_id` **controlled** flag and **hired dealer slot list** (`HiredDealerSlot` with `tier_level` 1–4). Separate from **property** ownership.
-- **`TerritorySpawner`**: If territory **not** controlled, fills **ambient** dealers up to `TerritoryResource.max_dealers`. If **controlled**, **no** ambient dealers; spawns **only** hired dealers (zero until slots are added). Control/slot changes **despawn and resync** dealers.
-- **Civilian→dealer traffic**: `TerritoryDealerTrafficComponent` periodically assigns customers a blackboard task to **navigate to a dealer** and call **`npc_purchase`** (stock only; **no** cash to the player). Capped concurrent buyers; **mutually exclusive** with player solicitation (`is_dealer_customer` vs `is_solicited`).
+### ATM laundering loop
+- ATM interactables exist in the world through a reusable `ATMContainer` in `World.tscn`.
+- ATM UI converts dirty money to clean money on deposit.
+- ATM deposits are globally capped at `$1000` per in-game day across all ATMs.
+- ATM withdrawals convert clean money back into dirty money.
+- The ATM cap is tracked centrally, not per-machine.
+
+### First front-business loop: gun shop
+- Gun-shop front interactable exists in the world through a reusable `BusinessProperties` container in `World.tscn`.
+- Gun-shop UI has a `Guns` tab and a `Business` tab.
+- Business must be purchased with clean money before the business tab fully opens up.
+- Glock ownership is explicit and upgrade-based.
+- Player starts unarmed and buys Glock Lv1 first.
+- Glock upgrades replace the currently owned Glock instead of creating duplicates.
+- Business stock is tracked separately for Glock Lv1 through Lv4.
+- Ambient customers can be assigned to the gun shop and buy stocked Glock levels.
+- Successful front-business sales generate clean money.
 
 ---
 
 ## Systems partially implemented
 
-### Property / network layer
-- **Data model** includes `FRONT_BUSINESS` and `laundering_rate`, but **no process** converts dirty→clean over time yet.
-- Only the **first-property** path is exercised in content; expanding to multiple properties is mostly a matter of more `PropertyResource` assets + world scenes **if** `NetworkManager` stays the single source of truth.
-- **Persistence**: `NetworkManager` state is **runtime only** unless something else saves it (no dedicated save/load for economy + properties documented here).
+### Laundering/front-business presentation
+- Core functionality works, but the presentation layer is still first-pass.
+- ATM and gun-shop feedback should be treated as functional rather than final.
+- World placement and interaction feel for the ATM and gun shop still need polish in-editor.
 
-### Clean money and debt
-- **Clean**: Can be adjusted via debug; **no** laundering front, legal job payout, or other in-world source in normal play.
-- **Debt**: Can be adjusted via debug; **`pay_debt` is not exposed in player-facing UI**; no death/hospital/court flow yet.
+### Loading-screen path
+- `World.tscn` is currently the reliable direct test path.
+- The loading-screen/main-scene path was simplified during crash debugging.
+- It is still not considered stable or polished.
+- Any future work on the loading screen should preserve the currently working direct-world baseline.
 
-### Dealers
-- **Ambient + hired** dealers use the same **player shop** (`DealerShopComponent`); civilians drain stock via **`npc_purchase`**. **Not** yet: stash-backed stock, **dirty cash pool** for the player, or manual collect from hired corners.
+### Dealer and business management depth
+- Territory-backed dealer traffic exists, but the broader owned-dealer management loop is still not a full empire-grade system.
+- The gun shop is the first front business, not the final general business framework.
+- There is not yet a broad dashboard or a large management overview layer tying all business systems together.
 
-### Territory gameplay
-- **Boolean “player controls territory”** + **debug hire** exist; **no** reputation/claim fee/gang-war **claim flow**, **no** contested/controlled **state machine** beyond the stub.
-
-### Risk systems
-- Street-level heat/police; **no** property raid loop.
+### Persistence
+- Runtime state is active in play, but this doc does not treat laundering/business state as part of a finished save/load pipeline yet.
 
 ---
 
 ## Systems still needed for the target game loop
 
-The following remain **out of scope or stubbed** relative to [game-plan.md](game-plan.md) and [order of operations.md](order%20of%20operations.md):
-
-1. **Laundering** — Continuous dirty→clean conversion using front properties; throughput cap; risk; UI feedback.
-2. **Clean-money sinks** — Meaningful spends that require **clean** (e.g. future territory claim fee, legal upgrades); property purchase is currently **dirty-only** by design in code.
-3. **Owned dealer system (management)** — Assign to property, consume **stash** stock, **dirty cash pool** for pickup, manual restock/collect (beyond hire + tier spawn).
-4. **Runner automation** — Routes between player, stashes, dealers, fronts.
-5. **Territory control (full)** — Claim flow, fees, contested/controlled states, gang war alternate path (beyond debug toggle + hire list).
-6. **Raids** — Warnings, stash relocation pressure, consequences.
-7. **Court / legal / debt from gameplay** — Arrest → outcomes; hospital bills; debt as pressure (beyond `EconomyState.pay_debt`).
-8. **Management UI breadth** — Single-property stash UI exists; full network dashboard, laundering, dealers, runners still needed.
+1. Loading-screen stability and polish so the intended main-scene path is safe again.
+2. Laundering/front-business polish: clearer UI, stronger feedback, more intentional placement, cleaner edge-case handling.
+3. More meaningful clean-money sinks after the current front-business slice is polished.
+4. Broader front-business support beyond the first gun-shop implementation.
+5. Runner automation between player, stash, dealers, and fronts.
+6. Full territory control state machine beyond the current stub/foundation.
+7. Raids and relocation pressure.
+8. Court, hospital, and debt-from-gameplay loops.
+9. Larger management UI breadth and summary tooling.
 
 ---
 
-## Recommended build order (updated from current checkpoint)
+## Recommended build order (updated)
 
-The shared **economy split** and **first-property stash** foundations are in place. Next steps should follow the vertical slice in [order of operations.md](order%20of%20operations.md):
+1. Polish the ATM + gun-shop laundering slice.
+2. Stabilize and then polish the loading-screen path.
+3. Add stronger clean-money pressure and additional legal-money sinks.
+4. Expand management depth only after the current laundering loop is readable and trustworthy.
 
-1. **Owned dealer (minimal)** — One dealer tied to owned property stash: stock drain, dirty cash pool, manual pickup into `NetworkManager.economy`, stop when stash empty.
-2. **Laundering front** — Use `laundering_rate` (or equivalent) on a `FRONT_BUSINESS` property: tick dirty→clean over time, cap throughput, surface in UI/HUD.
-3. **Clean-money gate** — At least one real spend that requires **clean** (could be second property, upgrade, or placeholder territory fee).
-4. **Territory control → raids → runners → court/gang wars** — After the first-property loop is playable end-to-end.
+This is the main change from the older status doc: the next agent should not start by inventing laundering. They should start by polishing what now exists.
 
 ---
 
 ## Quick reality check
 
 **What phase is the game in?**  
-Early-game street loop **plus** **economy + stash property** **plus** a **territory/dealer foundation**: debug **territory control**, **hired dealer spawning**, and **NPCs walking to dealers** to buy (stock sink only). Still **not** the full empire loop (laundering, stash-linked dealers, runners, real territory claims, raids).
+Early street loop plus stash/property foundation plus territory/dealer foundation plus a first playable laundering/front-business loop.
+
+**What is the biggest current weakness?**  
+Presentation, clarity, and startup-path stability, not missing core laundering functionality.
 
 **Where should the next agent start?**  
-Wire **hired/ambient dealer stock** to **property stash** and add **player collectible dirty cash** from corners, **or** implement **laundering** — read `network_manager.gd`, `territory_spawner.gd`, `territory_dealer_traffic_component.gd`, `dealer_shop_component.gd`, and `property_ui.gd` / `owned_property_state.gd` for integration points.
+Read `network_manager.gd`, `player.gd`, `atm_ui.gd`, `gun_shop_ui.gd`, `front_business_interact_area.gd`, `front_business_customer_traffic_component.gd`, `World.tscn`, and `LoadingScreen.gd`, then polish the ATM/business experience and stabilize the loading-screen path without tearing out the working direct-world path.

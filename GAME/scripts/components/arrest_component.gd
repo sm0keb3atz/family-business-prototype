@@ -54,7 +54,7 @@ func _process(delta: float) -> void:
 	
 	if valid_arrest:
 		# If the player is armed while being arrested, escalate
-		if player and player.current_weapon_index > 0 and HeatManager.wanted_stars == 1:
+		if player and player.has_owned_glock() and HeatManager.wanted_stars == 1:
 			print("Player is armed during arrest! Escalating heat to 2 stars.")
 			HeatManager.set_stars(2)
 			

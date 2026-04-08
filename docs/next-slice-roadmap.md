@@ -1,123 +1,122 @@
-# Next Slice Roadmap: Polish First, Foundations Second
+# Next Slice Roadmap: Laundering Landed, Polish Next
 
 ## Purpose
-This document decides what gets polished next, what system gets built next, and what can wait. It sits between the long-range vision in [game-plan.md](C:/Users/jphil/Documents/family-business-prototype/docs/game-plan.md) and the running checkpoint in [game-loop-status.md](C:/Users/jphil/Documents/family-business-prototype/docs/game-loop-status.md).
+This doc tells the next agent what just landed, what is stable enough to build on, and what should be polished before another major system gets added. It sits between the long-range vision in [game-plan.md](C:/Users/jphil/Documents/family-business-prototype/docs/game-plan.md) and the running checkpoint in [game-loop-status.md](C:/Users/jphil/Documents/family-business-prototype/docs/game-loop-status.md).
 
 ## Current Checkpoint
-The project already has a strong early street-hustle loop, plus a real property stash layer and an in-progress territory-linked stash-house loop. The player can now move from personal street sales into owned property storage and toward stash-backed territory support, but that new management bridge still needs usability, clarity, and reliability polish before another major system gets stacked on top of it.
+The prototype now has three connected layers:
+
+1. The early street hustle loop.
+2. The stash/property and territory-backed dealer foundation.
+3. The first laundering/front-business slice via ATMs and a gun-shop front.
+
+This means the next pass should not be "invent laundering." It should be "polish the laundering slice so it feels intentional, readable, and safe to expand."
+
+## What Exists Right Now
+
+### ATM laundering loop
+- A reusable `ATMContainer` exists in `World.tscn`.
+- One ATM interactable is placed in the world for now.
+- ATM interaction opens a dedicated ATM menu.
+- Dirty money can be deposited into clean money.
+- Deposits are capped at `$1000` per in-game day across all ATMs.
+- Clean money can be withdrawn back into dirty money.
+- Withdrawals are not daily capped beyond available clean money.
+
+### Gun-shop front loop
+- A reusable `BusinessProperties` container exists in `World.tscn`.
+- One gun-shop front interactable is placed in the world for now.
+- Interacting with the gun shop opens a dedicated tabbed UI.
+- `Guns` tab supports Glock ownership and upgrade flow.
+- `Business` tab is locked until the business is purchased with clean money.
+- Business stock is tracked separately for Glock Lv1, Lv2, Lv3, and Lv4.
+- Ambient customers can be assigned to the front and buy stocked Glock levels.
+- Successful front-business sales generate clean money.
+
+### Player weapon state
+- Player now starts unarmed.
+- Glock ownership is explicit state, not a hardcoded always-owned assumption.
+- Glock Lv1 must be purchased first.
+- Higher Glock levels replace the currently owned Glock instead of creating duplicates.
 
 ## Recommended Sequence
-1. Polish the current territory/property/stash-house loop until it feels reliable and understandable.
-2. Add the first laundering/front-business loop.
-3. Add a real clean-money gate so laundering matters.
-4. Then move into raids, runners, and deeper territory pressure systems.
+1. Polish ATM and gun-shop usability, clarity, and feedback.
+2. Stabilize the loading-screen path so it can launch the working world reliably.
+3. Re-enable any presentation and convenience work that was deferred during stabilization.
+4. Only then expand into additional front businesses, more guns, or deeper laundering risk systems.
 
 ## Polish Now
-Focus this phase on player-facing outcomes, not on adding another large feature.
 
-### Territory UI usability
-- Make support-property assignment feel stable and obvious.
-- Keep territory status text short enough to scan quickly.
-- Ensure the territory panel fits and scrolls cleanly inside the inventory UI.
-- Make blocked network reasons visible without making the player decode system state.
+### ATM polish
+- Make ATM interaction feedback feel deliberate: clear open/close behavior, visible deposit cap, and obvious success/failure messages.
+- Make the dirty/clean conversion text impossible to misread.
+- Consider adding small denomination shortcuts or a cleaner amount-entry flow if current interaction feels clunky.
+- Make the daily reset readable in UI language tied to the in-game day.
 
-### Territory and stash clarity
-- Make the linked stash house obvious in both `Territories` and `Properties`.
-- Keep `Collect Earnings` clearly framed as withdrawing linked stash cash, not claiming a territory pool.
-- Make support-property assignment, reassignment, and cleared-link states easy to understand.
+### Gun-shop UI polish
+- Improve tab readability and selected-state clarity in the gun-shop menu.
+- Make `Buy`, `Upgrade`, `Buy Business`, and stock-purchase actions read clearly at a glance.
+- Improve the right-side gun info panel so upgrade differences are easier to understand.
+- Add better empty-state and locked-state messaging in the `Business` tab.
 
-### Dealer network feedback
-- Show whether hired dealers are productive, blocked by no stash, or blocked by no stock.
-- Surface stash stock depletion clearly enough that the player knows why dealers stopped working.
-- Add or improve visible feedback that confirms hired dealer sales are consuming stash stock and returning dirty cash to stash.
+### Business simulation polish
+- Make customer traffic feel believable and readable, not silent or confusing.
+- Surface when the business is idle because it is unowned, out of stock, or simply waiting for customers.
+- Give clearer feedback when a customer sale succeeds and when no sale can happen due to missing stock.
+- Keep front-business blackboard usage defensive so missing keys never spam the console.
 
-### Reliability and edge cases
-- Support-property selection must not reset or fight the player.
-- Releasing territory control should cleanly disable the linked dealer network.
-- No-control, no-support, and no-stock states should all fail gracefully and read clearly in the UI.
+### World placement and interaction polish
+- The ATM and gun shop are back in `World.tscn`, but their current coordinates are just functional placeholders.
+- Final placement, collision tuning, prompts, and map readability still need a polish pass in-editor.
+- If more ATMs or fronts are added, keep using the existing container pattern rather than attaching one-off nodes directly under root.
 
-## Polish Ladder
-Use this ladder to keep polish bounded instead of endless.
+### Loading-screen polish and stability
+- `World.tscn` currently loads directly and is the reliable way to test.
+- The loading-screen path was simplified during stabilization and still needs a real polish pass.
+- Current loading screen should be treated as a temporary safe fallback, not a finished system.
+- Before polishing it, preserve the working direct-to-world path as the known-good baseline.
 
-### Must Fix Before Next System
-- Broken or unstable stash assignment flow.
-- Territory panel layout problems that hide or block actions.
-- Confusing earnings collection behavior.
-- Missing or misleading blocked-state messaging.
-- Any case where the network keeps appearing productive when it should be inactive.
+## Must Fix Before Expanding This System
+- Loading through the project main scene should become as reliable as loading `World.tscn` directly.
+- ATM and gun-shop menus should communicate costs, limits, and locked states clearly enough that the player never has to guess.
+- Business stock and business earnings should be readable without watching debug behavior.
+- Customer traffic should feel stable and not create console spam or weird blackboard-state edge cases.
+- World placement for the ATM and gun shop should be finalized enough that interaction range feels intentional.
 
-### Strongly Recommended
-- Cleaner territory summaries and shorter status text.
-- Better linked-property visibility across Territories and Properties.
-- Stronger visual feedback when stash stock is depleted or cash arrives.
-- Better discoverability for what each territory action actually does.
+## Strongly Recommended
+- Better polish on money feedback for clean vs dirty transactions.
+- Better feedback when the daily ATM cap is exhausted.
+- Stronger UI wording around business purchase requirements being clean-money only.
+- Better visual distinction between personal gun ownership and business inventory stock.
 
-### Can Wait
-- Extra convenience actions beyond the core loop.
-- Advanced sorting/filtering in Properties and Territories.
-- Non-essential visual flair and cosmetic animation polish.
-- Deeper dashboard-style reporting for the network.
+## Can Wait
+- Multiple gun-shop locations.
+- More firearm families beyond Glock.
+- Complex laundering risk, audits, heat transfer, or police attention tied to fronts.
+- Full loading-screen visual polish once the launch path is stable.
 
-## Build Next
-After the current slice is polished, make laundering the explicit next foundation.
-
-### First laundering loop
-- Add one front-business laundering flow.
-- Convert dirty money to clean money over time with limited throughput.
-- Use existing economy split and `PropertyResource.laundering_rate` as the starting foundation.
-- Surface throughput, bottlenecks, and current conversion status in property or management UI.
-
-### Clean-money pressure
-- Add at least one meaningful spend that requires clean money.
-- Make clean-money generation visibly slower and more infrastructure-bound than dirty cash generation.
-- Ensure the player can feel the need for laundering before they can expand comfortably.
-
-## Later, Not Yet
-Keep these systems visible, but explicitly downstream from the current polish and laundering work.
-
-- Runners
-- Raids
-- Court and debt gameplay
-- Deeper territory claim state machine
-- Gang wars
-- Advanced property specialization
+## Known Temporary Compromises
+- The loading-screen implementation was simplified to reduce crash risk during debugging.
+- The safest current test path is loading directly into `World.tscn`.
+- ATM and gun-shop placements were restored after stabilization, but they have not had a full final polish pass yet.
+- This slice prioritized working functionality over presentation.
 
 ## Why This Order
-Today’s territory/stash-house slice is the first real bridge from street hustle to network play. If that bridge is confusing, unreliable, or awkward to use, later systems built on top of it will feel harder to understand than they really are.
+The laundering slice is now real enough to play with, which changes the priority. The next bottleneck is no longer "build laundering." The next bottleneck is making the new systems understandable, trustworthy, and pleasant to use.
 
-Laundering should come next because it is the first true empire-growth gate. It gives clean money a reason to exist, creates a real bottleneck between dirty cash generation and expansion, and starts turning properties into infrastructure rather than just storage.
+If another system gets stacked on top right now, the project risks turning temporary debug-grade interaction into permanent player-facing behavior. A polish pass now will keep future fronts, upgrades, and clean-money sinks much easier to integrate.
 
-Runners, raids, court systems, and broader territory pressure become much more meaningful after the player can already read and trust the stash/dealer/laundering loop. They are downstream pressure and automation layers, not the next foundation.
-
-This ordering also updates an outdated assumption in [game-loop-status.md](C:/Users/jphil/Documents/family-business-prototype/docs/game-loop-status.md): stash-linked dealers and territory-linked stash support should no longer be treated as fully missing. They are better described as started, partially landed, and in need of polish before the next major expansion.
-
-## Interface Notes
-Future work should stay aligned with these current realities:
-
-- `Territories` and `Properties` are separate management surfaces.
-- Controlled territory -> linked stash house -> hired dealers consume stash stock and return dirty cash to stash.
-- `Collect Earnings` is a convenience withdrawal from linked stash cash, not a territory money pool.
-- `PropertyResource.laundering_rate` plus the dirty/clean/debt economy already exist as the base for laundering work.
-
-## Acceptance Criteria
-### Polish acceptance
-- The player can link a stash house without fighting the UI.
-- The territory panel fits and scrolls cleanly.
-- The player can tell, at a glance, whether a network is productive or blocked and why.
-- Linked property and support-role status are visible in both `Territories` and `Properties`.
-- Earnings collection behavior is clear and consistent.
-
-### Next-system acceptance
-- One front business can convert dirty money to clean money over time.
-- Clean-money generation is visible and rate-limited.
-- At least one meaningful spend requires clean money.
-- The player can feel the bottleneck between dirty cash generation and laundering throughput.
+## Acceptance Criteria For The Next Polish Pass
+- Player can find and use the ATM without confusion.
+- ATM cap, dirty-to-clean conversion, and clean-to-dirty withdrawal are obvious in the UI.
+- Player can understand exactly how to buy the gun shop, buy a Glock, upgrade a Glock, and buy stock.
+- Business tab communicates locked, owned, stocked, and idle states clearly.
+- Front-business customer sales feel legible and do not spam warnings.
+- Loading through the intended main-scene path no longer crashes.
 
 ## Review Guidance
-When revisiting this doc, check that it stays useful:
-
-- It should not restate the full fantasy from [game-plan.md](C:/Users/jphil/Documents/family-business-prototype/docs/game-plan.md).
-- It should not turn into a file-by-file implementation contract.
-- It should keep polish tasks clearly separate from next-system work.
-- It should reflect the current territory/stash checkpoint honestly.
-- A future agent should be able to read it and immediately know what to fix first, what to build next, and what to defer.
+- Do not rewrite the laundering slice from scratch.
+- Do not remove the ATM/business container approach in `World.tscn`.
+- Do not collapse player weapon ownership back into a hardcoded always-owned Glock.
+- Treat the current loading-screen simplification as a temporary stability measure, not a final design choice.
+- A future agent should be able to read this doc and immediately know: laundering exists, polish is next, loading-screen stabilization is part of polish, and expansion comes after that.

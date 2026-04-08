@@ -18,16 +18,13 @@ func _ready() -> void:
 
 func _on_body_entered(body: Node2D) -> void:
 	print("DoorTrigger: Body entered: ", body.name)
-	if body.is_in_group("player") and body.has_method("interact"):
-		print("DoorTrigger: Setting player current_interactable")
-		body.current_interactable = self
+	if body.is_in_group("player") and body.has_method("register_interactable"):
+		body.register_interactable(self)
 
 func _on_body_exited(body: Node2D) -> void:
 	print("DoorTrigger: Body exited: ", body.name)
-	if body.is_in_group("player"):
-		if body.get("current_interactable") == self:
-			print("DoorTrigger: Clearing player current_interactable")
-			body.current_interactable = null
+	if body.is_in_group("player") and body.has_method("unregister_interactable"):
+		body.unregister_interactable(self)
 
 func interact() -> void:
 	print("DoorTrigger: Interaction triggered for ", name, ". door_node is: ", door_node.name if door_node else "NULL")

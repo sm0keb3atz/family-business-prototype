@@ -33,19 +33,22 @@ var inventory_component: InventoryComponent
 var inventory_ui: InventoryUI
 var shop_ui: ShopUI
 var property_ui: PropertyUI
+var atm_ui: ATMUI
+var gun_shop_ui: GunShopUI
 var solicitation_component: SolicitationComponent
 var _base_stats: CharacterStatsResource
+var weapon_state: PlayerWeaponState
 
 @export var solicitation_config: SolicitationConfigResource
 
-var available_weapons: Array = [
-	{ "scene": null, "data": null }, # Unarmed
-	{ "scene": preload("res://GAME/scenes/Weapons/glock.tscn"), "data": preload("res://GAME/resources/weapons/glock_lv1.tres") },
-	{ "scene": preload("res://GAME/scenes/Weapons/glock.tscn"), "data": preload("res://GAME/resources/weapons/glock_lv2.tres") },
-	{ "scene": preload("res://GAME/scenes/Weapons/glock.tscn"), "data": preload("res://GAME/resources/weapons/glock_lv3.tres") },
-	{ "scene": preload("res://GAME/scenes/Weapons/glock.tscn"), "data": preload("res://GAME/resources/weapons/glock_lv4.tres") }
-]
-var current_weapon_index: int = 1
+var glock_weapon_scene: PackedScene = preload("res://GAME/scenes/Weapons/glock.tscn")
+var glock_weapon_data_by_level := {
+	1: preload("res://GAME/resources/weapons/glock_lv1.tres"),
+	2: preload("res://GAME/resources/weapons/glock_lv2.tres"),
+	3: preload("res://GAME/resources/weapons/glock_lv3.tres"),
+	4: preload("res://GAME/resources/weapons/glock_lv4.tres")
+}
+
 func _ready() -> void:
 	add_to_group("player")
 	z_index = 1
@@ -69,6 +72,13 @@ func _setup_inventory() -> void:
 	inventory_component = InventoryComponent.new()
 	inventory_component.name = "InventoryComponent"
 	add_child(inventory_component)
+
+	weapon_state = PlayerWeaponState.new()
+	weapon_state.owned_glock_level = 0
+	if not weapon_state.owned_glock_level_changed.is_connected(_on_owned_glock_level_changed):
+		weapon_state.owned_glock_level_changed.connect(_on_owned_glock_level_changed)
+	if not weapon_state.equipped_state_changed.is_connected(_on_equipped_state_changed):
+		weapon_state.equipped_state_changed.connect(_on_equipped_state_changed)
 	
 	var ui_scene = preload("res://GAME/scenes/ui/inventory_ui.tscn")
 	inventory_ui = ui_scene.instantiate()
@@ -82,7 +92,15 @@ func _setup_inventory() -> void:
 	var property_ui_scene = preload("res://GAME/scenes/ui/property_ui.tscn")
 	property_ui = property_ui_scene.instantiate()
 	get_tree().root.call_deferred("add_child", property_ui)
-	
+
+	var atm_ui_scene = preload("res://GAME/scenes/ui/atm_ui.tscn")
+	atm_ui = atm_ui_scene.instantiate()
+	get_tree().root.call_deferred("add_child", atm_ui)
+
+	var gun_shop_ui_scene = preload("res://GAME/scenes/ui/gun_shop_ui.tscn")
+	gun_shop_ui = gun_shop_ui_scene.instantiate()
+	get_tree().root.call_deferred("add_child", gun_shop_ui)
+
 	var hud_scene = preload("res://GAME/scenes/ui/hud.tscn")
 	var hud = hud_scene.instantiate()
 	get_tree().root.call_deferred("add_child", hud)
@@ -122,8 +140,13 @@ func _inject_dependencies() -> void:
 	if footstep_component:
 		footstep_component.animation_player = %AnimationPlayer
 		footstep_component.body_sprite = appearance_nodes.get_node("Body")
-		footstep_component.dust_sprite = $Footsteps
 		footstep_component.footstep_audio = %FootstepAudio
+		footstep_component.dust_sprite = $Footsteps
+	
+	# Safety clear for interaction state on scene jumps
+	_is_interacting = false
+	current_interactable = null
+	call_deferred("refresh_interactables")
 
 func _setup_connections() -> void:
 	if input_component:
@@ -196,6 +219,18 @@ func unregister_interactable(node: Node2D) -> void:
 		current_interactable = null
 		_is_interacting = false
 
+func refresh_interactables() -> void:
+	_available_interactables.clear()
+	# Search for any areas the player is currently overlapping that are in the interact group
+	# This handles the case where the player spawns inside a trigger
+	for area in get_tree().get_nodes_in_group("door_trigger"):
+		if area is Area2D and area.overlaps_body(self):
+			register_interactable(area)
+	# Also check generic interactables
+	for area in get_tree().get_nodes_in_group("interact_area"):
+		if area is Area2D and area.overlaps_body(self):
+			register_interactable(area)
+
 func interact() -> void:
 	if _is_interacting:
 		print("Player: Already interacting, ignoring request.")
@@ -213,7 +248,10 @@ func interact() -> void:
 				closest_node = node
 		current_interactable = closest_node
 
-	print("Player: interact() called. current_interactable: ", current_interactable.name if current_interactable else "NONE")
+	var interactable_name: String = "NONE"
+	if current_interactable:
+		interactable_name = current_interactable.name
+	print("Player: interact() called. current_interactable: ", interactable_name)
 	if current_interactable and current_interactable.has_method("interact"):
 		_is_interacting = true
 		current_interactable.interact()
@@ -235,18 +273,70 @@ func _on_damage_taken(amount: int) -> void:
 		player_ui.spawn_indicator("damage", str(amount))
 
 func _on_weapon_next() -> void:
-	current_weapon_index = (current_weapon_index + 1) % available_weapons.size()
+	if not weapon_state or weapon_state.owned_glock_level <= 0:
+		return
+	weapon_state.is_equipped = !weapon_state.is_equipped
 	_update_weapon()
 
 func _on_weapon_prev() -> void:
-	current_weapon_index = (current_weapon_index - 1 + available_weapons.size()) % available_weapons.size()
+	if not weapon_state or weapon_state.owned_glock_level <= 0:
+		return
+	weapon_state.is_equipped = !weapon_state.is_equipped
 	_update_weapon()
 
 func _update_weapon() -> void:
 	if weapon_holder_component:
-		var weapon_config = available_weapons[current_weapon_index]
-		weapon_holder_component.equip_weapon(weapon_config.scene, weapon_config.data)
+		var owned_level: int = get_owned_glock_level()
+		if owned_level <= 0 or not weapon_state.is_equipped:
+			weapon_holder_component.equip_weapon(null, null)
+		else:
+			var weapon_data: WeaponDataResource = glock_weapon_data_by_level.get(owned_level, null)
+			weapon_holder_component.equip_weapon(glock_weapon_scene, weapon_data)
 		weapon_changed.emit(weapon_holder_component.current_weapon)
+
+func _on_equipped_state_changed(_is_equipped: bool) -> void:
+	_update_weapon()
+
+func get_owned_glock_level() -> int:
+	if not weapon_state:
+		return 0
+	return weapon_state.owned_glock_level
+
+func has_owned_glock() -> bool:
+	return get_owned_glock_level() > 0
+
+func get_glock_purchase_cost(level: int) -> int:
+	match clampi(level, 1, 4):
+		1:
+			return 2500
+		2:
+			return 4500
+		3:
+			return 7000
+		4:
+			return 9500
+		_:
+			return 0
+
+func can_purchase_or_upgrade_glock(level: int) -> bool:
+	level = clampi(level, 1, 4)
+	var owned_level: int = get_owned_glock_level()
+	if owned_level <= 0:
+		return level == 1
+	return level == owned_level + 1
+
+func purchase_or_upgrade_glock(level: int) -> bool:
+	level = clampi(level, 1, 4)
+	if not can_purchase_or_upgrade_glock(level):
+		return false
+	var cost: int = get_glock_purchase_cost(level)
+	if cost <= 0 or not NetworkManager.economy.spend_clean(cost):
+		return false
+	weapon_state.owned_glock_level = level
+	return true
+
+func _on_owned_glock_level_changed(_new_level: int) -> void:
+	_update_weapon()
 
 func _on_arrest_progress_changed(value: float) -> void:
 	if player_ui:

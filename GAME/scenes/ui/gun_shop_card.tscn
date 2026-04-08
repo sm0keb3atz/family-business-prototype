@@ -1,0 +1,77 @@
+[gd_scene load_steps=8 format=3 uid="uid://gunshopcard1"]
+
+[ext_resource type="Script" path="res://GAME/scripts/ui/gun_shop_card.gd" id="1_gunscript"]
+[ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="2_font"]
+[ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="3_theme"]
+[ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="4_bg"]
+[ext_resource type="Texture2D" uid="uid://fvkq6n2gwyf7" path="res://GAME/assets/sprites/weapons/pistol/glocklv1.png" id="5_default_icon"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_card"]
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+texture = ExtResource("4_bg")
+texture_margin_left = 3.0
+texture_margin_top = 3.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(32, 160, 32, 32)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ljxjk"]
+texture = ExtResource("4_bg")
+texture_margin_left = 3.0
+texture_margin_top = 3.0
+texture_margin_right = 3.0
+texture_margin_bottom = 3.0
+region_rect = Rect2(32, 128, 32, 32)
+
+[node name="GunShopCard" type="PanelContainer"]
+custom_minimum_size = Vector2(280, 0)
+theme = ExtResource("3_theme")
+theme_override_styles/panel = SubResource("StyleBoxTexture_card")
+script = ExtResource("1_gunscript")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="IconPanel" type="PanelContainer" parent="HBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_ljxjk")
+
+[node name="IconControl" type="Control" parent="HBoxContainer/IconPanel"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="IconRect" type="Sprite2D" parent="HBoxContainer/IconPanel/IconControl"]
+unique_name_in_owner = true
+position = Vector2(17, 23)
+texture = ExtResource("5_default_icon")
+hframes = 12
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="HBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "Glock Lv1"
+
+[node name="ActionButton" type="Button" parent="HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Buy"

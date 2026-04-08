@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="FrontBusinessResource" format=3]
+
+[ext_resource type="Script" path="res://GAME/scripts/resources/front_business_resource.gd" id="1_front_business"]
+
+[resource]
+script = ExtResource("1_front_business")
+business_id = &"gun_shop_01"
+display_name = "Gun Shop"
+purchase_price = 12000

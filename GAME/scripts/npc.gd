@@ -340,6 +340,17 @@ func _physics_process(delta: float) -> void:
 		elif global_position.distance_to(dealer_node.global_position) > 1400.0:
 			_reset_dealer_customer_state()
 
+	if blackboard and blackboard.has_var(&"is_front_business_customer") and blackboard.get_var(&"is_front_business_customer", false):
+		var business_target: Node2D = null
+		if blackboard.has_var(&"front_business_purchase_target"):
+			var raw_business: Variant = blackboard.get_var(&"front_business_purchase_target", null)
+			if is_instance_valid(raw_business) and raw_business is Node2D:
+				business_target = raw_business
+		if not is_instance_valid(business_target):
+			_reset_front_business_customer_state()
+		elif global_position.distance_to(business_target.global_position) > 1400.0:
+			_reset_front_business_customer_state()
+
 	# Girlfriend Request Logic
 	if gf_resource and gf_resource.is_following and not gf_is_requesting:
 		if gf_request_timer > 0.0:
@@ -708,6 +719,20 @@ func _handle_solicited_interaction(player: Node2D) -> void:
 
 		AudioManager.play_transaction()
 
+		# Gain Reputation in Territory
+		var deal_territory: TerritoryArea = get_meta(&"territory") if has_meta(&"territory") else null
+		if not deal_territory:
+			for node in get_tree().get_nodes_in_group("territories"):
+				if node is TerritoryArea and node.get_overlapping_bodies().has(player):
+					deal_territory = node
+					break
+					
+		if deal_territory and deal_territory.reputation_component:
+			deal_territory.reputation_component.add_reputation(1.0 + (grams * 0.1))
+			pui = player.get("player_ui")
+			if pui:
+				pui.spawn_indicator("money_up", "+REP")
+
 		if npc_ui:
 			bark("Thanks man.", 2.5, false, "solicitation")
 
@@ -931,6 +956,15 @@ func _reset_dealer_customer_state() -> void:
 	blackboard.set_var(&"dealer_purchase_target", null)
 	blackboard.set_var(&"dealer_purchase_drug_id", &"")
 	blackboard.set_var(&"dealer_purchase_grams", 0)
+	_update_ui_icon()
+
+func _reset_front_business_customer_state() -> void:
+	if not blackboard:
+		return
+	blackboard.set_var(&"is_front_business_customer", false)
+	blackboard.set_var(&"approach_target", null)
+	blackboard.set_var(&"front_business_purchase_target", null)
+	blackboard.set_var(&"front_business_level", 0)
 	_update_ui_icon()
 
 
