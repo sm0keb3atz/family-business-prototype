@@ -12,5 +12,6 @@ func _tick(_delta: float) -> Status:
 	var npc: NPC = agent as NPC
 	if npc and npc.npc_ui:
 		npc.npc_ui.hide_dialog_bubble()
+		npc._update_ui_icon()
 		
 	return SUCCESS

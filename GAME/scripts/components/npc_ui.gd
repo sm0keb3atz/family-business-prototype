@@ -3,6 +3,9 @@ class_name NpcUI
 
 @onready var health_bar = $HealthBar
 @onready var type_icon = $TypeIcon
+@onready var request_badge = get_node_or_null("RequestBadge")
+@onready var request_icon = get_node_or_null("RequestBadge/Icon")
+@onready var request_quantity_label = get_node_or_null("RequestBadge/Quantity")
 @onready var dialog_bubble = $DialogBubble
 @onready var dialog_label = $DialogBubble/Label
 @onready var animation_player = $AnimationPlayer
@@ -20,6 +23,8 @@ func _ready():
 		dialog_bubble.hide()
 	if type_icon:
 		type_icon.hide()
+	if request_badge:
+		request_badge.hide()
 	if health_bar:
 		health_bar.hide()
 	if arrest_bar:
@@ -67,6 +72,23 @@ func hide_type_icon():
 		$LevelLabel.hide()
 	if animation_player:
 		animation_player.stop()
+
+func show_request_badge(icon_texture: Texture2D, grams: int) -> void:
+	if not request_badge or not request_icon or not request_quantity_label:
+		return
+
+	request_icon.texture = icon_texture
+	request_icon.visible = icon_texture != null
+	request_quantity_label.text = str(grams) + "g"
+	request_badge.show()
+
+func hide_request_badge() -> void:
+	if request_badge:
+		request_badge.hide()
+	if request_icon:
+		request_icon.texture = null
+	if request_quantity_label:
+		request_quantity_label.text = ""
 
 func update_level(level: int, role: int) -> void:
 	var level_label = get_node_or_null("LevelLabel")

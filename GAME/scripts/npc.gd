@@ -167,16 +167,26 @@ func _update_ui_icon() -> void:
 	
 	if role == Role.DEALER:
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Dealer_Icon.png"))
+		npc_ui.hide_request_badge()
 	elif role == Role.CUSTOMER and blackboard and blackboard.get_var(&"is_solicited", false):
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Customer_Icon.png"))
+		var requested_drug_id: StringName = blackboard.get_var(&"requested_drug_id", &"")
+		var requested_grams: int = blackboard.get_var(&"requested_grams", 0)
+		if not String(requested_drug_id).is_empty() and requested_grams > 0:
+			npc_ui.show_request_badge(DrugCatalog.get_product_icon(requested_drug_id, false), requested_grams)
+		else:
+			npc_ui.hide_request_badge()
 	elif is_potential_girlfriend:
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Girlfriend_Icon.png"))
 		npc_ui.update_level(potential_gf_level, -1)
+		npc_ui.hide_request_badge()
 	elif gf_resource != null:
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Girlfriend_Icon.png"))
 		npc_ui.update_level(gf_resource.level, -1)
+		npc_ui.hide_request_badge()
 	else:
 		npc_ui.hide_type_icon()
+		npc_ui.hide_request_badge()
 	
 	# Proactive check: if we just became interactable and player is already here, register!
 	var can_interact = (role == Role.DEALER) or (blackboard and blackboard.get_var(&"is_solicited", false)) or is_potential_girlfriend
@@ -647,83 +657,76 @@ func _handle_solicited_interaction(player: Node2D) -> void:
 	var payout = blackboard.get_var(&"offered_payout", 0)
 	var drug_id: StringName = blackboard.get_var(&"requested_drug_id", &"weed")
 	var drug_name := DrugCatalog.get_display_name(drug_id)
-	
-	if Input.is_action_just_pressed("ui_accept"): # Dealing with Space/Enter
-		var inv: InventoryComponent = player.get("inventory_component")
-		if inv and inv.has_drug(drug_id, grams):
-			inv.remove_drug(drug_id, grams)
-			var sale_payout: int = int(payout)
-			if player.has_method("get_sale_payout_multiplier"):
-				sale_payout = roundi(float(payout) * player.get_sale_payout_multiplier())
-			player.get("progression").money += sale_payout
-			
-			# Apply Heat
-			var definition := DrugCatalog.get_definition(drug_id)
-			var base_heat := definition.base_heat_per_gram if definition else HeatConfig.BASE_HEAT_PER_GRAM
-			var risk_multiplier := definition.risk_multiplier if definition else 1.0
-			var sale_heat = base_heat * grams * risk_multiplier * HeatConfig.SALE_RISK_MULTIPLIER
-			if player.has_method("get_sale_heat_multiplier"):
-				sale_heat *= player.get_sale_heat_multiplier()
-			if has_node("/root/HeatManager"):
-				get_node("/root/HeatManager").add_heat(sale_heat)
-			
-			# XP and Indicators
-			var sale_xp = int(grams * 25) # Balanced: 25 XP per gram
-			if player.has_method("get_sale_xp_multiplier"):
-				sale_xp = roundi(float(sale_xp) * player.get_sale_xp_multiplier())
-			player.get("progression").add_xp(sale_xp)
-			
-			var pui = player.get("player_ui")
-			if pui:
-				pui.spawn_indicator("money_up", "+$" + str(sale_payout))
-				pui.spawn_indicator("product", "-%dg %s" % [grams, drug_name], DrugCatalog.get_product_icon(drug_id, false))
-				pui.spawn_indicator("xp", "+" + str(sale_xp) + " XP")
-			
-			AudioManager.play_transaction()
-			
-			if npc_ui:
-				bark("Thanks man.", 2.5, false, "solicitation")
-			
-			# Reset state so client returns to path
+
+	var inv: InventoryComponent = player.get("inventory_component")
+	if inv and inv.has_drug(drug_id, grams):
+		inv.remove_drug(drug_id, grams)
+		var sale_payout: int = int(payout)
+		if player.has_method("get_sale_payout_multiplier"):
+			sale_payout = roundi(float(payout) * player.get_sale_payout_multiplier())
+		player.get("progression").money += sale_payout
+
+		# Apply Heat
+		var definition := DrugCatalog.get_definition(drug_id)
+		var base_heat := definition.base_heat_per_gram if definition else HeatConfig.BASE_HEAT_PER_GRAM
+		var risk_multiplier := definition.risk_multiplier if definition else 1.0
+		var sale_heat = base_heat * grams * risk_multiplier * HeatConfig.SALE_RISK_MULTIPLIER
+		if player.has_method("get_sale_heat_multiplier"):
+			sale_heat *= player.get_sale_heat_multiplier()
+		if has_node("/root/HeatManager"):
+			get_node("/root/HeatManager").add_heat(sale_heat)
+
+		# XP and Indicators
+		var sale_xp = int(grams * 25) # Balanced: 25 XP per gram
+		if player.has_method("get_sale_xp_multiplier"):
+			sale_xp = roundi(float(sale_xp) * player.get_sale_xp_multiplier())
+		player.get("progression").add_xp(sale_xp)
+
+		var pui = player.get("player_ui")
+		if pui:
+			pui.spawn_indicator("money_up", "+$" + str(sale_payout))
+			pui.spawn_indicator("product", "-%dg %s" % [grams, drug_name], DrugCatalog.get_product_icon(drug_id, false))
+			pui.spawn_indicator("xp", "+" + str(sale_xp) + " XP")
+
+		AudioManager.play_transaction()
+
+		if npc_ui:
+			bark("Thanks man.", 2.5, false, "solicitation")
+
+		# Reset state so client returns to path
+		blackboard.set_var(&"is_solicited", false)
+		_is_interacting = false
+		blackboard.set_var(&"is_interacting", false)
+
+		# CRITICAL: Force unregister from player to prevent re-interaction prompt
+		if player:
+			player.unregister_interactable(self)
+			if player.get("current_interactable") == self:
+				player._is_interacting = false
+				player.current_interactable = null
+
+		_update_ui_icon()
+	else:
+		if npc_ui:
+			bark("You don't have enough!", 2.5, false, "solicitation")
+
+		# Exit solicitation if player can't fulfill
+		await get_tree().create_timer(1.5).timeout
+		if is_instance_valid(self):
 			blackboard.set_var(&"is_solicited", false)
 			_is_interacting = false
 			blackboard.set_var(&"is_interacting", false)
-			
+
 			# CRITICAL: Force unregister from player to prevent re-interaction prompt
 			if player:
 				player.unregister_interactable(self)
 				if player.get("current_interactable") == self:
 					player._is_interacting = false
 					player.current_interactable = null
-			
+
 			_update_ui_icon()
-		else:
 			if npc_ui:
-				bark("You don't have enough!", 2.5, false, "solicitation")
-			
-			# Exit solicitation if player can't fulfill
-			await get_tree().create_timer(1.5).timeout
-			if is_instance_valid(self):
-				blackboard.set_var(&"is_solicited", false)
-				_is_interacting = false
-				blackboard.set_var(&"is_interacting", false)
-				
-				# CRITICAL: Force unregister from player to prevent re-interaction prompt
-				if player:
-					player.unregister_interactable(self)
-					if player.get("current_interactable") == self:
-						player._is_interacting = false
-						player.current_interactable = null
-				
-				_update_ui_icon()
-				if npc_ui:
-					npc_ui.hide_dialog_bubble()
-	else:
-		if npc_ui:
-			var shown_payout: int = int(payout)
-			if player and player.has_method("get_sale_payout_multiplier"):
-				shown_payout = roundi(float(payout) * player.get_sale_payout_multiplier())
-			bark("I need %dg of %s. Give you $%d.\n(Press Space)" % [grams, drug_name, shown_payout], 2.5, true, "solicitation")
+				npc_ui.hide_dialog_bubble()
 
 func _handle_girlfriend_money_request(player: Node2D) -> void:
 	if not player or not player.get("progression"): return
