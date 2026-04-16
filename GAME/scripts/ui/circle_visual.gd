@@ -39,8 +39,8 @@ func _setup_radar_visual() -> void:
 	_sprite.material = _shader_mat
 	add_child(_sprite)
 
-	# Render below the police officer sprite
-	z_index = -1
+	# Render at character level (above ground at -1), Y-sorting handles depth relative to characters
+	z_index = 0
 
 	_update_sprite_size()
 

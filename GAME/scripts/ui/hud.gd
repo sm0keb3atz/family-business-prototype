@@ -39,6 +39,7 @@ func _ready() -> void:
 	_setup_ui_nodes()
 	_setup_economy_labels()
 	_reset_territory_ui()
+	_on_weapon_changed(null)
 	
 	# Try to find player
 	# Connect to health
@@ -86,7 +87,7 @@ func _process(delta: float) -> void:
 			if not player.weapon_changed.is_connected(_on_weapon_changed):
 				player.weapon_changed.connect(_on_weapon_changed)
 			
-			if player.weapon_holder_component and player.weapon_holder_component.current_weapon:
+			if player.weapon_holder_component:
 				_on_weapon_changed(player.weapon_holder_component.current_weapon)
 
 			if is_instance_valid(money_label):

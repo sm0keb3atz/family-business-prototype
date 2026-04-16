@@ -36,6 +36,8 @@ var spawn_position: Vector2 = Vector2.ZERO
 var blackboard: Blackboard
 var _hitstun_duration: float = 0.0
 var _is_interacting: bool = false
+var _lod_tier: int = 0          # 0=Full, 1=Reduced, 2=Dormant
+var _is_dead: bool = false
 var _panic_audio_player: AudioStreamPlayer2D
 var _dialog_hide_timer: SceneTreeTimer
 var _dealer_bark_cooldowns := {
@@ -48,6 +50,24 @@ var gf_is_requesting: bool = false
 var gf_request_amount: int = 0
 var gf_request_timer: float = 0.0
 var gf_request_grace_timer: float = 0.0
+var _managed_by_pool: bool = false
+var _is_pooled: bool = false
+var _core_runtime_initialized: bool = false
+var _role_runtime_initialized: bool = false
+var _visual_state_initialized: bool = false
+var _path_markers: Array = []
+
+# --- Stuck Detection Fail-Safes ---
+var _stuck_accumulator: float = 0.0
+var _last_stuck_pos: Vector2 = Vector2.ZERO
+var _stuck_check_timer: float = 0.0
+
+const NPC_COLLISION_LAYER: int = 2
+const NPC_COLLISION_MASK: int = 1
+const HURTBOX_COLLISION_LAYER: int = 4
+const HURTBOX_COLLISION_MASK: int = 0
+const INTERACT_COLLISION_LAYER: int = 0
+const INTERACT_COLLISION_MASK: int = 2
 
 const DEALER_APPROACH_BARKS: Array[String] = [
 	"Yo, you need to re-up.",
@@ -85,85 +105,24 @@ func _ready() -> void:
 	randomize() 
 	add_to_group("npc")
 	spawn_position = global_position
-	z_index = 1
 	# NPCs on layer 2, only collide with layer 1 (walls/environment)
 	# Avoidance still steers them around each other, but no physics collision = never stuck
-	collision_layer = 2
-	collision_mask = 1
-	
-	_inject_dependencies()
-	_setup_connections()
-	_setup_bt()
-	if role == Role.DEALER:
-		var tier = dealer_tier
-		if not tier:
-			tier = DealerTierResource.new()
-			var drug = preload("res://GAME/scripts/resources/drug_definition_resource.gd").new()
-			drug.id = "weed"
-			drug.display_name = "Weed"
-			drug.base_price = 10
-			tier.allowed_drugs.append(drug)
-		
-		# Apply Tier Stats
-		if stats:
-			stats.max_health = tier.max_health
-			if health_component:
-				health_component.setup(stats)
-		
-		# Equip Weapon (Moved to BT Action EnsureWeaponDrawn)
-		# if tier.weapon_scene and weapon_holder_component:
-		# 	weapon_holder_component.equip_weapon(tier.weapon_scene, tier.weapon_data)
-			
-		var shop_comp = DealerShopComponent.new()
-		shop_comp.name = "DealerShopComponent"
-		shop_comp.tier_config = tier
-		add_child(shop_comp)
-		
-		# Add Detection Component for combat
-		var detect_comp = DealerDetectionComponent.new()
-		detect_comp.name = "DealerDetectionComponent"
-		detect_comp.detection_radius = 450.0  # Slightly larger than Police patrol to let them spot the player from further away once combat starts
-		add_child(detect_comp)
-	elif role == Role.POLICE:
-		var detect_comp: PoliceDetectionComponent = PoliceDetectionComponent.new()
-		detect_comp.name = "PoliceDetectionComponent"
-		detect_comp.detection_radius = 350.0 # Standard base radius
-		add_child(detect_comp)
-		# Debug overlay for visual telemetry (toggle via PoliceDebugOverlay.DEBUG_POLICE)
-		var debug_overlay: PoliceDebugOverlay = PoliceDebugOverlay.new()
-		debug_overlay.name = "PoliceDebugOverlay"
-		add_child(debug_overlay)
-	
-	
-	
-	if gf_resource and gf_resource.appearance:
-		_apply_gf_appearance()
-		_boost_girlfriend_speed()
-		
-		# Setup Girlfriend Component
-		var gf_comp = GirlfriendComponent.new()
-		gf_comp.name = "GirlfriendComponent"
-		gf_comp.setup(gf_resource)
-		add_child(gf_comp)
-		
-		# Set GF Behavior Tree
-		behavior_tree = load("res://GAME/resources/ai/girlfriend_bt.tres")
-		_setup_bt()
-		
-		if npc_ui:
-			npc_ui.update_level(gf_resource.level, -1)
-			
-		gf_request_timer = randf_range(45.0, 90.0)
+	collision_layer = NPC_COLLISION_LAYER
+	collision_mask = NPC_COLLISION_MASK
+	y_sort_enabled = true
+	_managed_by_pool = bool(get_meta(&"managed_by_pool", false))
+	_ensure_core_runtime_initialized()
+	if _managed_by_pool:
+		prepare_for_pool()
 	else:
-		_randomize_gender_and_appearance()
-	
-	if role == Role.DEALER and dealer_tier and npc_ui:
-		npc_ui.update_level(dealer_tier.tier_level, 1)
-	
-	_update_ui_icon()
+		activate_from_pool(global_position, {"lod_tier": 0})
 
 func _update_ui_icon() -> void:
 	if not npc_ui: return
+	if _is_pooled:
+		npc_ui.hide_type_icon()
+		npc_ui.hide_request_badge()
+		return
 	
 	if role == Role.DEALER:
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Dealer_Icon.png"))
@@ -192,7 +151,7 @@ func _update_ui_icon() -> void:
 	var is_dealer_customer: bool = blackboard and blackboard.has_var(&"is_dealer_customer") and blackboard.get_var(&"is_dealer_customer", false)
 	var solicited_ok: bool = blackboard and blackboard.get_var(&"is_solicited", false) and not is_dealer_customer
 	var can_interact = (role == Role.DEALER) or solicited_ok or is_potential_girlfriend
-	if can_interact and interact_area:
+	if can_interact and interact_area and interact_area.monitoring:
 		for body in interact_area.get_overlapping_bodies():
 			if body.is_in_group("player"):
 				_on_interact_area_body_entered(body)
@@ -367,6 +326,45 @@ func _physics_process(delta: float) -> void:
 			if player and global_position.distance_to(player.global_position) > 400.0:
 				_decline_girlfriend_request()
 
+	_run_stuck_detection_fail_safe(delta)
+
+func _run_stuck_detection_fail_safe(delta: float) -> void:
+	if _is_pooled or _is_dead:
+		return
+	
+	# Fail-Safe 1: NavMesh check (only for moving roles, dealers are static)
+	if role != Role.DEALER:
+		_stuck_check_timer += delta
+		if _stuck_check_timer >= 1.0:
+			_stuck_check_timer = 0.0
+			
+			# Check NavMesh proximity
+			var map = get_world_2d().get_navigation_map()
+			var closest = NavigationServer2D.map_get_closest_point(map, global_position)
+			if closest.distance_to(global_position) > 60.0:
+				# We are too far from any valid navigation poly (likely inside a building)
+				if _managed_by_pool:
+					etherealize_to_pool()
+				else:
+					queue_free()
+				return
+
+			# Fail-Safe 2: Active Stuck Detection (moved < 5px while trying to move)
+			var dist_moved = global_position.distance_to(_last_stuck_pos)
+			if velocity.length() > 60.0 and dist_moved < 5.0:
+				_stuck_accumulator += 1.0
+				if _stuck_accumulator >= 5.0:
+					# Stuck for 5 seconds
+					if _managed_by_pool:
+						etherealize_to_pool()
+					else:
+						queue_free()
+					return
+			else:
+				_stuck_accumulator = 0.0
+			
+			_last_stuck_pos = global_position
+
 func _trigger_girlfriend_request() -> void:
 	gf_is_requesting = true
 	gf_request_amount = gf_resource.level * randi_range(20, 50)
@@ -438,11 +436,8 @@ func _on_velocity_computed(safe_velocity: Vector2) -> void:
 func _setup_bt() -> void:
 	if bt_player:
 		if behavior_tree:
-			print("NPC: Setting BehaviorTree for ", name, " (Role: ", role, ") to ", behavior_tree.resource_path)
 			bt_player.behavior_tree = behavior_tree
 			bt_player.restart()
-		else:
-			print("NPC: No BehaviorTree assigned for ", name, ", using default.")
 		
 		blackboard = bt_player.get_blackboard()
 		if blackboard:
@@ -472,8 +467,286 @@ func _setup_bt() -> void:
 			blackboard.set_var(&"dealer_purchase_target", null)
 			blackboard.set_var(&"dealer_purchase_drug_id", &"")
 			blackboard.set_var(&"dealer_purchase_grams", 0)
+			blackboard.set_var(&"is_front_business_customer", false)
+			blackboard.set_var(&"front_business_purchase_target", null)
+			blackboard.set_var(&"front_business_level", 0)
+			blackboard.set_var(&"path_markers", _path_markers.duplicate())
 
 	_setup_panic_audio()
+
+func set_path_markers(markers: Array) -> void:
+	_path_markers = markers.duplicate()
+	if blackboard:
+		blackboard.set_var(&"path_markers", _path_markers.duplicate())
+
+func prepare_for_pool() -> void:
+	if _is_dead:
+		return
+	_ensure_core_runtime_initialized()
+	_is_pooled = true
+	_is_interacting = false
+	_reset_runtime_state_for_pool()
+	_set_detection_component_active(false)
+	_set_interact_area_active(false)
+	_set_collisions_active(false)
+	velocity = Vector2.ZERO
+	visible = false
+	modulate.a = 1.0
+	set_process(false)
+	set_physics_process(false)
+	
+	# Reset role and visual flags for correct re-initialization
+	_role_runtime_initialized = false
+	_visual_state_initialized = false
+	
+	# Clean up role-specific components to ensure a fresh slate
+	_cleanup_role_components()
+	
+	if bt_player:
+		bt_player.active = false
+		bt_player.set_process_mode(PROCESS_MODE_DISABLED)
+	if nav_agent:
+		nav_agent.avoidance_enabled = false
+	if animation_component and animation_component.animation_player:
+		animation_component.animation_player.stop()
+	if npc_ui:
+		npc_ui.hide()
+	_lod_tier = 2
+
+func activate_from_pool(spawn_pos: Vector2, role_context: Dictionary = {}) -> void:
+	_ensure_core_runtime_initialized()
+	global_position = spawn_pos
+	spawn_position = spawn_pos
+	_is_pooled = false
+	_apply_activation_context(role_context)
+	_ensure_visual_state()
+	_ensure_role_runtime_initialized()
+	_apply_role_runtime_state()
+	_setup_bt()
+	_set_detection_component_active(true)
+	_set_interact_area_active(true)
+	_set_collisions_active(true)
+	visible = true
+	modulate.a = 1.0
+	set_process(true)
+	if npc_ui:
+		npc_ui.show()
+	_update_ui_icon()
+	set_physics_process(true)
+	set_lod_tier(role_context.get("lod_tier", 0))
+
+## ─── Identity Realization ──────────────────────────────────────────────────
+## Used by NPCManager to turn a "Ghost" (data) into a "Real Actor" (this node).
+func realize_from_identity(identity: NPCIdentity) -> void:
+	_ensure_core_runtime_initialized()
+	
+	# Mapping state from identity
+	self.role = identity.role
+	self.gender = identity.gender
+	self.global_position = identity.global_position
+	self.spawn_position = identity.global_position
+	self.appearance_data = identity.appearance_data
+	self.behavior_tree = identity.behavior_tree
+	self.stats = identity.stats.duplicate() if identity.stats else null
+	self.dealer_tier = identity.dealer_tier
+	set_path_markers(identity.path_markers)
+	
+	_is_pooled = false
+	_visual_state_initialized = false # Force re-randomization or re-apply based on new data
+	_ensure_visual_state()
+	_ensure_role_runtime_initialized()
+	_apply_role_runtime_state()
+	
+	_setup_bt()
+	_set_detection_component_active(true)
+	_set_interact_area_active(true)
+	_set_collisions_active(true)
+	
+	visible = true
+	modulate.a = 1.0
+	set_process(true)
+	set_physics_process(true)
+	
+	if npc_ui:
+		npc_ui.show()
+	_update_ui_icon()
+	
+	# Actors injected from Identity start at Tier 0 (Full AI)
+	# This call ensures physics_process and avoidance_enabled are restored
+	set_lod_tier(0)
+	
+	if bt_player:
+		bt_player.active = true
+		bt_player.set_process_mode(PROCESS_MODE_INHERIT)
+
+## Returns this actor to the pool and saves any necessary state back to the identity.
+func etherealize_to_pool() -> void:
+	prepare_for_pool()
+
+func _ensure_core_runtime_initialized() -> void:
+	if _core_runtime_initialized:
+		return
+	_inject_dependencies()
+	_setup_connections()
+	_core_runtime_initialized = true
+
+func _ensure_visual_state() -> void:
+	if _visual_state_initialized:
+		return
+	if gf_resource and gf_resource.appearance:
+		_apply_gf_appearance()
+	else:
+		_randomize_gender_and_appearance()
+	_visual_state_initialized = true
+
+func _ensure_role_runtime_initialized() -> void:
+	if _role_runtime_initialized: return
+	if not has_node("DealerShopComponent"):
+		var shop_comp := DealerShopComponent.new()
+		shop_comp.name = "DealerShopComponent"
+		add_child(shop_comp)
+		shop_comp.set_process(false)
+	if not has_node("DealerDetectionComponent"):
+		var detect_comp := DealerDetectionComponent.new()
+		detect_comp.name = "DealerDetectionComponent"
+		add_child(detect_comp)
+		detect_comp.set_physics_process(false)
+		detect_comp.visible = false
+	if not has_node("PoliceDetectionComponent"):
+		var police_detect := PoliceDetectionComponent.new()
+		police_detect.name = "PoliceDetectionComponent"
+		add_child(police_detect)
+		police_detect.set_physics_process(false)
+		police_detect.visible = false
+	if not has_node("PoliceDebugOverlay"):
+		var debug_overlay := PoliceDebugOverlay.new()
+		debug_overlay.name = "PoliceDebugOverlay"
+		add_child(debug_overlay)
+		debug_overlay.visible = false
+	if not has_node("GirlfriendComponent"):
+		var gf_comp := GirlfriendComponent.new()
+		gf_comp.name = "GirlfriendComponent"
+		add_child(gf_comp)
+		gf_comp.set_process(false)
+	_role_runtime_initialized = true
+
+func _apply_role_runtime_state() -> void:
+	_disable_all_role_components()
+	if gf_resource and gf_resource.appearance:
+		behavior_tree = load("res://GAME/resources/ai/girlfriend_bt.tres")
+		var gf_comp = get_node_or_null("GirlfriendComponent")
+		if gf_comp:
+			gf_comp.setup(gf_resource)
+			gf_comp.set_process(true)
+		_boost_girlfriend_speed()
+		if npc_ui:
+			npc_ui.update_level(gf_resource.level, -1)
+		if gf_request_timer <= 0.0:
+			gf_request_timer = randf_range(45.0, 90.0)
+
+	if role == Role.DEALER:
+		var tier := _get_effective_dealer_tier()
+		dealer_tier = tier
+		var shop_comp := get_node_or_null("DealerShopComponent") as DealerShopComponent
+		if shop_comp:
+			shop_comp.tier_config = tier
+			shop_comp.set_process(true)
+		if stats:
+			stats.max_health = tier.max_health
+			if health_component:
+				health_component.setup(stats)
+		if npc_ui:
+			npc_ui.update_level(tier.tier_level, 1)
+
+func _apply_activation_context(role_context: Dictionary) -> void:
+		set_path_markers(role_context["path_markers"])
+
+func _disable_all_role_components() -> void:
+	var names = ["DealerShopComponent", "DealerDetectionComponent", "PoliceDetectionComponent", "PoliceDebugOverlay", "GirlfriendComponent"]
+	for n_name in names:
+		var n = get_node_or_null(n_name)
+		if n:
+			if "visible" in n: n.visible = false
+			if n.has_method("set_process"): n.set_process(false)
+			if n is Area2D:
+				n.set_deferred("monitoring", false)
+				n.set_deferred("monitorable", false)
+
+func _cleanup_role_components() -> void:
+	# Legacy function, now just hides everything
+	_disable_all_role_components()
+
+func _reset_runtime_state_for_pool() -> void:
+	_clear_interaction_with_player()
+	_reset_girlfriend_request_state()
+	if blackboard:
+		blackboard.set_var(&"was_shot", false)
+		blackboard.set_var(&"damage_source_position", Vector2.ZERO)
+		blackboard.set_var(&"attacker", null)
+		blackboard.set_var(&"is_interacting", false)
+		blackboard.set_var(&"is_solicited", false)
+		blackboard.set_var(&"target", null)
+		blackboard.set_var(&"requested_drug_id", &"")
+		blackboard.set_var(&"requested_grams", 0)
+		blackboard.set_var(&"offered_payout", 0)
+		blackboard.set_var(&"has_line_of_sight", false)
+		blackboard.set_var(&"is_searching", false)
+		blackboard.set_var(&"last_known_position", Vector2.ZERO)
+		blackboard.set_var(&"last_known_velocity", Vector2.ZERO)
+		blackboard.set_var(&"heard_gunfire", false)
+		blackboard.set_var(&"is_dealer_customer", false)
+		blackboard.set_var(&"approach_target", null)
+		blackboard.set_var(&"dealer_purchase_target", null)
+		blackboard.set_var(&"dealer_purchase_drug_id", &"")
+		blackboard.set_var(&"dealer_purchase_grams", 0)
+		blackboard.set_var(&"is_front_business_customer", false)
+		blackboard.set_var(&"front_business_purchase_target", null)
+		blackboard.set_var(&"front_business_level", 0)
+		blackboard.set_var(&"path_markers", _path_markers.duplicate())
+
+func _set_detection_component_active(active: bool) -> void:
+	var detect_comp: Node = null
+	if role == Role.POLICE:
+		detect_comp = get_node_or_null("PoliceDetectionComponent")
+	elif role == Role.DEALER:
+		detect_comp = get_node_or_null("DealerDetectionComponent")
+	if detect_comp:
+		detect_comp.visible = active
+		detect_comp.set_physics_process(active)
+		detect_comp.set_deferred("monitoring", active)
+		detect_comp.set_deferred("monitorable", active)
+
+	var debug_overlay := get_node_or_null("PoliceDebugOverlay")
+	if debug_overlay:
+		debug_overlay.visible = active and role == Role.POLICE
+
+func _set_interact_area_active(active: bool) -> void:
+	if not interact_area:
+		return
+	interact_area.visible = false
+	interact_area.set_deferred("monitoring", active)
+	interact_area.set_deferred("monitorable", active)
+	interact_area.collision_layer = INTERACT_COLLISION_LAYER if active else 0
+	interact_area.collision_mask = INTERACT_COLLISION_MASK if active else 0
+
+func _set_collisions_active(active: bool) -> void:
+	collision_layer = NPC_COLLISION_LAYER if active else 0
+	collision_mask = NPC_COLLISION_MASK if active else 0
+	var hb := find_child("HurtBox")
+	if hb:
+		hb.collision_layer = HURTBOX_COLLISION_LAYER if active else 0
+		hb.collision_mask = HURTBOX_COLLISION_MASK if active else 0
+
+func _get_effective_dealer_tier() -> DealerTierResource:
+	if dealer_tier:
+		return dealer_tier
+	var tier := DealerTierResource.new()
+	var drug = preload("res://GAME/scripts/resources/drug_definition_resource.gd").new()
+	drug.id = "weed"
+	drug.display_name = "Weed"
+	drug.base_price = 10
+	tier.allowed_drugs.append(drug)
+	return tier
 
 func _setup_panic_audio() -> void:
 	if not _panic_audio_player:
@@ -862,11 +1135,12 @@ func _handle_girlfriend_recruitment(player: Node2D) -> void:
 	
 	gf_resource.level = potential_gf_level
 	
-	# Setup Girlfriend Component
-	var gf_comp = GirlfriendComponent.new()
-	gf_comp.name = "GirlfriendComponent"
-	gf_comp.setup(gf_resource)
-	add_child(gf_comp)
+	# Setup Girlfriend Component (now pre-allocated)
+	var gf_comp = get_node_or_null("GirlfriendComponent")
+	if gf_comp:
+		gf_comp.setup(gf_resource)
+		gf_comp.set_process(true)
+		if "visible" in gf_comp: gf_comp.visible = true
 	
 	# Switch to Girlfriend BT
 	behavior_tree = load("res://GAME/resources/ai/girlfriend_bt.tres")
@@ -1027,6 +1301,7 @@ func _on_damage_taken(amount: int) -> void:
 		npc_ui.spawn_indicator("damage", str(amount))
 
 func _on_died() -> void:
+	_is_dead = true
 	if has_node("/root/HeatManager"):
 		get_node("/root/HeatManager").on_kill(role)
 	
@@ -1048,6 +1323,7 @@ func _on_died() -> void:
 	# Disable processing and AI
 	set_physics_process(false)
 	set_process(false)
+	_is_pooled = false
 	if bt_player:
 		bt_player.active = false
 	
@@ -1057,28 +1333,11 @@ func _on_died() -> void:
 			animation_component.animation_player.stop()
 	
 	# Hide Detection Rings
-	if role == Role.POLICE:
-		var detect_comp = get_node_or_null("PoliceDetectionComponent")
-		if detect_comp:
-			detect_comp.visible = false
-			detect_comp.set_physics_process(false)
-			detect_comp.set_deferred("monitoring", false)
-			detect_comp.set_deferred("monitorable", false)
-	elif role == Role.DEALER:
-		var detect_comp = get_node_or_null("DealerDetectionComponent")
-		if detect_comp:
-			detect_comp.visible = false
-			detect_comp.set_physics_process(false)
-			detect_comp.set_deferred("monitoring", false)
-			detect_comp.set_deferred("monitorable", false)
+	_set_detection_component_active(false)
 	
 	# Disable collisions
-	collision_layer = 0
-	collision_mask = 0
-	if find_child("HurtBox"):
-		var hb = find_child("HurtBox")
-		hb.collision_layer = 0
-		hb.collision_mask = 0
+	_set_interact_area_active(false)
+	_set_collisions_active(false)
 	
 	# Hide UI
 	if npc_ui:
@@ -1112,3 +1371,59 @@ func _get_required_level_for_tier(tier: int) -> int:
 		3: return 40
 		4: return 100
 		_: return 1
+
+
+## ─── NPC LOD Tier System ────────────────────────────────────────────────────
+## Called every frame by NpcLodManager based on distance from the player.
+## Tier 0 = full fidelity  (within ~700 px)
+## Tier 1 = reduced cost   (700–1500 px) — avoidance disabled, AI still ticks
+## Tier 2 = dormant        (>1500 px)    — physics + AI fully suspended
+func set_lod_tier(tier: int) -> void:
+	# Never LOD dead NPCs (death tween handles their lifecycle).
+	if _is_dead:
+		return
+	# Never freeze girlfriends — they must always follow the player.
+	if gf_resource and gf_resource.is_following:
+		if _lod_tier != 0:
+			_apply_lod_tier(0)
+		return
+	if _lod_tier == tier:
+		return
+	_apply_lod_tier(tier)
+
+
+func _apply_lod_tier(tier: int) -> void:
+	if _is_pooled:
+		return
+	_lod_tier = tier
+	match tier:
+		0: # FULL
+			set_physics_process(true)
+			visible = true
+			if bt_player:
+				bt_player.set_process_mode(PROCESS_MODE_INHERIT)
+			if nav_agent:
+				nav_agent.avoidance_enabled = true
+			if npc_ui:
+				npc_ui.show()
+			_set_detection_component_active(true)
+		1: # REDUCED (AI runs, but no avoidance physics)
+			set_physics_process(true)
+			visible = true
+			if bt_player:
+				bt_player.set_process_mode(PROCESS_MODE_INHERIT)
+			if nav_agent:
+				nav_agent.avoidance_enabled = false
+			if npc_ui:
+				npc_ui.show()
+			_set_detection_component_active(true)
+		2: # DORMANT
+			set_physics_process(false)
+			visible = false
+			if nav_agent:
+				nav_agent.avoidance_enabled = false
+			if bt_player:
+				bt_player.set_process_mode(PROCESS_MODE_DISABLED)
+			if npc_ui:
+				npc_ui.hide()
+			_set_detection_component_active(false)

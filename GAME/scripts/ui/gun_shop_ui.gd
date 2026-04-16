@@ -88,6 +88,13 @@ func _on_buy_stock_pressed(level: int) -> void:
 		AudioManager.play_transaction()
 	_refresh_ui()
 
+func _on_buy_personal_ammo_pressed() -> void:
+	if not _player:
+		return
+	if _player.purchase_ammo():
+		AudioManager.play_transaction()
+		_refresh_ui()
+
 func _on_business_runtime_changed(_state: OwnedFrontBusinessState) -> void:
 	_refresh_ui()
 
@@ -139,9 +146,16 @@ func _build_gun_cards() -> void:
 	var cost = _player.get_glock_purchase_cost(display_level)
 	var can_afford = clean_money >= cost
 	
-	card.setup(display_level, GLOCK_LEVEL_LABELS[display_level], GLOCK_ICONS[display_level], owned_level, cost, can_afford)
+	var ammo_cost = _player.get_ammo_purchase_cost()
+	var can_afford_ammo = clean_money >= ammo_cost
+	var reserve = -1
+	if _player.weapon_state:
+		reserve = _player.weapon_state.reserve_ammo
+	
+	card.setup(display_level, GLOCK_LEVEL_LABELS[display_level], GLOCK_ICONS[display_level], owned_level, cost, can_afford, ammo_cost, can_afford_ammo, reserve)
 	card.selected.connect(_on_select_level)
 	card.action_pressed.connect(_on_gun_action_pressed)
+	card.ammo_pressed.connect(_on_buy_personal_ammo_pressed)
 	
 	# Select it by default
 	_selected_level = display_level

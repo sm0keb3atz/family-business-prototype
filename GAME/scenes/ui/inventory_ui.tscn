@@ -1,70 +1,20 @@
 [gd_scene format=3 uid="uid://invui123"]
 
 [ext_resource type="Script" uid="uid://62mvx408cq4a" path="res://GAME/scripts/ui/inventory_ui.gd" id="1_invui"]
+[ext_resource type="Texture2D" uid="uid://fq4aoy1ihbc5" path="res://GAME/assets/ui/UI ASSETS.png" id="2_akip5"]
 [ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="2_ej0am"]
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="3_dbb7i"]
 [ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="4_1dcgg"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_dbb7i"]
-texture = ExtResource("2_ej0am")
-texture_margin_left = 3.0
-texture_margin_top = 4.0
-texture_margin_right = 3.0
-texture_margin_bottom = 4.0
-region_rect = Rect2(32, 32, 96, 64)
+texture = ExtResource("2_akip5")
+texture_margin_left = 18.0
+texture_margin_top = 18.0
+texture_margin_right = 18.0
+texture_margin_bottom = 18.0
+region_rect = Rect2(29, 51, 302, 202)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hebk0"]
-texture = ExtResource("2_ej0am")
-texture_margin_left = 1.0
-texture_margin_top = 1.0
-texture_margin_right = 1.0
-texture_margin_bottom = 1.0
-region_rect = Rect2(512, 239, 32, 3)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1dcgg"]
-texture = ExtResource("2_ej0am")
-texture_margin_left = 2.0
-texture_margin_top = 3.0
-texture_margin_right = 2.0
-texture_margin_bottom = 3.0
-region_rect = Rect2(32, 160, 32, 32)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_akip5"]
-texture = ExtResource("2_ej0am")
-texture_margin_left = 2.0
-texture_margin_top = 5.0
-texture_margin_right = 2.0
-texture_margin_bottom = 3.0
-region_rect = Rect2(32, 128, 32, 32)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hrdxl"]
-content_margin_left = 5.0
-texture = ExtResource("2_ej0am")
-texture_margin_left = 3.0
-texture_margin_top = 4.0
-texture_margin_right = 3.0
-region_rect = Rect2(32, 192, 64, 33)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_rtgqb"]
-content_margin_left = 5.0
-texture = ExtResource("2_ej0am")
-texture_margin_left = 3.0
-texture_margin_top = 4.0
-texture_margin_right = 3.0
-region_rect = Rect2(32, 96, 64, 33)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1degf"]
-content_margin_left = 5.0
-texture = ExtResource("2_ej0am")
-texture_margin_left = 2.0
-texture_margin_top = 4.0
-texture_margin_right = 2.0
-texture_margin_bottom = 1.0
-region_rect = Rect2(128, 96, 64, 32)
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_63e2k"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_70681"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1degf"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_aovdg"]
 texture = ExtResource("2_ej0am")
@@ -103,10 +53,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -314.0
-offset_top = -217.0
-offset_right = 286.0
-offset_bottom = 183.0
+offset_left = -388.0
+offset_top = -213.0
+offset_right = 431.0
+offset_bottom = 292.0
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(300, 200)
@@ -137,30 +87,23 @@ horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=1803304277]
 layout_mode = 2
-theme_override_styles/separator = SubResource("StyleBoxTexture_hebk0")
+theme_override_styles/separator = SubResource("StyleBoxEmpty_1degf")
 
 [node name="TabContainer" type="TabContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer" unique_id=399131576]
 layout_mode = 2
 size_flags_vertical = 3
+theme = ExtResource("4_1dcgg")
 theme_override_colors/font_selected_color = Color(0.95, 0.95, 0.95, 1)
 theme_override_colors/font_hovered_color = Color(0.95, 0.95, 0.95, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/tab_separation = 3
+theme_override_constants/tab_separation = 8
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("3_dbb7i")
-theme_override_styles/panel = SubResource("StyleBoxTexture_1dcgg")
-theme_override_styles/tabbar_background = SubResource("StyleBoxTexture_akip5")
-theme_override_styles/tab_unselected = SubResource("StyleBoxTexture_hrdxl")
-theme_override_styles/tab_hovered = SubResource("StyleBoxTexture_rtgqb")
-theme_override_styles/tab_selected = SubResource("StyleBoxTexture_1degf")
-theme_override_styles/tab_disabled = SubResource("StyleBoxEmpty_63e2k")
-theme_override_styles/tab_focus = SubResource("StyleBoxEmpty_70681")
 tab_alignment = 1
 current_tab = 0
 
 [node name="Drugs" type="ScrollContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer" unique_id=2089470543]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxTexture_aovdg")
 metadata/_tab_index = 0
 
 [node name="DrugsList" type="VBoxContainer" parent="Control/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Drugs" unique_id=2046891570]

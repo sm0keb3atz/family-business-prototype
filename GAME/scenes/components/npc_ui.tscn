@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dj0ymnux0kxqh" path="res://GAME/scripts/components/npc_ui.gd" id="1_npcui"]
 [ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="2_6aty4"]
-[ext_resource type="Texture2D" uid="uid://yqxjmwvqw76w" path="res://GAME/assets/ui/Chat-1.png" id="5_6aty4"]
+[ext_resource type="Texture2D" uid="uid://ci27o3puwtjin" path="res://GAME/assets/ui/UI_48x48.png" id="5_6aty4"]
 [ext_resource type="Texture2D" uid="uid://b24n6tw30v2jn" path="res://GAME/assets/icons/Customer_Icon.png" id="5_icon"]
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="5_vbcip"]
 
@@ -28,15 +28,14 @@ texture_margin_bottom = 1.0
 region_rect = Rect2(512, 143, 32, 3)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_jlibx"]
-content_margin_left = 10.0
-content_margin_right = 5.0
-content_margin_bottom = 15.0
+content_margin_left = 4.0
+content_margin_right = 4.0
 texture = ExtResource("5_6aty4")
-texture_margin_left = 6.0
-texture_margin_top = 4.0
-texture_margin_right = 6.0
-texture_margin_bottom = 10.0
-region_rect = Rect2(80, 208, 48, 21)
+texture_margin_left = 10.0
+texture_margin_top = 10.0
+texture_margin_right = 29.0
+texture_margin_bottom = 16.0
+region_rect = Rect2(198, 33, 36, 42)
 
 [sub_resource type="Animation" id="Animation_6aty4"]
 length = 0.001
@@ -112,7 +111,7 @@ value = 50.0
 show_percentage = false
 
 [node name="TypeIcon" type="TextureRect" parent="." unique_id=1687686337]
-modulate = Color(1.196256, 1.0761228, 0.98937523, 0.95)
+modulate = Color(1.353256, 1.2181435, 1.1196048, 0.95000005)
 layout_mode = 0
 offset_left = -10.0
 offset_top = -52.0
@@ -150,7 +149,7 @@ text = "0g"
 vertical_alignment = 1
 
 [node name="DialogBubble" type="PanelContainer" parent="." unique_id=811389242]
-modulate = Color(1, 1, 1, 0.980392)
+modulate = Color(1, 1, 1, 0.82000005)
 z_index = 10
 layout_mode = 1
 anchors_preset = 7
@@ -158,10 +157,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -74.0
-offset_top = -101.0
-offset_right = 76.0
-offset_bottom = -61.0
+offset_left = -77.0
+offset_top = -43.0
+offset_right = 74.0
+offset_bottom = -3.0
 grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2

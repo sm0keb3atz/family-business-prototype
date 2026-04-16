@@ -8,6 +8,9 @@ class_name TerritoryArea
 @onready var dealer_traffic_component: TerritoryDealerTrafficComponent = get_node_or_null("DealerTraffic")
 @onready var collision_shape: CollisionShape2D = get_node_or_null("CollisionShape2D")
 
+signal player_entered(territory_id: StringName)
+signal player_exited(territory_id: StringName)
+
 func _ready() -> void:
 	add_to_group("territories")
 	_ensure_collision_shape()
@@ -63,12 +66,11 @@ func _collect_marker_positions(node: Node, out_positions: Array[Vector2]) -> voi
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player"):
-		# Could notify a UI or MapManager that the player entered a territory
-		pass
+		player_entered.emit(get_territory_id())
 
 func _on_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
-		pass
+		player_exited.emit(get_territory_id())
 
 ## Returns the price for a specific drug in this territory
 func get_drug_price(drug_id: StringName) -> int:

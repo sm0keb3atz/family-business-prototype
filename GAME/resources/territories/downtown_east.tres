@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TerritoryResource" format=3 uid="uid://dlv27whwybhcp"]
+
+[ext_resource type="Script" uid="uid://bmva4fwosk1hv" path="res://GAME/scripts/resources/territory_resource.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+territory_id = &"downtown_east"
+display_name = "Downtown East"
+territory_color = Color(0.2, 0.6, 1, 0.5)
+price_multiplier = 1.5
+drug_prices = {
+&"coke": 75,
+&"fetty": 150,
+&"weed": 30
+}
+max_customers = 20
+max_police = 12
+max_dealers = 6

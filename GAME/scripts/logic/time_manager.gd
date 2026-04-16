@@ -25,7 +25,7 @@ func _ready() -> void:
 	current_month = starting_month
 	current_year = starting_year
 
-	total_game_seconds = float(starting_hour) * 3600.0 * day_length_seconds / 86400.0
+	total_game_seconds = float(starting_hour) * 3600.0
 	add_to_group("time_manager")
 	call_deferred("_emit_initial_signals")
 
@@ -62,6 +62,15 @@ func _update_time_logic() -> void:
 
 func get_day_percent() -> float:
 	return (float(current_hour) * 60.0 + float(current_minute)) / 1440.0
+
+func set_time(hour: int, minute: int = 0) -> void:
+	current_hour = clampi(hour, 0, 23)
+	current_minute = clampi(minute, 0, 59)
+	total_game_seconds = (float(current_hour) * 3600.0) + (float(current_minute) * 60.0)
+	
+	# Force an immediate update of signals
+	time_updated.emit(current_hour, current_minute)
+	percent_changed.emit(get_day_percent())
 
 func get_time_string() -> String:
 	var am_pm: String = "AM"

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TerritoryResource" format=3 uid="uid://cq3vxosc52jtu"]
+
+[ext_resource type="Script" uid="uid://bmva4fwosk1hv" path="res://GAME/scripts/resources/territory_resource.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+territory_id = &"suburbs_east"
+display_name = "Suburbs East"
+territory_color = Color(0.4, 0.9, 0.4, 0.5)
+price_multiplier = 1.1
+drug_prices = {
+&"coke": 60,
+&"fetty": 120,
+&"weed": 22
+}
+max_customers = 0
+max_police = 0
+max_dealers = 0

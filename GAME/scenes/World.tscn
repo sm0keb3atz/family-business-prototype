@@ -13,6 +13,11 @@
 [ext_resource type="Gradient" uid="uid://bb6k1pxb08cg7" path="res://GAME/resources/visuals/day_night_gradient.tres" id="16_grad"]
 [ext_resource type="PackedScene" path="res://GAME/scenes/interactables/atm_interact_area.tscn" id="17_atm"]
 [ext_resource type="PackedScene" path="res://GAME/scenes/interactables/gun_shop_front.tscn" id="18_gun_shop"]
+[ext_resource type="Resource" uid="uid://qsfpqj8ll3b2" path="res://GAME/resources/territories/hood_west.tres" id="19_hood_west"]
+[ext_resource type="Resource" uid="uid://dlv27whwybhcp" path="res://GAME/resources/territories/downtown_east.tres" id="20_downtown_east"]
+[ext_resource type="Resource" uid="uid://cdtw408r6jlqv" path="res://GAME/resources/territories/downtown_west.tres" id="21_downtown_west"]
+[ext_resource type="Resource" uid="uid://cq3vxosc52jtu" path="res://GAME/resources/territories/suburbs_east.tres" id="22_suburbs_east"]
+[ext_resource type="Resource" uid="uid://c3fh12dhssmpg" path="res://GAME/resources/territories/suburbs_west.tres" id="23_suburbs_west"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mwopj"]
 atlas = ExtResource("4_hnl4b")
@@ -139,10 +144,10 @@ animations = [{
 "speed": 10.0
 }]
 
-[sub_resource type="NavigationPolygon" id="NavigationPolygon_mpri2"]
-vertices = PackedVector2Array(2117, -1868.2188, 2742.539, -1869.0469, 4659.4688, -1866.9531, 4370.2266, -1086.7891, 3171, -1323.75, 5494.1016, -2688.7422, 5498.8906, -360.03125, 5048.5, -1869.3203, 5045.508, -2173, 4368.7734, -766.0469, 932, -362.96094, 3310.2188, -764.9531, 3171, -765.14844, 2702.6328, -717.3594, 4662.7266, -2173, 4663.539, -2249.1094, 2738.4531, -2244.8906, 2117, -2249.2188, 3308.7813, -1091.2109, 4659.547, -1874.5469, 932, -2665.25, 1334.8203, -2245.7813, 1336.1797, -1864.7813, 1940.9531, -1354.9922, 1342, -1362.6406, 1342, -766.3594, 2491.0313, -758.0781, 2579.9063, -713.6406, 2794.9688, -764.03125)
-polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3, 4), PackedInt32Array(5, 6, 7, 8), PackedInt32Array(7, 6, 9, 3, 2), PackedInt32Array(9, 6, 10, 11), PackedInt32Array(12, 11, 10, 13), PackedInt32Array(8, 14, 15, 5), PackedInt32Array(16, 1, 0, 17), PackedInt32Array(18, 11, 12, 4), PackedInt32Array(2, 19, 7), PackedInt32Array(20, 5, 15, 16, 17), PackedInt32Array(20, 17, 21), PackedInt32Array(10, 20, 21, 22), PackedInt32Array(3, 18, 4), PackedInt32Array(0, 4, 23, 22), PackedInt32Array(22, 23, 24), PackedInt32Array(10, 22, 24, 25), PackedInt32Array(10, 25, 26, 27), PackedInt32Array(13, 28, 12), PackedInt32Array(10, 27, 13)])
-outlines = Array[PackedVector2Array]([PackedVector2Array(882, -2715, 882, -313, 5549, -310, 5544, -2739), PackedVector2Array(3121, -815, 2783, -814, 2690, -767, 2591, -764, 2503, -808, 1392, -816, 1392, -1312, 1940, -1305, 3121, -1275), PackedVector2Array(4319, -816, 3360, -815, 3359, -1041, 4320, -1037), PackedVector2Array(4610, -1917, 2792, -1919, 2789, -2195, 4613, -2199), PackedVector2Array(4998, -1920, 4701, -1924, 4704, -2123, 4996, -2123), PackedVector2Array(2067, -1918, 1386, -1915, 1385, -2196, 2067, -2199)])
+[sub_resource type="NavigationPolygon" id="NavigationPolygon_fx046"]
+vertices = PackedVector2Array(2117, -1868.2188, 2742.539, -1869.0469, 4659.4688, -1866.9531, 4370.2266, -1086.7891, 3171, -1323.75, -2124.5938, -1953.8203, -1959, -1966.75, -1206.2031, -2006.9063, 549.03906, -2010.0938, 1336.1797, -1864.7813, 1342, -1362.6406, 535.14844, -1196.7266, -1207.8516, -1206.2734, -2349.6172, -1843.2891, 4161.297, -3572.7031, -1796.6172, -3883.8594, 1236.4297, -4076.0469, 4380.1875, -4072.9531, 5095.7266, -3578.2969, 5491.0938, -4917, 5498.9063, -360.21094, 5098.2734, -3108.7734, 5048.5, -1869.3203, 5045.508, -2173, -859.09375, -3598.6328, -868.9375, -3068.6875, -906.1172, -3446.5469, -911.85156, -3779, -3585.4531, -4917, 4387.8203, -4541.172, 1241.5625, -4530.8438, 4368.7734, -766.0469, -3536.5313, -398.78125, 2579.9063, -713.6406, 2702.6328, -717.3594, 1342, -766.3594, 533.85156, -766.0625, 1334.8203, -2245.7813, 534.0078, -2385.711, 569.46875, -3077.3125, 4167.6875, -3115.3438, 3705.2578, -3168.0313, 3702.6563, -3553.039, 1344.8594, -3550.961, 543.6094, -3609.3672, -1799.3672, -4248.1484, -1204.8125, -2360.2813, -1959, -2125.2031, -1681.7813, -3453.4375, 4656.1875, -3059.5313, 4660.211, -3110.7813, 4663.539, -2249.1094, -3005.4063, -4268.9063, -2987.75, -3887.1328, -3032.4766, -2320.4531, -2347.6172, -2001.5781, -2123.2578, -1999.6797, 4662.7266, -2173, 2738.4531, -2244.8906, 2117, -2249.2188, 4465.6563, -3061.4688, 3308.7813, -1091.2109, 3310.2188, -764.9531, 3171, -765.14844, 4659.547, -1874.5469, -2109.6563, -2127.6328, -2108.7813, -2330.5469, -3029.5234, -2014, -2791.1406, -2014, -2788.1406, -1840.7109, 4461.672, -3113.3125, 3437.3281, -3101.039, -1683.2188, -3779, 1940.9531, -1354.9922, -1209.1484, -763.9375, 2794.9688, -764.03125, 2491.0313, -758.0781, 2304.1797, -3093, 1346.1406, -3093)
+polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3, 4), PackedInt32Array(5, 6, 7, 8, 9, 10, 11, 12, 13), PackedInt32Array(14, 15, 16, 17, 18), PackedInt32Array(19, 20, 21, 18), PackedInt32Array(21, 20, 22, 23), PackedInt32Array(24, 25, 26, 27), PackedInt32Array(28, 19, 29, 30), PackedInt32Array(22, 20, 31, 3, 2), PackedInt32Array(29, 19, 18, 17), PackedInt32Array(31, 20, 32, 33, 34), PackedInt32Array(11, 10, 35, 36), PackedInt32Array(37, 9, 8, 38, 39), PackedInt32Array(14, 40, 41, 42), PackedInt32Array(15, 14, 42, 43, 44, 27), PackedInt32Array(16, 15, 45, 30), PackedInt32Array(46, 7, 6, 47, 48), PackedInt32Array(49, 50, 21, 23, 51), PackedInt32Array(28, 30, 45, 52), PackedInt32Array(32, 28, 52, 53, 54), PackedInt32Array(55, 56, 5, 13), PackedInt32Array(23, 57, 51), PackedInt32Array(58, 1, 0, 59), PackedInt32Array(39, 60, 49, 51, 58, 59), PackedInt32Array(39, 59, 37), PackedInt32Array(25, 39, 38, 46), PackedInt32Array(61, 62, 63, 4), PackedInt32Array(2, 64, 22), PackedInt32Array(47, 65, 66, 48), PackedInt32Array(67, 68, 69, 32), PackedInt32Array(40, 70, 60, 71), PackedInt32Array(48, 26, 25, 46), PackedInt32Array(44, 24, 27), PackedInt32Array(15, 72, 48, 66, 54, 53), PackedInt32Array(3, 61, 4), PackedInt32Array(0, 4, 73, 9), PackedInt32Array(9, 73, 10), PackedInt32Array(69, 13, 12, 74, 32), PackedInt32Array(34, 75, 63, 62), PackedInt32Array(36, 35, 76, 33, 32, 74), PackedInt32Array(71, 41, 40), PackedInt32Array(71, 60, 39, 77), PackedInt32Array(78, 77, 39), PackedInt32Array(43, 78, 39, 44), PackedInt32Array(15, 27, 72), PackedInt32Array(32, 54, 67), PackedInt32Array(31, 34, 62)])
+outlines = Array[PackedVector2Array]([PackedVector2Array(-3636, -4967, -3586, -349, 5549, -310, 5541, -4967), PackedVector2Array(3121, -815, 2783, -814, 2690, -767, 2591, -764, 2503, -808, 1392, -816, 1392, -1312, 1940, -1305, 3121, -1275), PackedVector2Array(4319, -816, 3360, -815, 3359, -1041, 4320, -1037), PackedVector2Array(4610, -1917, 2792, -1919, 2789, -2195, 4613, -2199), PackedVector2Array(4998, -1920, 4701, -1924, 4704, -2123, 4996, -2123), PackedVector2Array(2067, -1918, 1386, -1915, 1385, -2196, 2067, -2199), PackedVector2Array(-2399, -1893, -2739, -1891, -2742, -2064, -2980, -2064, -2982, -2271, -2159, -2280, -2160, -2050, -2397, -2052), PackedVector2Array(-2009, -2013, -2073, -2008, -2071, -2077, -2009, -2076), PackedVector2Array(497, -2060, -1156, -2057, -1155, -2311, 486, -2335), PackedVector2Array(484, -816, -1159, -814, -1158, -1156, 485, -1147), PackedVector2Array(5048, -3159, 4614, -3161, 4610, -3110, 4512, -3111, 4508, -3163, 4217, -3165, 4212, -3523, 5046, -3528), PackedVector2Array(3655, -3207, 3431, -3151, 2304, -3143, 1396, -3143, 1395, -3501, 3653, -3503), PackedVector2Array(4331, -4123, 1287, -4126, 1291, -4481, 4337, -4491), PackedVector2Array(517, -3127, -818, -3119, -810, -3549, 496, -3559), PackedVector2Array(-957, -3497, -1632, -3503, -1633, -3729, -961, -3729), PackedVector2Array(-1847, -3934, -2940, -3937, -2953, -4218, -1849, -4199)])
 source_geometry_group_name = &""
 agent_radius = 50.0
 
@@ -158,7 +163,7 @@ z_index = -1
 y_sort_enabled = true
 
 [node name="HospitalSpawn" type="Marker2D" parent="Exterior" unique_id=171000]
-position = Vector2(-203, -693)
+position = Vector2(-626, -3073)
 
 [node name="Map" parent="Exterior" unique_id=769079878 instance=ExtResource("3_i66ib")]
 
@@ -169,12 +174,11 @@ position = Vector2(2952, -872)
 sprite_frames = SubResource("SpriteFrames_mpri2")
 animation = &"door_open"
 
-[node name="NavigationRegion2D" type="NavigationRegion2D" parent="Exterior" unique_id=575016145]
+[node name="NavigationRegion2D" type="NavigationRegion2D" parent="Exterior" unique_id=575016145 groups=["navigation_region"]]
 visible = false
-navigation_polygon = SubResource("NavigationPolygon_mpri2")
+navigation_polygon = SubResource("NavigationPolygon_fx046")
 
 [node name="Player" parent="." unique_id=1668827685 instance=ExtResource("6_pxu16")]
-z_as_relative = false
 position = Vector2(2235, -627)
 
 [node name="MapInitializer" type="Node" parent="." unique_id=2054873289]
@@ -187,6 +191,10 @@ y_sort_enabled = true
 [node name="HoodEast" parent="Territories" unique_id=1099638849 instance=ExtResource("12_territory")]
 position = Vector2(3240, -1669)
 territory_data = ExtResource("13_hood_east")
+
+[node name="CollisionShape2D" parent="Territories/HoodEast" index="3" unique_id=791756006]
+position = Vector2(-28.5, 145.5)
+debug_color = Color(0.7019608, 0, 0, 0.19215687)
 
 [node name="DealerPoints" type="Node2D" parent="Territories/HoodEast" unique_id=325925676]
 
@@ -256,6 +264,220 @@ position = Vector2(-882, -605)
 [node name="Marker2D8" type="Marker2D" parent="Territories/HoodEast/PathPoints" unique_id=101702969]
 position = Vector2(-1948, -605)
 
+[node name="HoodWest" parent="Territories" unique_id=201100001 instance=ExtResource("12_territory")]
+position = Vector2(-1351, -1523)
+territory_data = ExtResource("19_hood_west")
+
+[node name="CollisionShape2D" parent="Territories/HoodWest" index="3" unique_id=791756006]
+debug_color = Color(0.70000815, 0, 0, 0.193)
+
+[node name="DealerPoints" type="Node2D" parent="Territories/HoodWest" unique_id=201100002]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/HoodWest/DealerPoints" unique_id=201100003]
+position = Vector2(-1317, -258)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/HoodWest/DealerPoints" unique_id=201100004]
+position = Vector2(1148, -462)
+
+[node name="Marker2D3" type="Marker2D" parent="Territories/HoodWest/DealerPoints" unique_id=81355472]
+position = Vector2(-879, 416)
+
+[node name="PolicePoints" type="Node2D" parent="Territories/HoodWest" unique_id=201100005]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/HoodWest/PolicePoints" unique_id=201100006]
+position = Vector2(-1317, 865)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/HoodWest/PolicePoints" unique_id=201100007]
+position = Vector2(-575, -807)
+
+[node name="CustomerPoints" type="Node2D" parent="Territories/HoodWest" unique_id=201100008]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/HoodWest/CustomerPoints" unique_id=201100009]
+position = Vector2(483, 825)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/HoodWest/CustomerPoints" unique_id=201100010]
+position = Vector2(129, -500)
+
+[node name="PathPoints" type="Node2D" parent="Territories/HoodWest" unique_id=201100011]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/HoodWest/PathPoints" unique_id=201100012]
+position = Vector2(-1919, 865)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/HoodWest/PathPoints" unique_id=201100013]
+position = Vector2(1933, 798)
+
+[node name="Marker2D3" type="Marker2D" parent="Territories/HoodWest/PathPoints" unique_id=305332459]
+position = Vector2(1933, -859)
+
+[node name="Marker2D4" type="Marker2D" parent="Territories/HoodWest/PathPoints" unique_id=1120158703]
+position = Vector2(-1919, -807)
+
+[node name="DowntownEast" parent="Territories" unique_id=202200001 instance=ExtResource("12_territory")]
+position = Vector2(3240, -3795)
+territory_data = ExtResource("20_downtown_east")
+
+[node name="CollisionShape2D" parent="Territories/DowntownEast" index="3" unique_id=791756006]
+position = Vector2(-28, -26)
+debug_color = Color(0.20784314, 0.22745098, 0.6313726, 0.2)
+
+[node name="DealerPoints" type="Node2D" parent="Territories/DowntownEast" unique_id=202200002]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/DowntownEast/DealerPoints" unique_id=202200003]
+position = Vector2(1327, -667)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/DowntownEast/DealerPoints" unique_id=202200004]
+position = Vector2(-1389, -300)
+
+[node name="PolicePoints" type="Node2D" parent="Territories/DowntownEast" unique_id=202200005]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/DowntownEast/PolicePoints" unique_id=202200006]
+position = Vector2(-1389, 722)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/DowntownEast/PolicePoints" unique_id=202200007]
+position = Vector2(266, 722)
+
+[node name="CustomerPoints" type="Node2D" parent="Territories/DowntownEast" unique_id=202200008]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/DowntownEast/CustomerPoints" unique_id=202200009]
+position = Vector2(-380, -62)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/DowntownEast/CustomerPoints" unique_id=202200010]
+position = Vector2(-168, -885)
+
+[node name="PathPoints" type="Node2D" parent="Territories/DowntownEast" unique_id=202200011]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/DowntownEast/PathPoints" unique_id=202200012]
+position = Vector2(-1948, 769)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/DowntownEast/PathPoints" unique_id=202200013]
+position = Vector2(1915, 769)
+
+[node name="Marker2D3" type="Marker2D" parent="Territories/DowntownEast/PathPoints" unique_id=1569075858]
+position = Vector2(1961, -885)
+
+[node name="Marker2D4" type="Marker2D" parent="Territories/DowntownEast/PathPoints" unique_id=1465023802]
+position = Vector2(-1985, -821)
+
+[node name="DowntownWest" parent="Territories" unique_id=203300001 instance=ExtResource("12_territory")]
+position = Vector2(-1530, -3795)
+territory_data = ExtResource("21_downtown_west")
+
+[node name="CollisionShape2D" parent="Territories/DowntownWest" index="3" unique_id=791756006]
+position = Vector2(179, -26)
+debug_color = Color(0.20780396, 0.22842088, 0.6311502, 0.2)
+
+[node name="DealerPoints" type="Node2D" parent="Territories/DowntownWest" unique_id=203300002]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/DowntownWest/DealerPoints" unique_id=203300003]
+position = Vector2(772, -484)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/DowntownWest/DealerPoints" unique_id=203300004]
+position = Vector2(-600, -667)
+
+[node name="PolicePoints" type="Node2D" parent="Territories/DowntownWest" unique_id=203300005]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/DowntownWest/PolicePoints" unique_id=203300006]
+position = Vector2(-1740, 0)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/DowntownWest/PolicePoints" unique_id=203300007]
+position = Vector2(2112, -150)
+
+[node name="CustomerPoints" type="Node2D" parent="Territories/DowntownWest" unique_id=203300008]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/DowntownWest/CustomerPoints" unique_id=203300009]
+position = Vector2(-1256, 797)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/DowntownWest/CustomerPoints" unique_id=203300010]
+position = Vector2(308, -821)
+
+[node name="PathPoints" type="Node2D" parent="Territories/DowntownWest" unique_id=203300011]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/DowntownWest/PathPoints" unique_id=203300012]
+position = Vector2(-1688, 769)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/DowntownWest/PathPoints" unique_id=203300013]
+position = Vector2(2112, 722)
+
+[node name="Marker2D3" type="Marker2D" parent="Territories/DowntownWest/PathPoints" unique_id=1407625371]
+position = Vector2(2112, -821)
+
+[node name="Marker2D4" type="Marker2D" parent="Territories/DowntownWest/PathPoints" unique_id=614527234]
+position = Vector2(-1688, -821)
+
+[node name="SuburbsEast" parent="Territories" unique_id=204400001 instance=ExtResource("12_territory")]
+visible = false
+position = Vector2(-1530, -6126)
+territory_data = ExtResource("22_suburbs_east")
+
+[node name="DealerPoints" type="Node2D" parent="Territories/SuburbsEast" unique_id=204400002]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/SuburbsEast/DealerPoints" unique_id=204400003]
+position = Vector2(-500, -200)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/SuburbsEast/DealerPoints" unique_id=204400004]
+position = Vector2(500, 200)
+
+[node name="PolicePoints" type="Node2D" parent="Territories/SuburbsEast" unique_id=204400005]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/SuburbsEast/PolicePoints" unique_id=204400006]
+position = Vector2(-600, 400)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/SuburbsEast/PolicePoints" unique_id=204400007]
+position = Vector2(600, -400)
+
+[node name="CustomerPoints" type="Node2D" parent="Territories/SuburbsEast" unique_id=204400008]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/SuburbsEast/CustomerPoints" unique_id=204400009]
+position = Vector2(-700, 300)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/SuburbsEast/CustomerPoints" unique_id=204400010]
+position = Vector2(700, -300)
+
+[node name="PathPoints" type="Node2D" parent="Territories/SuburbsEast" unique_id=204400011]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/SuburbsEast/PathPoints" unique_id=204400012]
+position = Vector2(-700, -400)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/SuburbsEast/PathPoints" unique_id=204400013]
+position = Vector2(700, 400)
+
+[node name="SuburbsWest" parent="Territories" unique_id=205500001 instance=ExtResource("12_territory")]
+visible = false
+position = Vector2(3240, -6126)
+territory_data = ExtResource("23_suburbs_west")
+
+[node name="DealerPoints" type="Node2D" parent="Territories/SuburbsWest" unique_id=205500002]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/SuburbsWest/DealerPoints" unique_id=205500003]
+position = Vector2(-500, -200)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/SuburbsWest/DealerPoints" unique_id=205500004]
+position = Vector2(500, 200)
+
+[node name="PolicePoints" type="Node2D" parent="Territories/SuburbsWest" unique_id=205500005]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/SuburbsWest/PolicePoints" unique_id=205500006]
+position = Vector2(-600, 400)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/SuburbsWest/PolicePoints" unique_id=205500007]
+position = Vector2(600, -400)
+
+[node name="CustomerPoints" type="Node2D" parent="Territories/SuburbsWest" unique_id=205500008]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/SuburbsWest/CustomerPoints" unique_id=205500009]
+position = Vector2(-700, 300)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/SuburbsWest/CustomerPoints" unique_id=205500010]
+position = Vector2(700, -300)
+
+[node name="PathPoints" type="Node2D" parent="Territories/SuburbsWest" unique_id=205500011]
+
+[node name="Marker2D" type="Marker2D" parent="Territories/SuburbsWest/PathPoints" unique_id=205500012]
+position = Vector2(-700, -400)
+
+[node name="Marker2D2" type="Marker2D" parent="Territories/SuburbsWest/PathPoints" unique_id=205500013]
+position = Vector2(700, 400)
+
 [node name="TimeManager" type="Node" parent="." unique_id=1146846857 groups=["time_manager"]]
 script = ExtResource("14_time")
 
@@ -294,4 +516,8 @@ position = Vector2(-1125, 652)
 [node name="ExteriorSpawnPoint" parent="PropertyBuilding" index="3" unique_id=1199339619]
 position = Vector2(2958, -759)
 
+[editable path="Territories/HoodEast"]
+[editable path="Territories/HoodWest"]
+[editable path="Territories/DowntownEast"]
+[editable path="Territories/DowntownWest"]
 [editable path="PropertyBuilding"]

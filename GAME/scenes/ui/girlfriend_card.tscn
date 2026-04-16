@@ -2,31 +2,27 @@
 
 [ext_resource type="Script" uid="uid://c8y3wei0dstab" path="res://GAME/scripts/ui/girlfriend_card.gd" id="1_gfcard"]
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="2_font"]
+[ext_resource type="Texture2D" uid="uid://fq4aoy1ihbc5" path="res://GAME/assets/ui/UI ASSETS.png" id="2_ljxjk"]
 [ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="3_theme"]
-[ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="4_bg"]
 [ext_resource type="Texture2D" uid="uid://knbqd6kdslb" path="res://GAME/assets/sprites/ChracterAssets/Bodys/Body_48x48_01.png" id="5_body"]
 [ext_resource type="Texture2D" uid="uid://bqfaobt6lodou" path="res://GAME/assets/sprites/ChracterAssets/Outfits/female/Outfit_23_48x48_01.png" id="6_outfit"]
 [ext_resource type="Texture2D" uid="uid://dw0f72bnj1ju1" path="res://GAME/assets/sprites/ChracterAssets/Hairstyles/female/Hairstyle_04_48x48_01.png" id="7_hair"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_card"]
-content_margin_left = 8.0
-content_margin_top = 6.0
-content_margin_right = 8.0
-content_margin_bottom = 6.0
-texture = ExtResource("4_bg")
-texture_margin_left = 3.0
-texture_margin_top = 3.0
-texture_margin_right = 3.0
-texture_margin_bottom = 3.0
-region_rect = Rect2(32, 160, 32, 32)
+texture = ExtResource("2_ljxjk")
+texture_margin_left = 18.0
+texture_margin_top = 18.0
+texture_margin_right = 18.0
+texture_margin_bottom = 18.0
+region_rect = Rect2(29, 369, 302, 202)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ljxjk"]
-texture = ExtResource("4_bg")
+texture = ExtResource("2_ljxjk")
 texture_margin_left = 3.0
 texture_margin_top = 3.0
 texture_margin_right = 3.0
 texture_margin_bottom = 3.0
-region_rect = Rect2(32, 128, 32, 32)
+region_rect = Rect2(29, 369, 302, 202)
 
 [node name="GirlfriendCard" type="PanelContainer" unique_id=672750765]
 texture_filter = 1
@@ -49,7 +45,7 @@ custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 
 [node name="BodyPreview" type="Sprite2D" parent="OuterRow/SpritePanel/SpriteStack" unique_id=1761736449]
-position = Vector2(21.000004, 41.105526)
+position = Vector2(21.000004, 46.105526)
 scale = Vector2(0.7, 0.693)
 texture = ExtResource("5_body")
 offset = Vector2(3.9999924, -18.947365)
@@ -57,14 +53,14 @@ region_enabled = true
 region_rect = Rect2(144, 30, 48, 66)
 
 [node name="OutfitPreview" type="Sprite2D" parent="OuterRow/SpritePanel/SpriteStack" unique_id=2122305432]
-position = Vector2(24.199999, 41.106003)
+position = Vector2(24.199999, 46.106003)
 scale = Vector2(0.7, 0.693)
 texture = ExtResource("6_outfit")
 region_enabled = true
 region_rect = Rect2(147, 69, 42, 27)
 
 [node name="HairPreview" type="Sprite2D" parent="OuterRow/SpritePanel/SpriteStack" unique_id=1126159893]
-position = Vector2(24.000002, 18.553)
+position = Vector2(24.000002, 23.553)
 scale = Vector2(0.7, 0.693)
 texture = ExtResource("7_hair")
 region_enabled = true
@@ -176,4 +172,4 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 12
-text = "Break Up"
+text = " Break Up"

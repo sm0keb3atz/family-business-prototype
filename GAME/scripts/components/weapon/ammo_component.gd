@@ -46,3 +46,14 @@ func finish_reload() -> void:
 	
 	emit_signal("reload_finished")
 	emit_signal("ammo_changed", current_ammo, reserve_ammo)
+
+func get_state() -> Dictionary:
+	return {
+		"current": current_ammo,
+		"reserve": reserve_ammo
+	}
+
+func apply_state(current: int, reserve: int) -> void:
+	current_ammo = current
+	reserve_ammo = reserve
+	emit_signal("ammo_changed", current_ammo, reserve_ammo)

@@ -1,17 +1,9 @@
-[gd_scene load_steps=16 format=3 uid="uid://467915077"]
+[gd_scene format=3 uid="uid://468a15077"]
 
-[ext_resource type="Script" path="res://GAME/scripts/ui/gun_shop_ui.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://biulwqdcp0ng6" path="res://GAME/scripts/ui/gun_shop_ui.gd" id="1_script"]
 [ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="2_theme"]
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="3_font"]
 [ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="4_bg"]
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_panel"]
-texture = ExtResource("4_bg")
-texture_margin_left = 3.0
-texture_margin_top = 4.0
-texture_margin_right = 3.0
-texture_margin_bottom = 4.0
-region_rect = Rect2(32, 32, 96, 64)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_sep"]
 texture = ExtResource("4_bg")
@@ -21,58 +13,7 @@ texture_margin_right = 1.0
 texture_margin_bottom = 1.0
 region_rect = Rect2(512, 239, 32, 3)
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tab_panel"]
-texture = ExtResource("4_bg")
-texture_margin_left = 2.0
-texture_margin_top = 3.0
-texture_margin_right = 2.0
-texture_margin_bottom = 3.0
-region_rect = Rect2(32, 160, 32, 32)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tabbar_bg"]
-texture = ExtResource("4_bg")
-texture_margin_left = 2.0
-texture_margin_top = 5.0
-texture_margin_right = 2.0
-texture_margin_bottom = 3.0
-region_rect = Rect2(32, 128, 32, 32)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tab_unselected"]
-content_margin_left = 5.0
-texture = ExtResource("4_bg")
-texture_margin_left = 3.0
-texture_margin_top = 4.0
-texture_margin_right = 3.0
-region_rect = Rect2(32, 192, 64, 33)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tab_hovered"]
-content_margin_left = 5.0
-texture = ExtResource("4_bg")
-texture_margin_left = 3.0
-texture_margin_top = 4.0
-texture_margin_right = 3.0
-region_rect = Rect2(32, 96, 64, 33)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tab_selected"]
-content_margin_left = 5.0
-texture = ExtResource("4_bg")
-texture_margin_left = 2.0
-texture_margin_top = 4.0
-texture_margin_right = 2.0
-texture_margin_bottom = 1.0
-region_rect = Rect2(128, 96, 64, 32)
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tab_disabled"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tab_focus"]
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_inner"]
-texture = ExtResource("4_bg")
-texture_margin_left = 3.0
-texture_margin_top = 3.0
-texture_margin_right = 3.0
-texture_margin_bottom = 3.0
-region_rect = Rect2(32, 160, 32, 32)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_he8ts"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_scroll_bg"]
 texture = ExtResource("4_bg")
@@ -82,11 +23,11 @@ texture_margin_right = 3.0
 texture_margin_bottom = 3.0
 region_rect = Rect2(128, 192, 32, 32)
 
-[node name="GunShopUI" type="CanvasLayer"]
+[node name="GunShopUI" type="CanvasLayer" unique_id=1370607039]
 layer = 120
 script = ExtResource("1_script")
 
-[node name="Control" type="Control" parent="."]
+[node name="Control" type="Control" parent="." unique_id=1324294760]
 texture_filter = 1
 layout_mode = 3
 anchors_preset = 15
@@ -94,9 +35,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
 
-[node name="ColorRect" type="ColorRect" parent="Control"]
+[node name="ColorRect" type="ColorRect" parent="Control" unique_id=1554561221]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -106,44 +46,42 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0, 0, 0, 0.470588)
 
-[node name="Panel" type="PanelContainer" parent="Control"]
+[node name="Panel" type="PanelContainer" parent="Control" unique_id=1550811640]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -336.0
-offset_top = -240.0
-offset_right = 336.0
-offset_bottom = 240.0
+offset_left = -418.5
+offset_top = -268.5
+offset_right = 418.5
+offset_bottom = 268.5
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_theme")
-mouse_filter = 0
-theme_override_styles/panel = SubResource("StyleBoxTexture_panel")
 
-[node name="MarginContainer" type="MarginContainer" parent="Control/Panel"]
+[node name="MarginContainer" type="MarginContainer" parent="Control/Panel" unique_id=1478640397]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
-mouse_filter = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Control/Panel/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/Panel/MarginContainer" unique_id=278868982]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Header" type="HBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer"]
+[node name="Header" type="HBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer" unique_id=793680087]
 layout_mode = 2
 
-[node name="VBox" type="VBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Header"]
+[node name="VBox" type="VBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Header" unique_id=796098321]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = -4
 
-[node name="TitleLabel" type="Label" parent="Control/Panel/MarginContainer/VBoxContainer/Header/VBox"]
+[node name="TitleLabel" type="Label" parent="Control/Panel/MarginContainer/VBoxContainer/Header/VBox" unique_id=2003778295]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -152,7 +90,7 @@ theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 24
 text = "GUN SHOP"
 
-[node name="BusinessStatusLabel" type="Label" parent="Control/Panel/MarginContainer/VBoxContainer/Header/VBox"]
+[node name="BusinessStatusLabel" type="Label" parent="Control/Panel/MarginContainer/VBoxContainer/Header/VBox" unique_id=361095067]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
@@ -162,7 +100,7 @@ theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 12
 text = "BUSINESS: NOT OWNED"
 
-[node name="CleanMoneyLabel" type="Label" parent="Control/Panel/MarginContainer/VBoxContainer/Header"]
+[node name="CleanMoneyLabel" type="Label" parent="Control/Panel/MarginContainer/VBoxContainer/Header" unique_id=1134971605]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.29, 0.56, 0.9, 1)
@@ -172,7 +110,7 @@ theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 18
 text = "Clean: $0"
 
-[node name="BuyBusinessButton" type="Button" parent="Control/Panel/MarginContainer/VBoxContainer/Header"]
+[node name="BuyBusinessButton" type="Button" parent="Control/Panel/MarginContainer/VBoxContainer/Header" unique_id=253821627]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
@@ -180,11 +118,11 @@ theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 12
 text = "BUY BUSINESS ($12,000)"
 
-[node name="HSeparator" type="HSeparator" parent="Control/Panel/MarginContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="Control/Panel/MarginContainer/VBoxContainer" unique_id=1747910337]
 layout_mode = 2
 theme_override_styles/separator = SubResource("StyleBoxTexture_sep")
 
-[node name="Tabs" type="TabContainer" parent="Control/Panel/MarginContainer/VBoxContainer"]
+[node name="Tabs" type="TabContainer" parent="Control/Panel/MarginContainer/VBoxContainer" unique_id=92167433]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -194,61 +132,54 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/tab_separation = 3
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("3_font")
-theme_override_styles/panel = SubResource("StyleBoxTexture_tab_panel")
-theme_override_styles/tabbar_background = SubResource("StyleBoxTexture_tabbar_bg")
-theme_override_styles/tab_unselected = SubResource("StyleBoxTexture_tab_unselected")
-theme_override_styles/tab_hovered = SubResource("StyleBoxTexture_tab_hovered")
-theme_override_styles/tab_selected = SubResource("StyleBoxTexture_tab_selected")
-theme_override_styles/tab_disabled = SubResource("StyleBoxEmpty_tab_disabled")
-theme_override_styles/tab_focus = SubResource("StyleBoxEmpty_tab_focus")
 tab_alignment = 1
 current_tab = 0
 
-[node name="Guns" type="Control" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs"]
+[node name="Guns" type="Control" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs" unique_id=417381179]
 layout_mode = 2
 metadata/_tab_index = 0
 
-[node name="HBox" type="HBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns"]
+[node name="HBox" type="HBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns" unique_id=229307939]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 11
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox" unique_id=1014509381]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxTexture_inner")
 mouse_filter = 0
 
-[node name="GunCardsList" type="VBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox/ScrollContainer"]
+[node name="GunCardsList" type="VBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox/ScrollContainer" unique_id=991926464]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 4
 mouse_filter = 2
+theme_override_constants/separation = 4
 
-[node name="InfoPanel" type="PanelContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox"]
+[node name="InfoPanel" type="PanelContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox" unique_id=197603592]
 custom_minimum_size = Vector2(250, 0)
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxTexture_inner")
+theme_override_styles/panel = SubResource("StyleBoxEmpty_he8ts")
 
-[node name="VBox" type="VBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox/InfoPanel"]
+[node name="VBox" type="VBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox/InfoPanel" unique_id=333033612]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="GunInfoLabel" type="RichTextLabel" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox/InfoPanel/VBox"]
+[node name="GunInfoLabel" type="RichTextLabel" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox/InfoPanel/VBox" unique_id=398156338]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_constants/outline_size = 4
 theme_override_fonts/normal_font = ExtResource("3_font")
 theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 text = "Select a gun to see details."
 
-[node name="GunActionHintLabel" type="Label" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox/InfoPanel/VBox"]
+[node name="GunActionHintLabel" type="Label" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Guns/HBox/InfoPanel/VBox" unique_id=211132237]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.5, 1)
@@ -258,12 +189,12 @@ text = "Upgrade to Level 2"
 horizontal_alignment = 1
 autowrap_mode = 3
 
-[node name="Business" type="Control" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs"]
+[node name="Business" type="Control" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs" unique_id=220077891]
 visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 
-[node name="VBox" type="VBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Business"]
+[node name="VBox" type="VBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Business" unique_id=1233995607]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -272,7 +203,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 10
 
-[node name="StockStatusLabel" type="Label" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Business/VBox"]
+[node name="StockStatusLabel" type="Label" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Business/VBox" unique_id=2132861929]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_font")
@@ -280,21 +211,21 @@ theme_override_font_sizes/font_size = 14
 text = "Stock: 0/100"
 horizontal_alignment = 1
 
-[node name="Scroll" type="ScrollContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Business/VBox"]
+[node name="Scroll" type="ScrollContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Business/VBox" unique_id=1048050348]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxTexture_scroll_bg")
 
-[node name="StockList" type="VBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Business/VBox/Scroll"]
+[node name="StockList" type="VBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer/Tabs/Business/VBox/Scroll" unique_id=1120193673]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Footer" type="HBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer"]
+[node name="Footer" type="HBoxContainer" parent="Control/Panel/MarginContainer/VBoxContainer" unique_id=270672658]
 layout_mode = 2
 alignment = 2
 
-[node name="CloseButton" type="Button" parent="Control/Panel/MarginContainer/VBoxContainer/Footer"]
+[node name="CloseButton" type="Button" parent="Control/Panel/MarginContainer/VBoxContainer/Footer" unique_id=849548265]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 30)
 layout_mode = 2

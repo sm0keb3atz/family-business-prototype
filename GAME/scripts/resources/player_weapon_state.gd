@@ -19,5 +19,8 @@ signal equipped_state_changed(is_equipped: bool)
 		is_equipped = v
 		equipped_state_changed.emit(is_equipped)
 
+@export var current_ammo: int = -1 # -1 means uninitialized
+@export var reserve_ammo: int = -1
+
 func has_glock() -> bool:
 	return owned_glock_level > 0

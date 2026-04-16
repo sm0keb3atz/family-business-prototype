@@ -99,8 +99,37 @@ func _initialize_system() -> void:
 		cam_node.make_current()
 		print("MapInitializer: Set GameCamera as current. Position: ", game_camera.global_position, " Zoom: ", cam_node.zoom)
 
-	print("MapInitializer: System fully initialized.")
-	initialization_complete.emit()
+	print("MapInitializer: System fully initialized. Waiting for NPC pre-spawn...")
+	_wait_for_spawners()
+
+func _wait_for_spawners() -> void:
+	# Collect all territory spawners in the scene
+	var spawners: Array[Node] = get_tree().get_nodes_in_group("territory_spawner")
+	if spawners.is_empty():
+		# No spawners — emit immediately
+		print("MapInitializer: No spawners found, initializing immediately.")
+		initialization_complete.emit()
+		return
+
+	# Track how many spawners still need to complete
+	var pending: Array[int] = [spawners.size()]  # Wrapped in array so closure can mutate it
+
+	var _on_spawner_done := func() -> void:
+		pending[0] -= 1
+		if pending[0] <= 0:
+			print("MapInitializer: All ", spawners.size(), " spawners complete. Starting game.")
+			initialization_complete.emit()
+
+	for spawner in spawners:
+		if spawner.has_signal("initial_spawn_complete"):
+			spawner.initial_spawn_complete.connect(_on_spawner_done, CONNECT_ONE_SHOT)
+		else:
+			# Spawner doesn't have the signal — don't block on it
+			pending[0] -= 1
+
+	# Edge case: all spawners had no signal, emit immediately
+	if pending[0] <= 0:
+		initialization_complete.emit()
 
 func _generate_footprints() -> void:
 	# Look for BuildingColision (user spelled with one L)

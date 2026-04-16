@@ -1,17 +1,8 @@
 [gd_scene format=3 uid="uid://bfm52m6x1l3h4"]
 
 [ext_resource type="Script" uid="uid://ctrcaraesv6j4" path="res://GAME/scripts/ui/property_ui.gd" id="1_abcde"]
-[ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="2_bg"]
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="3_font"]
 [ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="4_theme"]
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_bg"]
-texture = ExtResource("2_bg")
-texture_margin_left = 3.0
-texture_margin_top = 4.0
-texture_margin_right = 3.0
-texture_margin_bottom = 4.0
-region_rect = Rect2(32, 32, 96, 64)
 
 [node name="PropertyUI" type="CanvasLayer" unique_id=1524464187]
 process_mode = 3
@@ -30,7 +21,6 @@ offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("4_theme")
-theme_override_styles/panel = SubResource("StyleBoxTexture_bg")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer" unique_id=815498985]
 layout_mode = 2

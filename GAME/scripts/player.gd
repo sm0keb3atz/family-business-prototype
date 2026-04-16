@@ -51,7 +51,7 @@ var glock_weapon_data_by_level := {
 
 func _ready() -> void:
 	add_to_group("player")
-	z_index = 1
+	z_index = 0
 	if stats:
 		stats = stats.duplicate(true)
 		_base_stats = stats.duplicate(true)
@@ -329,11 +329,43 @@ func purchase_or_upgrade_glock(level: int) -> bool:
 	level = clampi(level, 1, 4)
 	if not can_purchase_or_upgrade_glock(level):
 		return false
+	var is_first_purchase = (weapon_state.owned_glock_level <= 0)
 	var cost: int = get_glock_purchase_cost(level)
 	if cost <= 0 or not NetworkManager.economy.spend_clean(cost):
 		return false
 	weapon_state.owned_glock_level = level
+	
+	if is_first_purchase:
+		var data = glock_weapon_data_by_level.get(level)
+		if data:
+			weapon_state.current_ammo = data.magazine_size
+			weapon_state.reserve_ammo = data.reserve_ammo
+			
 	return true
+
+func get_ammo_purchase_cost() -> int:
+	return 250 # $250 for full reserve refill
+
+func purchase_ammo() -> bool:
+	if not has_owned_glock():
+		return false
+		
+	var cost = get_ammo_purchase_cost()
+	if not NetworkManager.economy.spend_clean(cost):
+		return false
+	
+	var owned_level = get_owned_glock_level()
+	var data = glock_weapon_data_by_level.get(owned_level)
+	if data:
+		weapon_state.reserve_ammo = data.reserve_ammo
+		
+		# If weapon is active, update its AmmoComponent immediately
+		if weapon_holder_component.current_weapon and weapon_holder_component.current_weapon.has_node("Components/AmmoComponent"):
+			var ac = weapon_holder_component.current_weapon.get_node("Components/AmmoComponent")
+			ac.reserve_ammo = data.reserve_ammo
+			ac.emit_signal("ammo_changed", ac.current_ammo, ac.reserve_ammo)
+		return true
+	return false
 
 func _on_owned_glock_level_changed(_new_level: int) -> void:
 	_update_weapon()

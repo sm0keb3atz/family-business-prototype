@@ -3,26 +3,12 @@
 [ext_resource type="Script" uid="uid://bjmn3sgm7m8vw" path="res://GAME/scripts/ui/skill_card.gd" id="1_skillcard"]
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="2_font"]
 [ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="3_theme"]
-[ext_resource type="Texture2D" uid="uid://cvc31njonv0x1" path="res://GAME/assets/ui/UI_Flat1.png" id="4_bg"]
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_card"]
-content_margin_left = 8.0
-content_margin_top = 6.0
-content_margin_right = 8.0
-content_margin_bottom = 6.0
-texture = ExtResource("4_bg")
-texture_margin_left = 3.0
-texture_margin_top = 3.0
-texture_margin_right = 3.0
-texture_margin_bottom = 3.0
-region_rect = Rect2(32, 160, 32, 32)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wrpgf"]
 
 [node name="SkillCard" type="PanelContainer" unique_id=169649736]
 custom_minimum_size = Vector2(320, 0)
 theme = ExtResource("3_theme")
-theme_override_styles/panel = SubResource("StyleBoxTexture_card")
 script = ExtResource("1_skillcard")
 
 [node name="OuterRow" type="HBoxContainer" parent="." unique_id=1736373562]

@@ -11,9 +11,9 @@ var console_visible: bool = false
 
 func _ready() -> void:
 	panel.visible = false
-	help_label.text = "Debug Console (`)\nadd money <amount>\nadd clean <amount>\nadd debt <amount>\nadd skill point <amount>\nplayer level <amount>\nterritory control <id> on|off\nterritory hire <id> [tier 1-4]\nterritory clear hires <id>"
+	help_label.text = "Debug Console (`)\nadd money <amount>\nadd clean <amount>\nadd debt <amount>\nset time <11am/23/etc>\nplayer level <amount>\nterritory control <id> on|off\nterritory hire <id> [tier 1-4]\nterritory clear hires <id>"
 	status_label.text = "Enter a command and press Enter."
-	command_input.placeholder_text = "Example: add money 500"
+	command_input.placeholder_text = "Example: set time 11am"
 	command_input.text_submitted.connect(_on_command_submitted)
 
 func _input(event: InputEvent) -> void:
@@ -75,6 +75,8 @@ func _run_command(command_text: String) -> String:
 			return "Commands: add money|clean|debt, add skill point, player level, territory control <id> on|off, territory hire <id> [tier], territory clear hires <id>"
 		"add":
 			return _handle_add_command(parts)
+		"set":
+			return _handle_set_command(parts)
 		"player":
 			return _handle_player_command(parts)
 		"territory":
@@ -113,6 +115,39 @@ func _handle_add_command(parts: PackedStringArray) -> String:
 		return "Skill points updated to %d." % player.progression.skill_points
 
 	return "Usage: add money <amount>, add clean <amount>, add debt <amount>, or add skill point <amount>"
+
+func _handle_set_command(parts: PackedStringArray) -> String:
+	if parts.size() < 3:
+		return "Usage: set <variable> <value>. Example: set time 11am"
+	
+	var variable = parts[1].to_lower()
+	match variable:
+		"time":
+			var time_str = parts[2].to_lower()
+			var hour = 0
+			var minute = 0
+			
+			if time_str.ends_with("am") or time_str.ends_with("pm"):
+				var is_pm = time_str.ends_with("pm")
+				var val_str = time_str.substr(0, time_str.length() - 2)
+				if val_str.is_valid_int():
+					hour = val_str.to_int()
+					if is_pm and hour < 12: hour += 12
+					if not is_pm and hour == 12: hour = 0
+				else:
+					return "Invalid time format. Use: 11am, 2pm, or 14"
+			elif time_str.is_valid_int():
+				hour = time_str.to_int()
+			else:
+				return "Invalid time format. Use: 11am, 2pm, or 14"
+			
+			var tm = get_tree().get_first_node_in_group("time_manager")
+			if tm:
+				tm.set_time(hour, minute)
+				return "Time set to %02d:%02d" % [hour, minute]
+			return "TimeManager not found."
+		_:
+			return "Unknown variable to set. Try: time"
 
 func _handle_player_command(parts: PackedStringArray) -> String:
 	if parts.size() != 3 or parts[1].to_lower() != "level":

@@ -90,12 +90,6 @@ This is an important shift from the older checkpoint. Laundering is no longer "m
 - ATM and gun-shop feedback should be treated as functional rather than final.
 - World placement and interaction feel for the ATM and gun shop still need polish in-editor.
 
-### Loading-screen path
-- `World.tscn` is currently the reliable direct test path.
-- The loading-screen/main-scene path was simplified during crash debugging.
-- It is still not considered stable or polished.
-- Any future work on the loading screen should preserve the currently working direct-world baseline.
-
 ### Dealer and business management depth
 - Territory-backed dealer traffic exists, but the broader owned-dealer management loop is still not a full empire-grade system.
 - The gun shop is the first front business, not the final general business framework.
@@ -108,8 +102,8 @@ This is an important shift from the older checkpoint. Laundering is no longer "m
 
 ## Systems still needed for the target game loop
 
-1. Loading-screen stability and polish so the intended main-scene path is safe again.
-2. Laundering/front-business polish: clearer UI, stronger feedback, more intentional placement, cleaner edge-case handling.
+~~1. Loading-screen stability and polish so the intended main-scene path is safe again.~~
+~~2. Laundering/front-business polish: clearer UI, stronger feedback, more intentional placement, cleaner edge-case handling.~~
 3. More meaningful clean-money sinks after the current front-business slice is polished.
 4. Broader front-business support beyond the first gun-shop implementation.
 5. Runner automation between player, stash, dealers, and fronts.

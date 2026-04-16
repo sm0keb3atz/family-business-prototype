@@ -10,6 +10,10 @@ func _tick(delta: float) -> Status:
 	if not weapon_holder:
 		return FAILURE
 		
+	# RESTRICTION: Only Dealers and Police can draw weapons
+	if agent.role == NPC.Role.CUSTOMER:
+		return FAILURE
+		
 	if not weapon_holder.current_weapon:
 		var weapon_scene = preload("res://GAME/scenes/Weapons/glock.tscn")
 		var weapon_data = preload("res://GAME/resources/weapons/glock_lv1.tres")

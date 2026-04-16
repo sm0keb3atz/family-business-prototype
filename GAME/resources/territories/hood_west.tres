@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TerritoryResource" format=3 uid="uid://qsfpqj8ll3b2"]
+
+[ext_resource type="Script" uid="uid://bmva4fwosk1hv" path="res://GAME/scripts/resources/territory_resource.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+territory_id = &"hood_west"
+display_name = "Hood West"
+territory_color = Color(1, 0.6, 0.2, 0.5)
+drug_prices = {
+&"coke": 50,
+&"fetty": 100,
+&"weed": 18
+}
+max_customers = 25
+max_police = 5
+max_dealers = 8

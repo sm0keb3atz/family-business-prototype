@@ -19,6 +19,11 @@ func initialize(p_direction: Vector2, p_damage: int, p_shooter: Node2D = null) -
 	rotation = direction.angle()
 
 func _ready() -> void:
+	if shooter and shooter.is_in_group("player"):
+		var mgr = get_tree().get_first_node_in_group("npc_manager")
+		if mgr:
+			mgr.report_crime(global_position)
+			
 	var timer = Timer.new()
 	timer.wait_time = lifetime
 	timer.one_shot = true

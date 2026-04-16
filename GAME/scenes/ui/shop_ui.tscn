@@ -5,14 +5,6 @@
 [ext_resource type="FontFile" uid="uid://n04ngkc7rcm2" path="res://GAME/assets/ui/CyberpunkCraftpixPixel.otf" id="3_0y6s5"]
 [ext_resource type="Theme" uid="uid://cy8ifsk8sc7e8" path="res://GAME/assets/ui/new_theme.tres" id="4_85s6u"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hmc4t"]
-texture = ExtResource("2_i864g")
-texture_margin_left = 3.0
-texture_margin_top = 5.0
-texture_margin_right = 3.0
-texture_margin_bottom = 5.0
-region_rect = Rect2(32, 32, 96, 64)
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_igwd5"]
 texture = ExtResource("2_i864g")
 texture_margin_left = 1.0
@@ -20,17 +12,6 @@ texture_margin_top = 1.0
 texture_margin_right = 1.0
 texture_margin_bottom = 1.0
 region_rect = Rect2(512, 239, 32, 3)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_0y6s5"]
-content_margin_left = 5.0
-texture = ExtResource("2_i864g")
-texture_margin_left = 2.0
-texture_margin_top = 3.0
-texture_margin_right = 2.0
-texture_margin_bottom = 3.0
-region_rect = Rect2(32, 160, 32, 32)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_66w1v"]
 
 [node name="ShopUI" type="CanvasLayer" unique_id=1033782327]
 layer = 100
@@ -68,7 +49,6 @@ offset_bottom = 305.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("4_85s6u")
-theme_override_styles/panel = SubResource("StyleBoxTexture_hmc4t")
 
 [node name="MarginContainer" type="MarginContainer" parent="Control/PanelContainer" unique_id=1692146999]
 layout_mode = 2
@@ -171,8 +151,6 @@ theme = ExtResource("4_85s6u")
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("3_0y6s5")
-theme_override_styles/normal = SubResource("StyleBoxTexture_0y6s5")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_66w1v")
 text = "Buy 5g"
 
 [node name="Btn10g" type="Button" parent="Control/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer2" unique_id=588263676]

@@ -38,6 +38,16 @@ func _handle_rotation() -> void:
 		weapon_parent.scale.y = 1
 
 func equip_weapon(weapon_scene: PackedScene, data: WeaponDataResource = null) -> void:
+	# 1. Save ammo if it's the player
+	if current_weapon and owner.is_in_group("player") and owner.get("weapon_state"):
+		var ws = owner.weapon_state
+		if current_weapon.has_node("Components/AmmoComponent"):
+			var ac = current_weapon.get_node("Components/AmmoComponent")
+			var state = ac.get_state()
+			ws.current_ammo = state.current
+			ws.reserve_ammo = state.reserve
+			print("WeaponHolder: Saved ammo to state: ", state)
+
 	if current_weapon:
 		current_weapon.queue_free()
 		current_weapon = null
@@ -56,6 +66,14 @@ func equip_weapon(weapon_scene: PackedScene, data: WeaponDataResource = null) ->
 		weapon_parent.add_child(current_weapon)
 	else:
 		add_child(current_weapon) # Fallback
+
+	# 2. Load ammo if it's the player
+	if owner.is_in_group("player") and owner.get("weapon_state"):
+		var ws = owner.weapon_state
+		if ws.current_ammo != -1 and current_weapon.has_node("Components/AmmoComponent"):
+			var ac = current_weapon.get_node("Components/AmmoComponent")
+			ac.apply_state(ws.current_ammo, ws.reserve_ammo)
+			print("WeaponHolder: Loaded ammo from state: ", ws.current_ammo, "/", ws.reserve_ammo)
 
 	# Connect aiming signal if player
 	if owner.is_in_group("player") and owner.input_component:

@@ -26,6 +26,7 @@ HeatManager="*res://GAME/systems/heat/HeatManager.gd"
 DetectionManager="*res://GAME/systems/police/DetectionManager.gd"
 BarkManager="*res://GAME/scripts/components/bark_manager.gd"
 NetworkManager="*res://GAME/scripts/systems/network_manager.gd"
+NPCManager="*res://GAME/scripts/systems/npc_manager.gd"
 
 [display]
 
