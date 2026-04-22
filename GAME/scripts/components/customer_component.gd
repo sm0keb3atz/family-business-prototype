@@ -22,6 +22,8 @@ func _ready() -> void:
 	# Find territory if not already set
 	if target_npc.has_meta(&"territory"):
 		current_territory = target_npc.get_meta(&"territory")
+	if not current_territory and "territory_id" in target_npc and target_npc.territory_id != &"":
+		current_territory = TerritoryArea.get_territory_by_id(get_tree(), target_npc.territory_id)
 	
 	requested_grams = randi_range(config.min_request_grams, config.max_request_grams)
 	
@@ -31,8 +33,8 @@ func _ready() -> void:
 	else:
 		territory_price = randi_range(config.min_payout_per_gram, config.max_payout_per_gram)
 		
-	# Profit of 1-10 dollars over the territory price
-	var price_per_gram = territory_price + randi_range(1, 10)
+	# Profit of 2-5 dollars over the territory price
+	var price_per_gram = territory_price + randi_range(2, 5)
 	offered_payout = requested_grams * price_per_gram
 	
 	if target_npc.bt_player:

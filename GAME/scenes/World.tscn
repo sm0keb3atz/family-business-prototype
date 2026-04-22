@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://GAME/scenes/interactables/atm_interact_area.tscn" id="17_atm"]
 [ext_resource type="PackedScene" path="res://GAME/scenes/interactables/gun_shop_front.tscn" id="18_gun_shop"]
 [ext_resource type="Resource" uid="uid://qsfpqj8ll3b2" path="res://GAME/resources/territories/hood_west.tres" id="19_hood_west"]
+[ext_resource type="Texture2D" uid="uid://6nfbajfrjxab" path="res://GAME/assets/tilesets/animated_door_vertical_right_2_48x48.png" id="19_kii1m"]
 [ext_resource type="Resource" uid="uid://dlv27whwybhcp" path="res://GAME/resources/territories/downtown_east.tres" id="20_downtown_east"]
 [ext_resource type="Resource" uid="uid://cdtw408r6jlqv" path="res://GAME/resources/territories/downtown_west.tres" id="21_downtown_west"]
 [ext_resource type="Resource" uid="uid://cq3vxosc52jtu" path="res://GAME/resources/territories/suburbs_east.tres" id="22_suburbs_east"]
@@ -150,6 +151,89 @@ polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3, 4), PackedInt32
 outlines = Array[PackedVector2Array]([PackedVector2Array(-3636, -4967, -3586, -349, 5549, -310, 5541, -4967), PackedVector2Array(3121, -815, 2783, -814, 2690, -767, 2591, -764, 2503, -808, 1392, -816, 1392, -1312, 1940, -1305, 3121, -1275), PackedVector2Array(4319, -816, 3360, -815, 3359, -1041, 4320, -1037), PackedVector2Array(4610, -1917, 2792, -1919, 2789, -2195, 4613, -2199), PackedVector2Array(4998, -1920, 4701, -1924, 4704, -2123, 4996, -2123), PackedVector2Array(2067, -1918, 1386, -1915, 1385, -2196, 2067, -2199), PackedVector2Array(-2399, -1893, -2739, -1891, -2742, -2064, -2980, -2064, -2982, -2271, -2159, -2280, -2160, -2050, -2397, -2052), PackedVector2Array(-2009, -2013, -2073, -2008, -2071, -2077, -2009, -2076), PackedVector2Array(497, -2060, -1156, -2057, -1155, -2311, 486, -2335), PackedVector2Array(484, -816, -1159, -814, -1158, -1156, 485, -1147), PackedVector2Array(5048, -3159, 4614, -3161, 4610, -3110, 4512, -3111, 4508, -3163, 4217, -3165, 4212, -3523, 5046, -3528), PackedVector2Array(3655, -3207, 3431, -3151, 2304, -3143, 1396, -3143, 1395, -3501, 3653, -3503), PackedVector2Array(4331, -4123, 1287, -4126, 1291, -4481, 4337, -4491), PackedVector2Array(517, -3127, -818, -3119, -810, -3549, 496, -3559), PackedVector2Array(-957, -3497, -1632, -3503, -1633, -3729, -961, -3729), PackedVector2Array(-1847, -3934, -2940, -3937, -2953, -4218, -1849, -4199)])
 source_geometry_group_name = &""
 agent_radius = 50.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hyv63"]
+atlas = ExtResource("19_kii1m")
+region = Rect2(384, 0, 96, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_23qg8"]
+atlas = ExtResource("19_kii1m")
+region = Rect2(288, 0, 96, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5osrc"]
+atlas = ExtResource("19_kii1m")
+region = Rect2(192, 0, 96, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_42ap5"]
+atlas = ExtResource("19_kii1m")
+region = Rect2(96, 0, 96, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_n1qlu"]
+atlas = ExtResource("19_kii1m")
+region = Rect2(0, 0, 96, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_87wqs"]
+atlas = ExtResource("19_kii1m")
+region = Rect2(0, 0, 96, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2sola"]
+atlas = ExtResource("19_kii1m")
+region = Rect2(96, 0, 96, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w6va2"]
+atlas = ExtResource("19_kii1m")
+region = Rect2(192, 0, 96, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4kec1"]
+atlas = ExtResource("19_kii1m")
+region = Rect2(288, 0, 96, 144)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g14dw"]
+atlas = ExtResource("19_kii1m")
+region = Rect2(384, 0, 96, 144)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_t8hp3"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hyv63")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_23qg8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5osrc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_42ap5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_n1qlu")
+}],
+"loop": false,
+"name": &"door_close",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_87wqs")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2sola")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w6va2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4kec1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g14dw")
+}],
+"loop": false,
+"name": &"door_open",
+"speed": 10.0
+}]
 
 [node name="PrototypeMap" type="Node2D" unique_id=1024755768]
 y_sort_enabled = true
@@ -512,6 +596,28 @@ position = Vector2(4, 68)
 
 [node name="Interior" parent="PropertyBuilding" index="2" unique_id=572991576]
 position = Vector2(-1125, 652)
+
+[node name="DoorSprite2" type="AnimatedSprite2D" parent="PropertyBuilding/Interior" index="1" unique_id=692851471]
+position = Vector2(552, 4)
+sprite_frames = SubResource("SpriteFrames_mpri2")
+animation = &"door_open"
+
+[node name="DoorSprite3" type="AnimatedSprite2D" parent="PropertyBuilding/Interior" index="2" unique_id=2027593278]
+position = Vector2(528, 119)
+sprite_frames = SubResource("SpriteFrames_t8hp3")
+animation = &"door_close"
+frame = 4
+frame_progress = 1.0
+
+[node name="DoorSprite4" type="AnimatedSprite2D" parent="PropertyBuilding/Interior" index="3" unique_id=1165115256]
+position = Vector2(663, 121)
+sprite_frames = SubResource("SpriteFrames_t8hp3")
+animation = &"door_close"
+frame = 4
+frame_progress = 1.0
+
+[node name="DoorToExterior" parent="PropertyBuilding/Interior" index="5" unique_id=1015269691]
+position = Vector2(575, 57)
 
 [node name="ExteriorSpawnPoint" parent="PropertyBuilding" index="3" unique_id=1199339619]
 position = Vector2(2958, -759)

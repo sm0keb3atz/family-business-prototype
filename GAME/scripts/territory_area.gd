@@ -84,6 +84,17 @@ func get_territory_id() -> StringName:
 	return territory_data.territory_id if territory_data else &""
 
 
+static func get_territory_by_id(tree: SceneTree, target_id: StringName) -> TerritoryArea:
+	if not tree:
+		return null
+	var nodes := tree.get_nodes_in_group(&"territories")
+	for node in nodes:
+		var territory := node as TerritoryArea
+		if territory and territory.get_territory_id() == target_id:
+			return territory
+	return null
+
+
 func get_reputation() -> float:
 	return reputation_component.get_reputation() if reputation_component else 0.0
 

@@ -124,6 +124,8 @@ func _convert_to_customer(npc: Node2D, player: Player) -> void:
 	if npc is NPC and npc.blackboard:
 		print("Solicitation: Converting NPC ", npc.name, " to customer")
 		var territory = npc.get_meta(&"territory") if npc.has_meta(&"territory") else null
+		if not territory and "territory_id" in npc and npc.territory_id != &"":
+			territory = TerritoryArea.get_territory_by_id(get_tree(), npc.territory_id)
 		var request := _build_customer_request(player, territory)
 		if request.is_empty():
 			return
@@ -179,7 +181,7 @@ func _build_customer_request(player: Player, territory: Variant) -> Dictionary:
 				territory_price = territory.get_drug_price(drug_id)
 			else:
 				territory_price = _get_fallback_price(drug_id)
-			var payout_per_gram := territory_price + randi_range(1, 10)
+			var payout_per_gram := territory_price + randi_range(2, 5)
 			return {
 				"tier": option["tier"],
 				"drug_id": drug_id,

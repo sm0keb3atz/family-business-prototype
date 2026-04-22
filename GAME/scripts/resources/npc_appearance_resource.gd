@@ -22,6 +22,8 @@ class_name NPCAppearanceResource
 # Cache: dir_path -> Array[String] (file paths)
 var _path_cache: Dictionary = {}
 var _is_prescanned: bool = false
+## res:// path -> Texture2D — avoids load() during NPC hot realization (territory crossings).
+var _texture_memo: Dictionary = {}
 
 ## Call this once at startup to scan all directory listings.
 func prescan_all() -> void:
@@ -56,17 +58,61 @@ func _scan_dir(dir_path: String) -> void:
 	dir.list_dir_end()
 	_path_cache[dir_path] = file_paths
 
-func _get_random_texture(dir_path: String) -> Texture2D:
+func _pick_random_path(dir_path: String) -> String:
 	if not _path_cache.has(dir_path):
 		_scan_dir(dir_path)
-	
 	var files: Array = _path_cache.get(dir_path, [])
-	if files.size() == 0:
+	if files.is_empty():
+		return ""
+	return str(files.pick_random())
+
+
+func get_texture_cached(path: String) -> Texture2D:
+	if path.is_empty():
 		return null
+	if _texture_memo.has(path):
+		return _texture_memo[path] as Texture2D
+	var tex: Texture2D = load(path) as Texture2D
+	if tex:
+		_texture_memo[path] = tex
+	return tex
+
+
+func _get_random_texture(dir_path: String) -> Texture2D:
+	var chosen_path := _pick_random_path(dir_path)
+	return get_texture_cached(chosen_path)
+
+
+## Pick outfit/hair/body paths once per ghost so realization only assigns textures (memoized), no DirAccess/load bursts.
+func bake_for_identity(identity: NPCIdentity) -> void:
+	if identity.metadata.get(&"app_baked", false):
+		return
+	prescan_all()
+	var body_p := _pick_random_path(bodies_dir)
+	var hair_p := ""
+	if identity.gender == NPC.Gender.MALE:
+		hair_p = _pick_random_path(hairstyles_male_dir)
+	else:
+		hair_p = _pick_random_path(hairstyles_female_dir)
+	var outfit_p := ""
+	match identity.role:
+		NPC.Role.DEALER:
+			outfit_p = _pick_random_path(outfits_dealer_dir)
+		NPC.Role.POLICE:
+			outfit_p = _pick_random_path(outfits_police_dir)
+		NPC.Role.CUSTOMER:
+			if identity.gender == NPC.Gender.MALE:
+				outfit_p = _pick_random_path(outfits_male_dir)
+			else:
+				outfit_p = _pick_random_path(outfits_female_dir)
+		_:
+			outfit_p = _pick_random_path(outfits_male_dir)
 	
-	var chosen_path: String = files.pick_random()
-	# Load on demand. Staggered spawning means this is fast enough.
-	return load(chosen_path) as Texture2D
+	identity.metadata[&"app_body_path"] = body_p
+	identity.metadata[&"app_hair_path"] = hair_p
+	identity.metadata[&"app_outfit_path"] = outfit_p
+	identity.metadata[&"app_backpack_visible"] = (identity.role == NPC.Role.DEALER)
+	identity.metadata[&"app_baked"] = true
 
 # --- Public helpers ---
 func get_random_body() -> Texture2D:

@@ -22,6 +22,8 @@ signal initial_spawn_complete
 @export var spawns_per_frame: int = 4
 @export var respawn_interval: float = 3.0
 @export var population_check_interval: float = 1.0
+@export var dealer_spawn_spacing: float = 90.0
+@export var dealer_spawn_spacing_search_radius: float = 220.0
 
 # Radius based pooling is disabled in favor of world-wide LOD
 var territory_preload_radius: float = 999999.0 
@@ -126,16 +128,16 @@ func _build_warm_pool_queue() -> void:
 	var data := parent_territory.territory_data
 	_cleanup_active_npcs()
 
-	# In virtual mode, we register identities for the FULL population.
-	# Registering an identity is cheap as it's just data.
 	for _i in range(data.max_customers):
-		_register_virtual_npc(NPC.Role.CUSTOMER)
+		_enqueue_spawn_item(_make_spawn_item(KIND_WARM_POOL_CREATE, NPC.Role.CUSTOMER, &"warm_preload"))
 	for _i in range(data.max_police):
-		_register_virtual_npc(NPC.Role.POLICE)
+		_enqueue_spawn_item(_make_spawn_item(KIND_WARM_POOL_CREATE, NPC.Role.POLICE, &"warm_preload"))
 	var is_controlled := NetworkManager.is_territory_controlled(data.territory_id)
 	if not is_controlled:
 		for _i in range(data.max_dealers):
-			_register_virtual_npc(NPC.Role.DEALER, {"dealer_kind": &"ambient"})
+			var warm_item := _make_spawn_item(KIND_WARM_POOL_CREATE, NPC.Role.DEALER, &"warm_preload")
+			warm_item["dealer_kind"] = &"ambient"
+			_enqueue_spawn_item(warm_item)
 	
 	# We no longer expand the pool here; NPCManager handles a global master budget.
 
@@ -151,6 +153,24 @@ func _refresh_population_requests(force: bool = false) -> void:
 	var budget := 4 
 	_queue_population_fill(&"refresh", budget)
 
+func _virtual_or_active_count(role: NPC.Role, dealer_kind: StringName = &"") -> int:
+	## Virtual NPCs live in NPCManager only; _active_* lists stay empty, so counting actives alone spawns duplicates forever.
+	if NPCManager:
+		var tid: StringName = parent_territory.get_territory_id()
+		if dealer_kind != &"":
+			return NPCManager.count_identities_for_territory(tid, int(role), dealer_kind)
+		return NPCManager.count_identities_for_territory(tid, int(role))
+	match role:
+		NPC.Role.CUSTOMER:
+			return _active_customers.size()
+		NPC.Role.POLICE:
+			return _active_police.size()
+		NPC.Role.DEALER:
+			return _active_dealers.size()
+		_:
+			return 0
+
+
 func _queue_population_fill(reason: StringName, budget_left: int) -> void:
 	var data := parent_territory.territory_data
 	if not data:
@@ -160,14 +180,16 @@ func _queue_population_fill(reason: StringName, budget_left: int) -> void:
 	var controlled: bool = NetworkManager.is_territory_controlled(territory_id)
 
 	var customer_pending: int = _count_pending_activation_requests(NPC.Role.CUSTOMER)
-	var customer_needed: int = maxi(0, data.max_customers - _active_customers.size() - customer_pending)
+	var customer_registered: int = _virtual_or_active_count(NPC.Role.CUSTOMER)
+	var customer_needed: int = maxi(0, data.max_customers - customer_registered - customer_pending)
 	var customer_to_queue: int = mini(customer_needed, budget_left)
 	for _i in range(customer_to_queue):
 		_enqueue_spawn_item(_make_spawn_item(KIND_ACTIVATE_FROM_POOL, NPC.Role.CUSTOMER, reason))
 	budget_left -= customer_to_queue
 
 	var police_pending: int = _count_pending_activation_requests(NPC.Role.POLICE)
-	var police_needed: int = maxi(0, data.max_police - _active_police.size() - police_pending)
+	var police_registered: int = _virtual_or_active_count(NPC.Role.POLICE)
+	var police_needed: int = maxi(0, data.max_police - police_registered - police_pending)
 	var police_to_queue: int = mini(police_needed, budget_left)
 	for _i in range(police_to_queue):
 		_enqueue_spawn_item(_make_spawn_item(KIND_ACTIVATE_FROM_POOL, NPC.Role.POLICE, reason))
@@ -179,7 +201,8 @@ func _queue_population_fill(reason: StringName, budget_left: int) -> void:
 	else:
 		_remove_hired_dealers()
 		var ambient_pending: int = _count_pending_activation_requests(NPC.Role.DEALER, &"ambient")
-		var ambient_needed: int = maxi(0, data.max_dealers - _active_dealers.size() - ambient_pending)
+		var ambient_registered: int = _virtual_or_active_count(NPC.Role.DEALER, &"ambient")
+		var ambient_needed: int = maxi(0, data.max_dealers - ambient_registered - ambient_pending)
 		var ambient_to_queue: int = mini(ambient_needed, budget_left)
 		for _i in range(ambient_to_queue):
 			var activate_item := _make_spawn_item(KIND_ACTIVATE_FROM_POOL, NPC.Role.DEALER, reason)
@@ -189,9 +212,12 @@ func _queue_population_fill(reason: StringName, budget_left: int) -> void:
 func _queue_hired_dealers(territory_id: StringName, reason: StringName, budget_left: int) -> void:
 	var slots: Array[HiredDealerSlot] = NetworkManager.get_hired_dealer_slots(territory_id)
 	var hired_active: int = 0
-	for npc in _active_dealers:
-		if is_instance_valid(npc) and npc.get_meta(&"dealer_spawn_kind", &"") == &"hired":
-			hired_active += 1
+	if NPCManager:
+		hired_active = NPCManager.count_identities_for_territory(territory_id, NPC.Role.DEALER, &"hired")
+	else:
+		for npc in _active_dealers:
+			if is_instance_valid(npc) and npc.get_meta(&"dealer_spawn_kind", &"") == &"hired":
+				hired_active += 1
 
 	var hired_pending: int = _count_pending_activation_requests(NPC.Role.DEALER, &"hired")
 	var to_add: int = maxi(0, slots.size() - hired_active - hired_pending)
@@ -237,8 +263,7 @@ func _count_pending_activation_requests(role: NPC.Role, dealer_kind: StringName 
 func _process_spawn_item(item: Dictionary) -> void:
 	match item.get("kind", &""):
 		KIND_WARM_POOL_CREATE:
-			# No longer used in virtual mode, registration happens in _build_warm_pool_queue
-			pass
+			_register_virtual_npc(item.get("role", NPC.Role.CUSTOMER), item)
 		KIND_EXPAND_POOL:
 			_spawn_and_pool_npc(item.get("role", NPC.Role.CUSTOMER))
 		KIND_ACTIVATE_FROM_POOL:
@@ -441,6 +466,12 @@ func _register_virtual_npc(role: NPC.Role, context: Dictionary = {}) -> void:
 			candidate_pos = _snap_to_navmesh(candidate_pos)
 		
 		if _is_position_safe(candidate_pos):
+			if role == NPC.Role.DEALER:
+				var spaced_result := _find_spaced_dealer_spawn_position(candidate_pos, id.territory_id)
+				if not spaced_result.get("found", false):
+					_log("Warning: Dealer spawn attempt %d at %s had no spaced fallback, retrying..." % [attempt, candidate_pos])
+					continue
+				candidate_pos = spaced_result.get("position", candidate_pos)
 			final_pos = candidate_pos
 			found_safe = true
 			break
@@ -504,6 +535,52 @@ func _is_position_safe(pos: Vector2) -> bool:
 	
 	var result = space_state.intersect_shape(query, 1)
 	return result.is_empty()
+
+func _find_spaced_dealer_spawn_position(base_pos: Vector2, territory_id: StringName) -> Dictionary:
+	if _is_dealer_spawn_spacing_clear(base_pos, territory_id):
+		return {"found": true, "position": base_pos}
+
+	var ring_radii := [
+		dealer_spawn_spacing,
+		dealer_spawn_spacing * 1.5,
+		minf(dealer_spawn_spacing_search_radius, dealer_spawn_spacing * 2.0),
+		dealer_spawn_spacing_search_radius,
+	]
+	var angle_offset := randf() * TAU
+
+	for radius in ring_radii:
+		if radius <= 0.0:
+			continue
+		var sample_count: int = maxi(8, int(ceili((TAU * radius) / maxf(dealer_spawn_spacing, 1.0))))
+		for sample in range(sample_count):
+			var angle: float = angle_offset + (TAU * float(sample) / float(sample_count))
+			var probe: Vector2 = base_pos + Vector2.RIGHT.rotated(angle) * radius
+			var snapped_probe: Vector2 = _snap_to_navmesh(probe)
+			if snapped_probe.distance_to(probe) > 50.0:
+				continue
+			if not _is_position_safe(snapped_probe):
+				continue
+			if not _is_dealer_spawn_spacing_clear(snapped_probe, territory_id):
+				continue
+			return {"found": true, "position": snapped_probe}
+
+	return {"found": false, "position": base_pos}
+
+func _is_dealer_spawn_spacing_clear(pos: Vector2, territory_id: StringName) -> bool:
+	if dealer_spawn_spacing <= 0.0 or not NPCManager:
+		return true
+
+	var min_dist_sq: float = dealer_spawn_spacing * dealer_spawn_spacing
+	for identity in NPCManager.identities:
+		if not identity:
+			continue
+		if identity.role != NPC.Role.DEALER:
+			continue
+		if identity.territory_id != territory_id:
+			continue
+		if identity.global_position.distance_squared_to(pos) < min_dist_sq:
+			return false
+	return true
 
 func _spawn_and_pool_npc(role: NPC.Role) -> void:
 	var scene: PackedScene

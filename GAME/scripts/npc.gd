@@ -56,6 +56,7 @@ var _core_runtime_initialized: bool = false
 var _role_runtime_initialized: bool = false
 var _visual_state_initialized: bool = false
 var _path_markers: Array = []
+var territory_id: StringName = &""
 
 # --- Stuck Detection Fail-Safes ---
 var _stuck_accumulator: float = 0.0
@@ -214,11 +215,48 @@ func _randomize_gender_and_appearance() -> void:
 	if outfit_tex:
 		outfit.texture = outfit_tex
 
+	_hide_nondealer_backpack()
+
+
+func _hide_nondealer_backpack() -> void:
 	# Hide accessories based on role (only dealers keep backpack visible)
 	if role != Role.DEALER:
 		var backpack = %Appearance.get_node_or_null("Backpack")
 		if backpack:
 			backpack.visible = false
+
+
+## Fast path: textures chosen at ghost registration; get_texture_cached avoids load() spikes when realizing.
+func _try_apply_baked_visual_from_identity(identity: NPCIdentity) -> bool:
+	if not identity.metadata.get(&"app_baked", false):
+		return false
+	var ad: NPCAppearanceResource = identity.appearance_data as NPCAppearanceResource
+	if not ad:
+		return false
+
+	var body: Sprite2D = %Appearance/Body
+	var hair: Sprite2D = %Appearance/Hair
+	var outfit: Sprite2D = %Appearance/Outfit
+	var bp: String = String(identity.metadata.get(&"app_body_path", ""))
+	var hp: String = String(identity.metadata.get(&"app_hair_path", ""))
+	var op: String = String(identity.metadata.get(&"app_outfit_path", ""))
+	var body_tex: Texture2D = ad.get_texture_cached(bp) if not bp.is_empty() else null
+	var hair_tex: Texture2D = ad.get_texture_cached(hp) if not hp.is_empty() else null
+	var outfit_tex: Texture2D = ad.get_texture_cached(op) if not op.is_empty() else null
+	if body_tex:
+		body.texture = body_tex
+	if hair_tex:
+		hair.texture = hair_tex
+	if outfit_tex:
+		outfit.texture = outfit_tex
+
+	var backpack = %Appearance.get_node_or_null("Backpack")
+	if backpack:
+		backpack.visible = bool(identity.metadata.get(&"app_backpack_visible", false))
+
+	_visual_state_initialized = true
+	return body_tex != null or hair_tex != null or outfit_tex != null
+
 
 func _inject_dependencies() -> void:
 	if movement_component:
@@ -327,6 +365,12 @@ func _physics_process(delta: float) -> void:
 				_decline_girlfriend_request()
 
 	_run_stuck_detection_fail_safe(delta)
+
+	# If avoidance is disabled (e.g. LOD tier 1), the NavigationServer will NOT emit velocity_computed.
+	# We must manually process the requested velocity so the NPC still moves and animates.
+	if nav_agent and not nav_agent.avoidance_enabled:
+		_on_velocity_computed(nav_agent.velocity)
+		nav_agent.velocity = Vector2.ZERO
 
 func _run_stuck_detection_fail_safe(delta: float) -> void:
 	if _is_pooled or _is_dead:
@@ -495,8 +539,7 @@ func prepare_for_pool() -> void:
 	set_process(false)
 	set_physics_process(false)
 	
-	# Reset role and visual flags for correct re-initialization
-	_role_runtime_initialized = false
+	# Keep role runtime prewarmed; only visuals need to be rebuilt per identity.
 	_visual_state_initialized = false
 	
 	# Clean up role-specific components to ensure a fresh slate
@@ -537,6 +580,9 @@ func activate_from_pool(spawn_pos: Vector2, role_context: Dictionary = {}) -> vo
 
 ## ─── Identity Realization ──────────────────────────────────────────────────
 ## Used by NPCManager to turn a "Ghost" (data) into a "Real Actor" (this node).
+## Split into two phases to prevent frame spikes when many NPCs realize at once:
+##   Phase 1 (immediate): position, visuals, collisions — NPC appears this frame.
+##   Phase 2 (manager-budgeted): BT restart, detection, interaction — AI starts later.
 func realize_from_identity(identity: NPCIdentity) -> void:
 	_ensure_core_runtime_initialized()
 	
@@ -549,39 +595,75 @@ func realize_from_identity(identity: NPCIdentity) -> void:
 	self.behavior_tree = identity.behavior_tree
 	self.stats = identity.stats.duplicate() if identity.stats else null
 	self.dealer_tier = identity.dealer_tier
+	self.territory_id = identity.territory_id
 	set_path_markers(identity.path_markers)
 	
 	_is_pooled = false
-	_visual_state_initialized = false # Force re-randomization or re-apply based on new data
-	_ensure_visual_state()
+	_is_interacting = false
+	velocity = Vector2.ZERO
+	blackboard = null
+	# Ghosts bake outfit paths at registration so we do not load() textures during territory crossings.
+	if gf_resource and gf_resource.appearance:
+		_visual_state_initialized = false
+		_ensure_visual_state()
+	else:
+		_visual_state_initialized = false
+		if not _try_apply_baked_visual_from_identity(identity):
+			_ensure_visual_state()
 	_ensure_role_runtime_initialized()
-	_apply_role_runtime_state()
 	
-	_setup_bt()
-	_set_detection_component_active(true)
-	_set_interact_area_active(true)
+	# --- Phase 1: appear visually this frame (cheap) ---
+	if bt_player:
+		bt_player.active = false
+		bt_player.set_process_mode(PROCESS_MODE_DISABLED)
+	_set_detection_component_active(false)
+	_set_interact_area_active(false)
 	_set_collisions_active(true)
-	
 	visible = true
 	modulate.a = 1.0
 	set_process(true)
 	set_physics_process(true)
-	
+	_lod_tier = 2
+
+
+## Finishes realization when NPCManager spends the stage-2 activation budget.
+func finish_realization() -> void:
+	# Guard: if we got pooled again before this fires, bail out
+	if _is_pooled or _is_dead:
+		return
+
+	_apply_role_runtime_state()
+	_setup_bt()
+
 	if npc_ui:
 		npc_ui.show()
 	_update_ui_icon()
-	
-	# Actors injected from Identity start at Tier 0 (Full AI)
-	# This call ensures physics_process and avoidance_enabled are restored
-	set_lod_tier(0)
-	
+	if nav_agent:
+		nav_agent.avoidance_enabled = false
+
 	if bt_player:
 		bt_player.active = true
 		bt_player.set_process_mode(PROCESS_MODE_INHERIT)
 
+
+func complete_realization() -> void:
+	if _is_pooled or _is_dead:
+		return
+
+	_set_interact_area_active(true)
+
+	# Dealers stay in reduced-cost tier by default to avoid nav-avoidance spikes
+	# when the player approaches dealer spawn points. Police/customers still use full tier.
+	var activation_tier: int = 1 if role == Role.DEALER else 0
+	set_lod_tier(activation_tier)
+
 ## Returns this actor to the pool and saves any necessary state back to the identity.
 func etherealize_to_pool() -> void:
 	prepare_for_pool()
+
+func prewarm_runtime() -> void:
+	_ensure_core_runtime_initialized()
+	_ensure_role_runtime_initialized()
 
 func _ensure_core_runtime_initialized() -> void:
 	if _core_runtime_initialized:
@@ -679,6 +761,8 @@ func _cleanup_role_components() -> void:
 func _reset_runtime_state_for_pool() -> void:
 	_clear_interaction_with_player()
 	_reset_girlfriend_request_state()
+	if weapon_holder_component:
+		weapon_holder_component.equip_weapon(null)
 	if blackboard:
 		blackboard.set_var(&"was_shot", false)
 		blackboard.set_var(&"damage_source_position", Vector2.ZERO)

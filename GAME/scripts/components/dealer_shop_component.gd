@@ -14,8 +14,11 @@ var stock_mode_by_drug: Dictionary = {}
 
 func _ready() -> void:
 	var parent_npc := get_parent()
-	if parent_npc and parent_npc.has_meta(&"territory"):
-		current_territory = parent_npc.get_meta(&"territory")
+	if parent_npc:
+		if parent_npc.has_meta(&"territory"):
+			current_territory = parent_npc.get_meta(&"territory")
+		elif "territory_id" in parent_npc and parent_npc.territory_id != &"":
+			current_territory = TerritoryArea.get_territory_by_id(get_tree(), parent_npc.territory_id)
 
 	if tier_config:
 		if _is_hired_dealer():
@@ -239,7 +242,8 @@ func npc_purchase(drug_id: StringName, amount: int) -> bool:
 	return true
 
 func _apply_npc_sale_feedback(drug_id: StringName, amount: int) -> void:
-	var payout: int = get_price(drug_id) * amount
+	var price_per_gram := get_price(drug_id) + randi_range(2, 5)
+	var payout: int = price_per_gram * amount
 	if _is_hired_dealer():
 		var stash: StashInventory = _get_support_stash()
 		if stash:
@@ -296,6 +300,11 @@ func buy(amount: int) -> void:
 
 func get_price(drug_id: StringName, buyer: Node = null) -> int:
 	var base_price := 10
+	if not current_territory:
+		var parent_npc = get_parent()
+		if parent_npc and "territory_id" in parent_npc and parent_npc.territory_id != &"":
+			current_territory = TerritoryArea.get_territory_by_id(get_tree(), parent_npc.territory_id)
+
 	if current_territory:
 		base_price = current_territory.get_drug_price(drug_id)
 	if buyer and buyer.has_method("get_dealer_price_multiplier"):

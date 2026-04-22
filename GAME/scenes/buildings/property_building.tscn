@@ -1,11 +1,11 @@
-[gd_scene format=4 uid="uid://df7j4ksk312m"]
+[gd_scene format=3 uid="uid://df7j4ksk312m"]
 
 [ext_resource type="Script" uid="uid://cu7axylt1egsj" path="res://GAME/scripts/components/property_component.gd" id="1_prop"]
 [ext_resource type="Script" uid="uid://b8jvn1y5e18it" path="res://GAME/scripts/components/property_exterior_door_trigger.gd" id="2_ext_door"]
 [ext_resource type="Script" uid="uid://b3c33c5oo6k0p" path="res://GAME/scripts/components/stash_interact_area.gd" id="3_stash"]
-[ext_resource type="TileSet" uid="uid://b5lo6l4xvqa7w" path="res://GAME/resources/tilesets/maintileset.tres" id="4_cwqne"]
+[ext_resource type="PackedScene" uid="uid://ne6bvbcm2rap" path="res://hood_east_property.tscn" id="4_cwqne"]
 [ext_resource type="Script" uid="uid://d3vo4fw0uy67h" path="res://GAME/scripts/door_trigger.gd" id="4_door"]
-[ext_resource type="Resource" path="res://GAME/resources/properties/first_stash.tres" id="5_stash_data"]
+[ext_resource type="Resource" uid="uid://0suotm8n6s26" path="res://GAME/resources/properties/first_stash.tres" id="5_stash_data"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_door"]
 size = Vector2(96, 26)
@@ -36,16 +36,13 @@ shape = SubResource("RectangleShape2D_door")
 [node name="Interior" type="Node2D" parent="." unique_id=572991576]
 position = Vector2(5000, 5000)
 
-[node name="TileMapLayer" type="TileMapLayer" parent="Interior" unique_id=1256054812]
-position = Vector2(4493, 4546)
-tile_map_data = PackedByteArray("AACb/5r/CAA2AFIAAACb/5v/CAA2AFMAAACb/5z/CAA2AFQAAACb/53/CAA2AFQAAACb/57/CAA2AFQAAACb/5//CAA2AFQAAACb/6D/CAA2AFQAAACb/6H/CAA2AFQAAACb/6L/CAA2AFQAAACb/6P/CAA2AFQAAACb/6T/CAA2AFcAAACc/5r/CAA3AFQAAACc/5v/CAA3AFUAAACc/5z/CAAiACkAAACc/53/CAAiACoAAACc/57/CAAiACkAAACc/5//CAAiACoAAACc/6D/CAAiACkAAACc/6H/CAAiACoAAACc/6L/CAAiACkAAACc/6P/CAAiACoAAACc/6T/CAA3AFcAAACd/5r/CAA4AFQAAACd/5v/CAA4AFUAAACd/5z/CAAjACkAAACd/53/CAAjACoAAACd/57/CAAjACkAAACd/5//CAAjACoAAACd/6D/CAAjACkAAACd/6H/CAAjACoAAACd/6L/CAAjACkAAACd/6P/CAAjACoAAACd/6T/CAA3AFcAAACe/5r/CAA3AFQAAACe/5v/CAA3AFUAAACe/5z/CAAkACkAAACe/53/CAAkACoAAACe/57/CAAkACkAAACe/5//CAAkACoAAACe/6D/CAAkACkAAACe/6H/CAAkACoAAACe/6L/CAAkACkAAACe/6P/CAAkACoAAACe/6T/CAA3AFcAAACf/5r/CAA4AFQAAACf/5v/CAA4AFUAAACf/5z/CAAiACkAAACf/53/CAAiACoAAACf/57/CAAiACkAAACf/5//CAAiACoAAACf/6D/CAAiACkAAACf/6H/CAAiACoAAACf/6L/CAAiACkAAACf/6P/CAAiACoAAACf/6T/CAA3AFcAAACg/5r/CAA3AFQAAACg/5v/CAA3AFUAAACg/5z/CAAjACkAAACg/53/CAAjACoAAACg/57/CAAjACkAAACg/5//CAAjACoAAACg/6D/CAAjACkAAACg/6H/CAAjACoAAACg/6L/CAAjACkAAACg/6P/CAAjACoAAACg/6T/CAA3AFcAAACh/5r/CAA4AFQAAACh/5v/CAA4AFUAAACh/5z/CAAkACkAAACh/53/CAAkACoAAACh/57/CAAkACkAAACh/5//CAAkACoAAACh/6D/CAAkACkAAACh/6H/CAAkACoAAACh/6L/CAAkACkAAACh/6P/CAAkACoAAACh/6T/CAA3AFcAAACi/5r/CAA3AFQAAACi/5v/CAA3AFUAAACi/5z/CAAiACkAAACi/53/CAAiACoAAACi/57/CAAiACkAAACi/5//CAAiACoAAACi/6D/CAAiACkAAACi/6H/CAAiACoAAACi/6L/CAAiACkAAACi/6P/CAAiACoAAACi/6T/CAAXAAMAAACj/5r/CAA4AFQAAACj/5v/CAA4AFUAAACj/5z/CAAjACkAAACj/53/CAAjACoAAACj/57/CAAjACkAAACj/5//CAAjACoAAACj/6D/CAAjACkAAACj/6H/CAAjACoAAACj/6L/CAAjACkAAACj/6P/CAAjACoAAACj/6T/CAA3AFcAAACk/5r/CAA3AFQAAACk/5v/CAA3AFUAAACk/5z/CAAkACkAAACk/53/CAAkACoAAACk/57/CAAkACkAAACk/5//CAAkACoAAACk/6D/CAAkACkAAACk/6H/CAAkACoAAACk/6L/CAAkACkAAACk/6P/CAAkACoAAACk/6T/CAA3AFcAAACl/5r/CAA4AFQAAACl/5v/CAA4AFUAAACl/5z/CAAiACkAAACl/53/CAAiACoAAACl/57/CAAiACkAAACl/5//CAAiACoAAACl/6D/CAAiACkAAACl/6H/CAAiACoAAACl/6L/CAAiACkAAACl/6P/CAAiACoAAACl/6T/CAA3AFcAAACm/5r/CAA3AFQAAACm/5v/CAA3AFUAAACm/5z/CAAjACkAAACm/53/CAAjACoAAACm/57/CAAjACkAAACm/5//CAAjACoAAACm/6D/CAAjACkAAACm/6H/CAAjACoAAACm/6L/CAAjACkAAACm/6P/CAAjACoAAACm/6T/CAA3AFcAAACn/5r/CAA4AFQAAACn/5v/CAA4AFUAAACn/5z/CAAkACkAAACn/53/CAAkACoAAACn/57/CAAkACkAAACn/5//CAAkACoAAACn/6D/CAAkACkAAACn/6H/CAAkACoAAACn/6L/CAAkACkAAACn/6P/CAAkACoAAACn/6T/CAA3AFcAAACo/5r/CAA3AFQAAACo/5v/CAA3AFUAAACo/5z/CAAiACkAAACo/53/CAAiACoAAACo/57/CAAiACkAAACo/5//CAAiACoAAACo/6D/CAAiACkAAACo/6H/CAAiACoAAACo/6L/CAAiACkAAACo/6P/CAAiACoAAACo/6T/CAA4AFcAAACp/5r/CAA5AFIAAACp/5v/CAA5AFMAAACp/5z/CAA5AFQAAACp/53/CAA5AFQAAACp/57/CAA5AFQAAACp/5//CAA5AFQAAACp/6D/CAA5AFQAAACp/6H/CAA5AFQAAACp/6L/CAA5AFQAAACp/6P/CAA5AFQAAACp/6T/CAA5AFcAAAA=")
-tile_set = ExtResource("4_cwqne")
+[node name="HoodEastProperty" parent="Interior" unique_id=1991951852 instance=ExtResource("4_cwqne")]
 
 [node name="SpawnPoint" type="Marker2D" parent="Interior" unique_id=953852200]
-position = Vector2(0, 57)
+position = Vector2(575, 134)
 
 [node name="DoorToExterior" type="Area2D" parent="Interior" unique_id=1015269691 node_paths=PackedStringArray("spawn_point", "door_node")]
-position = Vector2(0, 115)
+position = Vector2(575, 44)
 script = ExtResource("4_door")
 leads_to_interior = false
 spawn_point = NodePath("../../ExteriorSpawnPoint")
@@ -55,7 +52,7 @@ door_node = NodePath("../../Exterior/DoorSprite")
 shape = SubResource("RectangleShape2D_door")
 
 [node name="StashInteractArea" type="Area2D" parent="Interior" unique_id=1398908727 node_paths=PackedStringArray("property_component")]
-position = Vector2(257, -203)
+position = Vector2(194, 101)
 script = ExtResource("3_stash")
 property_component = NodePath("../../PropertyComponent")
 
