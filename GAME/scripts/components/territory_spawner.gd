@@ -83,7 +83,8 @@ func _on_ready_deferred_spawn() -> void:
 
 func _initial_spawn() -> void:
 	_is_preloading = true
-	_population_refresh_accumulator = 0.0
+	# Stagger the refresh timers so they don't all hit on the same frame
+	_population_refresh_accumulator = randf_range(0.0, population_check_interval)
 	_build_warm_pool_queue()
 	if _spawn_queue.is_empty():
 		_finish_preload()
@@ -272,27 +273,33 @@ func _process_spawn_item(item: Dictionary) -> void:
 			_register_virtual_npc(item.get("role", NPC.Role.CUSTOMER), item)
 
 func get_active_dealers() -> Array[NPC]:
+	if NPCManager and parent_territory:
+		return NPCManager.get_realized_actors_for_territory(parent_territory.get_territory_id(), NPC.Role.DEALER)
 	return _active_dealers.duplicate()
 
 func get_active_customers() -> Array[NPC]:
+	if NPCManager and parent_territory:
+		return NPCManager.get_realized_actors_for_territory(parent_territory.get_territory_id(), NPC.Role.CUSTOMER)
 	return _active_customers.duplicate()
 
+func get_active_police() -> Array[NPC]:
+	if NPCManager and parent_territory:
+		return NPCManager.get_realized_actors_for_territory(parent_territory.get_territory_id(), NPC.Role.POLICE)
+	return _active_police.duplicate()
+
 func get_active_customer_count() -> int:
-	_cleanup_active_npcs()
-	return _active_customers.size()
+	return get_active_customers().size()
 
 func get_active_hired_dealer_count() -> int:
-	_cleanup_active_npcs()
 	var count: int = 0
-	for npc in _active_dealers:
+	for npc in get_active_dealers():
 		if is_instance_valid(npc) and npc.get_meta(&"dealer_spawn_kind", &"") == &"hired":
 			count += 1
 	return count
 
 func get_active_ambient_dealer_count() -> int:
-	_cleanup_active_npcs()
 	var count: int = 0
-	for npc in _active_dealers:
+	for npc in get_active_dealers():
 		if is_instance_valid(npc) and npc.get_meta(&"dealer_spawn_kind", &"") == &"ambient":
 			count += 1
 	return count
@@ -444,8 +451,15 @@ func _register_virtual_npc(role: NPC.Role, context: Dictionary = {}) -> void:
 	var max_retries := 5
 	
 	for attempt in range(max_retries):
-		var spawn_result: Dictionary = _get_spawn_position_for_item({"role": role})
-		var candidate_pos: Vector2 = spawn_result.get("position", parent_territory.global_position)
+		# For ghosts (warm pool), we prefer random scattering across the whole territory
+		# instead of just bunched up at markers.
+		var candidate_pos: Vector2
+		if role != NPC.Role.DEALER and parent_territory.has_method("get_random_point_inside"):
+			candidate_pos = parent_territory.get_random_point_inside()
+		else:
+			var spawn_result: Dictionary = _get_spawn_position_for_item({"role": role})
+			candidate_pos = spawn_result.get("position", parent_territory.global_position)
+		
 		var original_pos: Vector2 = candidate_pos
 		
 		# MANDATORY: Always snap to navmesh, even if it's a marker, to prevent spawning in buildings

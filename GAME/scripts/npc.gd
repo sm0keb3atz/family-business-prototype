@@ -423,7 +423,7 @@ func _trigger_girlfriend_request() -> void:
 	
 	# Force register interactable if player is already in range
 	var player = get_tree().get_first_node_in_group("player")
-	if player and interact_area.overlaps_body(player):
+	if player and interact_area.monitoring and interact_area.overlaps_body(player):
 		if player.has_method("register_interactable"):
 			player.register_interactable(self)
 
@@ -731,7 +731,8 @@ func _apply_role_runtime_state() -> void:
 		dealer_tier = tier
 		var shop_comp := get_node_or_null("DealerShopComponent") as DealerShopComponent
 		if shop_comp:
-			shop_comp.tier_config = tier
+			var t_node: TerritoryArea = get_meta(&"territory") if has_meta(&"territory") else null
+			shop_comp.setup(tier, t_node)
 			shop_comp.set_process(true)
 		if stats:
 			stats.max_health = tier.max_health
@@ -1244,9 +1245,11 @@ func _handle_girlfriend_recruitment(player: Node2D) -> void:
 	gf_request_timer = randf_range(45.0, 90.0)
 
 func _on_gf_reset_timeout() -> void:
+	if _is_pooled or _is_dead:
+		return
 	# Check if player is NOT in range anymore
 	var player_in_range = false
-	if interact_area:
+	if interact_area and interact_area.monitoring:
 		for body in interact_area.get_overlapping_bodies():
 			if body.is_in_group("player"):
 				player_in_range = true

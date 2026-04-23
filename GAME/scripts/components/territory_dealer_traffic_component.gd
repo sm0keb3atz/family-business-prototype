@@ -76,7 +76,7 @@ func _is_eligible_customer(npc: NPC) -> bool:
 		return false
 	if npc.blackboard.has_var(&"is_dealer_customer") and npc.blackboard.get_var(&"is_dealer_customer", false):
 		return false
-	if npc.get_meta(&"territory", null) != _territory:
+	if npc.territory_id != _territory.get_territory_id():
 		return false
 	if not npc.nav_agent:
 		return false

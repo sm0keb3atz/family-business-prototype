@@ -171,3 +171,16 @@ func get_active_ambient_dealer_count() -> int:
 
 func get_active_dealer_traffic_count() -> int:
 	return dealer_traffic_component.get_active_dealer_customer_count() if dealer_traffic_component else 0
+
+
+func get_random_point_inside() -> Vector2:
+	if not collision_shape or not collision_shape.shape is RectangleShape2D:
+		return global_position
+	
+	var rect := collision_shape.shape as RectangleShape2D
+	var half_extents = rect.size * 0.5
+	var local_pos = collision_shape.position + Vector2(
+		randf_range(-half_extents.x, half_extents.x),
+		randf_range(-half_extents.y, half_extents.y)
+	)
+	return to_global(local_pos)

@@ -133,7 +133,6 @@ func _process(delta: float) -> void:
 		if is_instance_valid(player_level_label):
 			player_level_label.text = "Level %d  %d/%d XP" % [player.get("progression").get("level"), current_xp, required_xp]
 
-	_refresh_current_territory()
 	_update_stars_animation()
 
 	# Update Heat Decay Buff Label

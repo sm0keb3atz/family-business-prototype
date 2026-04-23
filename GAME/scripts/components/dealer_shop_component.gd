@@ -21,11 +21,16 @@ func _ready() -> void:
 			current_territory = TerritoryArea.get_territory_by_id(get_tree(), parent_npc.territory_id)
 
 	if tier_config:
-		if _is_hired_dealer():
-			_configure_hired_inventory_profile()
-		else:
-			_roll_stock()
-			restock_timer = tier_config.restock_time_seconds
+		setup(tier_config, current_territory)
+
+func setup(config: DealerTierResource, territory: TerritoryArea = null) -> void:
+	tier_config = config
+	current_territory = territory
+	if _is_hired_dealer():
+		_configure_hired_inventory_profile()
+	else:
+		_roll_stock()
+		restock_timer = tier_config.restock_time_seconds
 
 func _process(delta: float) -> void:
 	if not tier_config:
@@ -236,8 +241,10 @@ func can_buy_drug(drug_id: StringName, amount: int) -> bool:
 func npc_purchase(drug_id: StringName, amount: int) -> bool:
 	if not can_buy_drug(drug_id, amount):
 		return false
-	if _is_hired_dealer():
-		buy_drug(drug_id, amount)
+	
+	# Reduce stock for both hired and ambient dealers
+	buy_drug(drug_id, amount)
+	
 	_apply_npc_sale_feedback(drug_id, amount)
 	return true
 

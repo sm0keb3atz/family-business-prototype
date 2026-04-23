@@ -4,14 +4,12 @@ extends Node2D
 
 @export var realization_radius: float = 2400.0
 @export var ghosting_radius: float = 3000.0
-@export var max_realized_actors: int = 70
-@export var dealer_realization_radius: float = 1100.0 # Dealers can wake closer to the player than general NPCs to avoid border spikes around dealer posts.
-@export var transition_realization_radius_scale: float = 0.70 # During territory switches, only wake the inner ring first and let the rest fill in over time.
+@export var max_realized_actors: int = 150
 @export var stagger_realization_interval_ms: int = 90 # Gap between newly eligible NPCs entering the live realization queue.
 @export var stagger_promotions_per_frame: int = 1 # How many delayed NPCs can be promoted into the live queue per frame.
-@export var realizations_per_frame: int = 2 # Stagger to prevent spikes
-@export var realization_frame_budget_ms: float = 1.0 # Max time to spend on realizations per frame
-@export var activation_finishes_per_frame: int = 2 # Budgeted stage-2 activation work after cheap bind-only realization.
+@export var realizations_per_frame: int = 1 # Stagger to 1 per frame for max smoothness
+@export var realization_frame_budget_ms: float = 0.8 
+@export var activation_finishes_per_frame: int = 1 # Stagger to 1 per frame for max smoothness
 @export var activation_finish_budget_ms: float = 1.0 # Max time to spend on BT/detection/UI activation per frame.
 @export var post_activation_delay_ms: int = 50 # Small buffer before full sensing/interact/tier restore to smooth the last micro-stutter.
 @export var post_activation_finishes_per_frame: int = 1 # Final restore step should stay tiny and predictable.
@@ -19,7 +17,9 @@ extends Node2D
 @export var realization_pass_interval: float = 0.25 ## Wall-clock interval for who should realize (not every frame).
 @export var spatial_pass_cell_margin: int = 1 ## Extra grid rings around the player so adjacent-territory ghosts farther away still get evaluated.
 @export var max_queue_admissions_per_pass: int = 6 ## Prevents stuffing the realization queue in one tick when territory rules flip for many ghosts at once.
-@export var dealers_realize_globally: bool = false ## When false, dealers use current/adjacent territory + distance (same idea as police). True = legacy: every dealer ghost is always eligible (very expensive in open world).
+@export var dealers_realize_globally: bool = true ## When false, dealers use current/adjacent territory + distance (same idea as police). True = legacy: every dealer ghost is always eligible (very expensive in open world).
+@export var active_territory_fill_rate: int = 2 ## Max new NPCs to admit to queue per pass for the active territory (forces gradual filling).
+@export var neighbor_realization_percent: float = 0.33 ## Fraction of population to maintain in adjacent territories.
 @export var debug_realization_logging: bool = false
 
 const GHOST_TICK_RATE: float = 0.1 # Move ghosts every 100ms
@@ -46,6 +46,7 @@ var _current_territory_id: StringName = &""
 var _adjacent_territory_set: Dictionary = {}
 var _adjacency_map: Dictionary = {} # { territory_id: [neighbor_ids] }
 var _identities_by_territory: Dictionary = {} # territory_id -> Array[NPCIdentity]
+var _territory_nodes: Dictionary = {} # { territory_id: TerritoryArea }
 
 var _spatial: NPCSpatialHash = NPCSpatialHash.new()
 var _dealer_identities: Array[NPCIdentity] = []
@@ -99,15 +100,18 @@ func register_identity(identity: NPCIdentity) -> void:
 	identities.append(identity)
 	if identity.role == NPC.Role.DEALER:
 		_dealer_identities.append(identity)
+	
+	# Ensure the ghost has a movement target immediately so it doesn't huddle at the spawn point
+	if identity.target_position == Vector2.ZERO:
+		_pick_new_ghost_target(identity)
+		
 	var territory_bucket: Array = _identities_by_territory.get(identity.territory_id, [])
 	territory_bucket.append(identity)
 	_identities_by_territory[identity.territory_id] = territory_bucket
 	_spatial.insert(identity)
 	if identity.appearance_data is NPCAppearanceResource:
 		(identity.appearance_data as NPCAppearanceResource).bake_for_identity(identity)
-	# Give the ghost an initial target so it starts moving immediately in the background
-	_pick_new_ghost_target(identity)
-
+	
 func unregister_identity(identity: NPCIdentity) -> void:
 	if not identity: return
 	
@@ -151,8 +155,12 @@ func unregister_identities_for_territory(territory_id: StringName, role: int = -
 				unregister_identity(id)
 
 
+
 func count_identities_for_territory(territory_id: StringName, role: int = -1, dealer_kind: StringName = &"") -> int:
 	var territory_bucket: Array = _identities_by_territory.get(territory_id, [])
+	if role == -1 and dealer_kind == "":
+		return territory_bucket.size()
+		
 	var n: int = 0
 	for id in territory_bucket:
 		if role != -1 and id.role != role:
@@ -162,6 +170,16 @@ func count_identities_for_territory(territory_id: StringName, role: int = -1, de
 				continue
 		n += 1
 	return n
+
+
+func get_realized_actors_for_territory(territory_id: StringName, role: int = -1) -> Array[NPC]:
+	var actors: Array[NPC] = []
+	for id in _realized_identities:
+		if id.territory_id == territory_id:
+			if role == -1 or id.role == role:
+				if is_instance_valid(id.current_actor):
+					actors.append(id.current_actor)
+	return actors
 
 
 func _process(delta: float) -> void:
@@ -243,9 +261,9 @@ func _update_ghost_subset() -> void:
 
 func _queue_priority_for_pass(role: int) -> int:
 	## Lower = admitted first when max_queue_admissions_per_pass is hit (e.g. crossing a territory border).
-	if role == NPC.Role.POLICE:
+	if role == NPC.Role.DEALER:
 		return 0
-	if role == NPC.Role.CUSTOMER:
+	if role == NPC.Role.POLICE:
 		return 1
 	return 2
 
@@ -258,10 +276,7 @@ func _world_pos_for_identity(id: NPCIdentity) -> Vector2:
 
 
 func _is_inside_transition_realization_window(player: Node2D, pos: Vector2) -> bool:
-	if _territory_transition_cooldown <= 0 or not player:
-		return true
-	var transition_radius: float = realization_radius * transition_realization_radius_scale
-	return player.global_position.distance_squared_to(pos) <= transition_radius * transition_radius
+	return true
 
 
 func _compute_should_realize(id: NPCIdentity, player: Node2D = null) -> bool:
@@ -276,25 +291,17 @@ func _compute_should_realize(id: NPCIdentity, player: Node2D = null) -> bool:
 	if id.role == NPC.Role.DEALER:
 		if dealers_realize_globally:
 			return true
-		if not player:
-			return is_active
-		var dealer_dist_sq: float = player.global_position.distance_squared_to(pos)
-		if is_active and dealer_dist_sq < dealer_realization_radius * dealer_realization_radius:
-			return true
-		return false
+		return is_active
+		
 	elif id.role == NPC.Role.POLICE:
-		if is_active or is_adjacent:
-			if not inside_transition_window:
-				return false
-			return true
+		return is_active or is_adjacent
+		
 	elif is_active:
-		if not inside_transition_window:
-			return false
 		return true
+		
 	elif is_adjacent:
-		if not inside_transition_window:
-			return false
-		return (id.get_instance_id() % 4 == 0)
+		# Maintain a base population in neighbors (default 33%)
+		return (id.get_instance_id() % 3 == 0)
 
 	if _current_territory_id == &"" or territory_id == &"":
 		if player:
@@ -311,15 +318,27 @@ func _run_realization_desire_pass() -> void:
 	if not player:
 		return
 
-	_queue_admissions_remaining = maxi(0, max_queue_admissions_per_pass)
-	# During a territory transition, throttle admissions to prevent a realization surge
-	if _territory_transition_cooldown > 0:
-		_queue_admissions_remaining = mini(_queue_admissions_remaining, TRANSITION_ADMISSION_CAP)
-		_territory_transition_cooldown -= 1
+	if dealers_realize_globally:
+		var dealer_budget := 15 # High initial budget to fill the map quickly
+		# If we already have a lot realized, slow down global admissions but don't stop
+		if realized_count > (max_realized_actors * 0.9):
+			dealer_budget = 1
+
+		for id in _dealer_identities:
+			if dealer_budget <= 0: break
+			if not id.is_realized() and not id.queued_for_realization and not id.queued_for_staggered_realization:
+				# Global dealers get priority and a small 'over-budget' allowance if needed 
+				# because they are static and cheap.
+				if realized_count < max_realized_actors:
+					id.queued_for_staggered_realization = true
+					id.realization_ready_msec = _next_staggered_realization_ready_msec()
+					_staggered_realization_queue.append(id)
+					realized_count += 1
+					dealer_budget -= 1
 
 	# Ghostify work is handled elsewhere for already-realized actors, so the desire pass
-	# only needs to scan the local realization window instead of the larger ghosting radius.
-	var pass_query_radius := maxf(realization_radius, dealer_realization_radius)
+	# only needs to scan the local realization window instead of a larger radius.
+	var pass_query_radius := realization_radius
 	var cell_radius := int(ceili(pass_query_radius / NPCSpatialHash.CELL_SIZE)) + 1 + spatial_pass_cell_margin
 	var nearby := _spatial.get_nearby(player.global_position, cell_radius)
 	var police_candidates: Array[NPCIdentity] = []
@@ -334,21 +353,32 @@ func _run_realization_desire_pass() -> void:
 			_:
 				dealer_candidates.append(id)
 
+	_queue_admissions_remaining = maxi(0, max_queue_admissions_per_pass)
+	# During a territory transition, throttle admissions to prevent a realization surge
+	if _territory_transition_cooldown > 0:
+		_queue_admissions_remaining = mini(_queue_admissions_remaining, TRANSITION_ADMISSION_CAP)
+		_territory_transition_cooldown -= 1
+
+	var active_fill_remaining := active_territory_fill_rate
+	
 	for bucket in [police_candidates, customer_candidates, dealer_candidates]:
 		for id in bucket:
 			var should := _compute_should_realize(id, player)
+			
+			# If this is a new admission for the active territory, respect the fill rate
+			if should and not id.is_realized() and id.territory_id == _current_territory_id:
+				if active_fill_remaining <= 0:
+					should = false # Defer to next pass
+				else:
+					active_fill_remaining -= 1
+			
 			_apply_realization_desire_impl(id, player, should)
+			
 			if _queue_admissions_remaining <= 0 and _territory_transition_cooldown > 0:
 				break
 		if _queue_admissions_remaining <= 0 and _territory_transition_cooldown > 0:
 			break
 
-	if dealers_realize_globally:
-		for id in _dealer_identities:
-			if id.is_realized():
-				continue
-			var should_dealer := _compute_should_realize(id, player)
-			_apply_realization_desire_impl(id, player, should_dealer)
 
 
 func _refresh_realized_ghostify_only(_delta: float) -> void:
@@ -359,34 +389,25 @@ func _refresh_realized_ghostify_only(_delta: float) -> void:
 		if not is_instance_valid(rid) or not rid.is_realized():
 			_realized_identities.remove_at(i)
 	var player = get_tree().get_first_node_in_group("player") as Node2D
+	# If we are transitioning between territories, we need to clear out the OLD NPCs faster
+	# to make room for the NEW ones within our 150-actor budget.
 	var ghostify_budget: int = MAX_GHOSTIFY_PER_FRAME
+	if _territory_transition_cooldown > 0:
+		ghostify_budget = MAX_GHOSTIFY_PER_FRAME * 4 # Flush old NPCs 4x faster during transition
+		
 	for id in _realized_identities:
 		if ghostify_budget <= 0:
 			break
 		var should_realize := _compute_should_realize(id, player)
 		if id.is_realized() and not should_realize:
-			# Only count actual ghostify candidates against the budget
-			if player:
-				var pos: Vector2 = _world_pos_for_identity(id)
-				var dist_sq = player.global_position.distance_squared_to(pos)
-				if dist_sq > ghosting_radius * ghosting_radius:
-					_ghostify(id)
-					ghostify_budget -= 1
-			else:
-				_ghostify(id)
-				ghostify_budget -= 1
+			_ghostify(id)
+			ghostify_budget -= 1
 
 
 func _apply_realization_desire_impl(id: NPCIdentity, player: Node2D, should_realize: bool) -> void:
 	if id.is_realized():
 		if not should_realize:
-			if player:
-				var pos: Vector2 = _world_pos_for_identity(id)
-				var dist_sq = player.global_position.distance_squared_to(pos)
-				if dist_sq > ghosting_radius * ghosting_radius:
-					_ghostify(id)
-			else:
-				_ghostify(id)
+			_ghostify(id)
 	else:
 		if should_realize and realized_count < max_realized_actors:
 			if id.queued_for_realization or id.queued_for_staggered_realization:
@@ -474,6 +495,12 @@ func _realize(identity: NPCIdentity) -> void:
 
 	identity.current_actor = actor
 	actor.realize_from_identity(identity)
+	
+	# Tag actor with territory node for components that rely on metadata
+	var t_node = _territory_nodes.get(identity.territory_id)
+	if t_node:
+		actor.set_meta(&"territory", t_node)
+	
 	_activation_finish_queue.append({
 		"identity": identity,
 		"actor": actor,
@@ -501,9 +528,7 @@ func _ghostify(identity: NPCIdentity) -> void:
 	_spatial.insert(identity)
 	realized_count -= 1
 
-func _pick_new_ghost_target(identity: NPCIdentity) -> void:
-	if identity.path_markers.is_empty(): return
-	identity.target_position = identity.path_markers.pick_random().global_position
+
 
 func _pop_actor_from_pool() -> NPC:
 	while not _actor_pool.is_empty():
@@ -616,10 +641,17 @@ func _log_realization_activity(realized_this_frame: int, activations_this_frame:
 
 # --- Territory System ---
 
+var _territory_system_initialized: bool = false
 func _initialize_territory_system() -> void:
+	if _territory_system_initialized:
+		return
+	_territory_system_initialized = true
+	
 	var territories = get_tree().get_nodes_in_group("territories")
+	_territory_nodes.clear()
 	for t in territories:
 		if t is TerritoryArea:
+			_territory_nodes[t.get_territory_id()] = t
 			if not t.player_entered.is_connected(_on_player_entered_territory):
 				t.player_entered.connect(_on_player_entered_territory)
 	
@@ -687,3 +719,17 @@ func _on_player_entered_territory(territory_id: StringName) -> void:
 	_territory_transition_cooldown = TRANSITION_RAMP_PASSES
 	
 	print("NPCManager: Player entered ", territory_id, ". Adjacent: ", _adjacent_territory_set.keys())
+
+
+func _pick_new_ghost_target(id: NPCIdentity) -> void:
+	# Dealers stay at their posts and don't wander as ghosts
+	if id.role == NPC.Role.DEALER:
+		id.target_position = id.global_position
+		return
+		
+	var t_node: TerritoryArea = _territory_nodes.get(id.territory_id)
+	if t_node:
+		id.target_position = t_node.get_random_point_inside()
+	else:
+		# Fallback: small random wander
+		id.target_position = id.global_position + Vector2(randf_range(-800, 800), randf_range(-800, 800))
