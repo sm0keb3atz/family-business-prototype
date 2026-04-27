@@ -1,35 +1,40 @@
 extends CanvasLayer
 class_name HUD
 
-@onready var health_bar: ProgressBar = $Hud/HealthBar
-@onready var xp_bar: ProgressBar = $Hud/XPBar
-@onready var money_label: Label = $Hud/MoneyLabel
-@onready var clean_money_label: Label = $Hud/CleanMoneyLabel
-@onready var debt_label: Label = $Hud/DebtLabel
-@onready var heat_bar: ProgressBar = $Hud/HeatBar
-@onready var heat_buff_label: Label = $Hud/HeatBuffLabel
-@onready var stars_container: Control = $Hud/StarsContainer
-@onready var territory_rep_bar: ProgressBar = $Hud/TerritoryReputationBar
-@onready var territory_name_label: Label = $Hud/TerritoryNameLabel
-@onready var prices_label: Label = $Hud/PricesLabel
-@onready var weed_price_icon: TextureRect = get_node_or_null("Hud/WeedPriceIcon")
-@onready var weed_price_label: Label = get_node_or_null("Hud/WeedPriceLabel")
-@onready var coke_price_icon: TextureRect = get_node_or_null("Hud/CokePriceIcon")
-@onready var coke_price_label: Label = get_node_or_null("Hud/CokePriceLabel")
-@onready var fetty_price_icon: TextureRect = get_node_or_null("Hud/FettyPriceIcon")
-@onready var fetty_price_label: Label = get_node_or_null("Hud/FettyPriceLabel")
-@onready var clock_label: Label = $Hud/ClockLabel
-@onready var date_label: Label = $Hud/DateLabel
+@onready var health_bar: ProgressBar = %HealthBar
+@onready var xp_bar: ProgressBar = %XPBar
+@onready var money_label: Label = %MoneyLabel
+@onready var clean_money_label: Label = %CleanMoneyLabel
+@onready var debt_label: Label = %DebtLabel
+@onready var heat_bar: ProgressBar = %HeatBar
+@onready var heat_buff_label: Label = %HeatBuffLabel
+@onready var stars_container: Control = %StarsContainer
+@onready var territory_rep_bar: ProgressBar = %TerritoryReputationBar
+@onready var territory_name_label: Label = %TerritoryNameLabel
+@onready var prices_label: Label = %PricesLabel
+@onready var weed_price_icon: TextureRect = %WeedPriceIcon
+@onready var weed_price_label: Label = %WeedPriceLabel
+@onready var coke_price_icon: TextureRect = %CokePriceIcon
+@onready var coke_price_label: Label = %CokePriceLabel
+@onready var fetty_price_icon: TextureRect = %FettyPriceIcon
+@onready var fetty_price_label: Label = %FettyPriceLabel
+@onready var clock_label: Label = %ClockLabel
+@onready var date_label: Label = %DateLabel
 
-@onready var weapon_icon: Sprite2D = $Hud/WeaponIcon
-@onready var level_label: Label = $Hud/LevelLabel
-@onready var ammo_label: Label = $Hud/AmmoLabel
-@onready var unarmed_label: Label = $Hud/UnarmedLabel
-@onready var player_level_label: Label = $Hud/PlayerLevelLabel
+@onready var weapon_icon: Sprite2D = %WeaponIcon
+@onready var level_label: Label = %LevelLabel
+@onready var ammo_label: Label = %AmmoLabel
+@onready var unarmed_label: Label = %UnarmedLabel
+
+# New split labels for player level
+@onready var player_level_value_label: Label = %PlayerLevelValueLabel
+@onready var player_xp_label: Label = %PlayerXPLabel
 
 var player: Player
 var star_nodes: Array[AnimatedSprite2D] = []
 var displayed_money: float = 0.0
+var displayed_clean_money: float = 0.0
+var displayed_level: float = 1.0
 var current_weapon: WeaponBase
 var current_territory: TerritoryArea
 var territory_tracking_ready: bool = false
@@ -114,13 +119,19 @@ func _process(delta: float) -> void:
 			displayed_money = target_money
 		money_label.text = "$" + str(roundi(displayed_money))
 	
-	# Update clean money label
+	# Update clean money label with rolling effect
 	if is_instance_valid(clean_money_label):
-		clean_money_label.text = "$" + str(NetworkManager.economy.clean_money)
-		clean_money_label.visible = NetworkManager.economy.clean_money > 0
+		var target_clean: float = float(NetworkManager.economy.clean_money)
+		if abs(displayed_clean_money - target_clean) > 0.5:
+			displayed_clean_money = lerp(displayed_clean_money, target_clean, 5.0 * delta)
+		else:
+			displayed_clean_money = target_clean
+		clean_money_label.text = "$" + str(roundi(displayed_clean_money))
+		clean_money_label.visible = NetworkManager.economy.clean_money > 0 or displayed_clean_money > 0.5
 	
 	# Update debt label
 	if is_instance_valid(debt_label):
+		# Debt display with smooth lerp could be added here if needed
 		debt_label.text = "-$" + str(NetworkManager.economy.debt)
 		debt_label.visible = NetworkManager.economy.debt > 0
 	
@@ -130,8 +141,33 @@ func _process(delta: float) -> void:
 		xp_bar.max_value = required_xp
 		xp_bar.value = current_xp
 		
-		if is_instance_valid(player_level_label):
-			player_level_label.text = "Level %d  %d/%d XP" % [player.get("progression").get("level"), current_xp, required_xp]
+		var level = player.get("progression").get("level")
+		if is_instance_valid(player_level_value_label):
+			var target_level: float = float(level)
+			if abs(displayed_level - target_level) > 0.01:
+				displayed_level = lerp(displayed_level, target_level, 5.0 * delta)
+			else:
+				displayed_level = target_level
+
+			var display_val = roundi(displayed_level)
+			player_level_value_label.text = str(display_val)
+
+			# Dynamic font size based on digit count
+			var new_size = 40
+			if display_val >= 1000:
+				new_size = 20
+			elif display_val >= 100:
+				new_size = 30
+			elif display_val >= 10:
+				new_size = 35
+
+			# Only update if changed to avoid unnecessary theme updates
+			if player_level_value_label.get_theme_font_size("font_size") != new_size:
+				player_level_value_label.add_theme_font_size_override("font_size", new_size)
+
+		if is_instance_valid(player_xp_label):
+
+			player_xp_label.text = "%d/%d XP" % [current_xp, required_xp]
 
 	_update_stars_animation()
 
@@ -279,10 +315,9 @@ func _update_stars_animation() -> void:
 	var wanted = hm.wanted_stars
 	var unseen = hm.unseen_timer
 	
-	# Assume HeatConfig.STAR_DROP_TIME is 12.0 or 10.0 (user said 10, script says 12, we'll use script value dynamically)
+	# Assume HeatConfig.STAR_DROP_TIME is 12.0 or 10.0
 	var max_timer = 10.0
 	if hm.has_node("/root/HeatConfig") or ClassDB.class_exists("HeatConfig"):
-		# Or hardcode property if it doesn't work dynamically
 		max_timer = HeatConfig.STAR_DROP_TIME
 		
 	for i in range(star_nodes.size()):
@@ -291,8 +326,6 @@ func _update_stars_animation() -> void:
 			star_nodes[i].frame = 4
 		elif i == wanted - 1:
 			# Currently draining star
-			# If player is detected, unseen is 0, so fullness is 1 (frame 4)
-			# As unseen approaches max_timer, fullness approaches 0 (frame 0)
 			var fullness = clampf(1.0 - (unseen / max_timer), 0.0, 1.0)
 			var frame_idx = clampi(round(fullness * 4.0), 0, 4)
 			star_nodes[i].frame = frame_idx
@@ -301,7 +334,6 @@ func _update_stars_animation() -> void:
 			star_nodes[i].frame = 0
 
 func _on_stars_changed(count: int) -> void:
-	# Keep existing signal but let process animate them
 	pass
 
 func _on_weapon_changed(weapon: WeaponBase) -> void:
@@ -334,7 +366,6 @@ func _on_weapon_changed(weapon: WeaponBase) -> void:
 		var level = weapon.weapon_data.level
 		level_label.text = "LVL " + str(level)
 		
-		# Blue for 1, Green for 2, Orange for 3, Purple for 4
 		var color = Color.WHITE
 		match level:
 			1: color = Color.SKY_BLUE

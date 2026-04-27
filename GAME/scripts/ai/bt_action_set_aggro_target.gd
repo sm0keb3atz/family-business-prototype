@@ -27,6 +27,7 @@ func _tick(delta: float) -> Status:
 		
 	if target and is_instance_valid(target):
 		var old_target = blackboard.get_var(&"target", null) if blackboard.has_var(&"target") else null
+		blackboard.set_var(&"is_in_combat", true)
 		blackboard.set_var(&"target", target)
 		
 		# Proactive: Bark if dealer and target is new or were not in combat

@@ -73,6 +73,8 @@ var _trigger_released: bool = true # For semi-auto behavior
 var _last_empty_sound_time: float = 0.0
 var _crosshair_sprite: Sprite2D
 var _scouting_raycast: RayCast2D # Universal raycast for transparency checks
+## Updated once per frame in _process when aiming — avoids a second raycast from MapInitializer.
+var _cached_aim_blocked: bool = false
 
 func _ready() -> void:
 	# Fallback/Auto-injection for nodes by name if exports are NULL
@@ -354,6 +356,9 @@ func _process(_delta: float) -> void:
 		if _scouting_raycast:
 			_scouting_raycast.look_at(mouse_pos)
 			_scouting_raycast.force_raycast_update()
+			_cached_aim_blocked = _evaluate_scouting_aim_blocked()
+	else:
+		_cached_aim_blocked = false
 		
 	if shooter and shooter.is_in_group("player"):
 		if not Input.is_action_pressed("fire"):
@@ -365,22 +370,20 @@ func _process(_delta: float) -> void:
 		# This is a documented limitation/behavior for semi-auto weapons in this system.
 		_trigger_released = true 
 
-func is_aiming_blocked() -> bool:
-	if not is_aiming: return false
-	
-	if _scouting_raycast and _scouting_raycast.is_colliding():
-		var col_point = _scouting_raycast.get_collision_point()
-		
-		# User Logic: 
-		# If player is North of the hit (player.y < col_point.y), they CAN see.
-		# If player is South of the hit (player.y >= col_point.y), they CANNOT see.
-		if shooter:
-			if shooter.global_position.y < col_point.y:
-				return false # Not blocked (Can see)
-			else:
-				return true # Blocked (South of wall)
-				
+func _evaluate_scouting_aim_blocked() -> bool:
+	if not _scouting_raycast or not _scouting_raycast.is_colliding():
+		return false
+	var col_point: Vector2 = _scouting_raycast.get_collision_point()
+	if shooter:
+		# North of roof hit = can see; south = occluded (game-specific rule).
+		return shooter.global_position.y >= col_point.y
 	return false
+
+
+func is_aiming_blocked() -> bool:
+	if not is_aiming:
+		return false
+	return _cached_aim_blocked
 
 func _on_reload_timer_timeout() -> void:
 	ammo_component.finish_reload()

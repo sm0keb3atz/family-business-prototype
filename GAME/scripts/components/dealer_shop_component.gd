@@ -261,6 +261,8 @@ func _apply_npc_sale_feedback(drug_id: StringName, amount: int) -> void:
 		if parent_npc.npc_ui:
 			parent_npc.npc_ui.spawn_indicator("money_up", "+$" + str(payout))
 		AudioManager.play_spatial_transaction(parent_npc.global_position)
+		if parent_npc.has_method("bark_dealer_feedback"):
+			parent_npc.bark_dealer_feedback("solicitation")
 	else:
 		AudioManager.play_transaction()
 
@@ -336,3 +338,6 @@ func get_current_brick_count() -> int:
 	if brick_grams <= 0:
 		return 0
 	return int(current_stock / brick_grams)
+
+func is_interactable() -> bool:
+	return not _is_hired_dealer()

@@ -46,20 +46,9 @@ func _initial_spawn() -> void:
 	_process_spawn_queue()
 
 func _spawn_dealers() -> void:
-	if not dealer_scene or not dealer_points_container:
-		return
-	
-	for point in dealer_points_container.get_children():
-		if point is Marker2D:
-			var dealer: NPC = dealer_scene.instantiate()
-			dealer.global_position = point.global_position
-			dealer.appearance_data = appearance_data
-			dealer.behavior_tree = dealer_bt
-			dealer.stats = dealer_stats
-			dealer.role = NPC.Role.DEALER
-			dealer.gender = NPC.Gender.MALE
-			add_sibling(dealer)
-			_fade_in(dealer)
+	# Dealers are now managed globally by NPCManager. 
+	# Spawner no longer needs to instantiate them manually.
+	pass
 
 func _queue_police() -> void:
 	if not police_scene or not police_points_container:

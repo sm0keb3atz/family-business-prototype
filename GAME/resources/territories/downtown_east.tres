@@ -14,5 +14,5 @@ drug_prices = {
 &"weed": 30
 }
 max_customers = 20
-max_police = 12
+max_police = 8
 max_dealers = 6

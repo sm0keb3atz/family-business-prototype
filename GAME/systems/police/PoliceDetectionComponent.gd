@@ -170,22 +170,31 @@ func _physics_process(delta: float) -> void:
 	if _visual and has_node("/root/HeatManager"):
 		var hm = get_node("/root/HeatManager")
 		if hm.wanted_stars >= 1:
-			# We need to _process the color every frame to get the flashing effect
 			_update_color()
+
+	# Throttled timer for detection and heat logic
+	_update_timer += delta
+	if _update_timer < UPDATE_INTERVAL:
+		return
+	_update_timer = 0.0
 
 	var heat_manager = get_node_or_null("/root/HeatManager")
 	if heat_manager:
-		var npcs = get_tree().get_nodes_in_group("npc")
-		for npc in npcs:
-			if not is_instance_valid(npc): continue
-			if npc.role == npc.Role.CUSTOMER and npc.blackboard:
-				if npc.blackboard.get_var(&"is_solicited", false):
-					var dist = global_position.distance_to(npc.global_position)
-					if dist <= detection_radius:
-						if npc.blackboard.get_var(&"is_interacting", false):
-							heat_manager.add_heat(HeatConfig.CUSTOMER_TALKING_HEAT_RATE * delta)
-						elif not (is_instance_valid(player_ref) and player_ref.has_method("ignores_customer_follow_heat") and player_ref.ignores_customer_follow_heat()):
-							heat_manager.add_heat(HeatConfig.CUSTOMER_FOLLOWING_HEAT_RATE * delta)
+		# Optimization: Only scan for nearby crimes/suspicious NPCs every 0.25s
+		# and only if this cop is actually near enough to the player to matter.
+		var player = get_tree().get_first_node_in_group("player")
+		if player and global_position.distance_to(player.global_position) < detection_radius * 2.0:
+			var npcs = get_tree().get_nodes_in_group("npc")
+			for npc in npcs:
+				if not is_instance_valid(npc): continue
+				if npc.role == npc.Role.CUSTOMER and npc.blackboard:
+					if npc.blackboard.get_var(&"is_solicited", false):
+						var dist = global_position.distance_to(npc.global_position)
+						if dist <= detection_radius:
+							if npc.blackboard.get_var(&"is_interacting", false):
+								heat_manager.add_heat(HeatConfig.CUSTOMER_TALKING_HEAT_RATE * UPDATE_INTERVAL)
+							elif not (is_instance_valid(player_ref) and player_ref.has_method("ignores_customer_follow_heat") and player_ref.ignores_customer_follow_heat()):
+								heat_manager.add_heat(HeatConfig.CUSTOMER_FOLLOWING_HEAT_RATE * UPDATE_INTERVAL)
 
 	if not is_player_inside or not is_instance_valid(player_ref):
 		return
@@ -197,15 +206,9 @@ func _physics_process(delta: float) -> void:
 
 	if is_armed:
 		if heat_manager:
-			heat_manager.add_heat(HeatConfig.ARMED_HEAT_RATE * delta)
+			heat_manager.add_heat(HeatConfig.ARMED_HEAT_RATE * UPDATE_INTERVAL)
 
-	_handle_audio_timers(delta)
-
-	# ── Throttled position updates (event-driven, not every frame) ────
-	_update_timer += delta
-	if _update_timer < UPDATE_INTERVAL:
-		return
-	_update_timer = 0.0
+	_handle_audio_timers(UPDATE_INTERVAL)
 
 	var npc: NPC = get_parent() as NPC
 	if npc and npc.blackboard:
@@ -215,25 +218,28 @@ func _physics_process(delta: float) -> void:
 		# Determine highest priority target (Hostile Player > Hostile Dealer)
 		var best_target: Node2D = null
 		var min_dist: float = INF
-		var investigating_gunshot: bool = npc.blackboard.has_var(&"responding_to_gunshot") and npc.blackboard.get_var(&"responding_to_gunshot", false)
+		var investigating_gunshot: bool = npc.blackboard.get_var(&"responding_to_gunshot", false)
+		var is_in_pursuit: bool = npc.blackboard.get_var(&"is_in_combat", false)
 		
 		# Chase player if wanted, OR if this cop is investigating a gunshot and sees the player
 		if is_player_inside and is_instance_valid(player_ref) and (heat_manager_stars >= 1 or (heat_manager_stars == 0 and investigating_gunshot)):
 			best_target = player_ref
 			min_dist = npc.global_position.distance_to(player_ref.global_position)
-			# First cop to see the player while investigating escalates to 1 star (limited dispatch)
 			if heat_manager_stars == 0 and investigating_gunshot and hm:
 				hm.set_stars(1)
 			
 		# Also check for hostile dealers in radius
-		var npcs = get_tree().get_nodes_in_group("npc")
-		for other in npcs:
-			if not is_instance_valid(other) or other == npc: continue
-			if other.role == npc.Role.DEALER and other.blackboard and other.blackboard.get_var(&"was_shot", false):
-				var dist = npc.global_position.distance_to(other.global_position)
-				if dist <= detection_radius and dist < min_dist:
-					min_dist = dist
-					best_target = other
+		# Optimization: Only engage dealers if we are already "awake" for a pursuit 
+		# or if the player is involved, to prevent global police-on-dealer dogpiling.
+		if is_in_pursuit or investigating_gunshot or heat_manager_stars > 0:
+			var npcs = get_tree().get_nodes_in_group("npc")
+			for other in npcs:
+				if not is_instance_valid(other) or other == npc: continue
+				if other.role == npc.Role.DEALER and other.blackboard and other.blackboard.get_var(&"was_shot", false):
+					var dist = npc.global_position.distance_to(other.global_position)
+					if dist <= detection_radius and dist < min_dist:
+						min_dist = dist
+						best_target = other
 
 		if best_target:
 			var dist: float = npc.global_position.distance_to(best_target.global_position)
@@ -255,6 +261,7 @@ func _physics_process(delta: float) -> void:
 				return
 
 			var vel: Vector2 = best_target.velocity if best_target is CharacterBody2D else Vector2.ZERO
+			npc.blackboard.set_var(&"is_in_combat", true)
 			npc.blackboard.set_var(&"target", best_target)
 			npc.blackboard.set_var(&"last_known_position", best_target.global_position)
 			npc.blackboard.set_var(&"last_known_velocity", vel)
@@ -355,7 +362,7 @@ func _on_body_entered(body: Node2D) -> void:
 		if npc and npc.blackboard:
 			hm = get_node_or_null("/root/HeatManager")
 			stars = hm.wanted_stars if hm else 0
-			var investigating: bool = npc.blackboard.has_var(&"responding_to_gunshot") and npc.blackboard.get_var(&"responding_to_gunshot", false)
+			var investigating: bool = npc.blackboard.get_var(&"responding_to_gunshot", false)
 			if hm and (stars >= 1 or (stars == 0 and investigating)):
 				if stars == 0 and investigating:
 					hm.set_stars(1)

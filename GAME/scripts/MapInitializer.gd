@@ -22,6 +22,7 @@ var game_camera: Node2D
 var target_layers: Array[CanvasItem] = []
 var cutout_material: ShaderMaterial
 var current_occlusion: float = 0.0
+var _cutout_cursor_shader_pending: bool = false
 
 func _ready() -> void:
 	add_to_group("map_initializer")
@@ -215,14 +216,28 @@ func _process(delta: float) -> void:
 		cutout_material.set_shader_parameter("radius", game_camera.cutout_radius)
 		cutout_material.set_shader_parameter("softness", game_camera.edge_softness)
 		
-		# Drive strengths independently
-		var aim_blocked = false
-		var weapon_holder = player.get_node_or_null("%WeaponHolderComponent")
-		if weapon_holder and weapon_holder.current_weapon and weapon_holder.current_weapon.has_method("is_aiming_blocked"):
-			aim_blocked = weapon_holder.current_weapon.is_aiming_blocked()
-		
 		cutout_material.set_shader_parameter("player_occlusion", current_occlusion)
-		cutout_material.set_shader_parameter("cursor_occlusion", 1.0 if (Input.is_action_pressed("aim") and not aim_blocked) else 0.0)
+		# cursor_occlusion reads weapon raycast cache — defer to end of frame so WeaponBase._process runs first
+		# and we never pay for a duplicate force_raycast_update() in the same tick.
+		_request_cutout_cursor_occlusion_update()
+
+func _request_cutout_cursor_occlusion_update() -> void:
+	if _cutout_cursor_shader_pending:
+		return
+	_cutout_cursor_shader_pending = true
+	call_deferred("_apply_cutout_cursor_occlusion_deferred")
+
+
+func _apply_cutout_cursor_occlusion_deferred() -> void:
+	_cutout_cursor_shader_pending = false
+	if not is_instance_valid(player) or not cutout_material:
+		return
+	var aim_blocked := false
+	var weapon_holder = player.get_node_or_null("%WeaponHolderComponent")
+	if weapon_holder and weapon_holder.current_weapon and weapon_holder.current_weapon.has_method("is_aiming_blocked"):
+		aim_blocked = weapon_holder.current_weapon.is_aiming_blocked()
+	cutout_material.set_shader_parameter("cursor_occlusion", 1.0 if (Input.is_action_pressed("aim") and not aim_blocked) else 0.0)
+
 
 func _initialize_doors() -> void:
 	var triggers = get_tree().get_nodes_in_group("door_trigger")

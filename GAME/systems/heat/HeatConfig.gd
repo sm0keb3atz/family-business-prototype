@@ -21,6 +21,8 @@ const SALE_RISK_MULTIPLIER: float = 1.0
 ## Only police within this range of a gunshot "hear" it and respond. No global wanted from one shot.
 const GUNSHOT_HEARING_RANGE: float = 520.0
 ## At 1 star, only this many nearest police get dispatched (rest stay on patrol until they see you).
-const MAX_DISPATCHED_AT_ONE_STAR: int = 3
+const MAX_DISPATCHED_AT_ONE_STAR: int = 2
+## At 2+ stars, only this many nearest police get dispatched.
+const MAX_DISPATCHED_AT_TWO_STARS: int = 6
 ## At 2+ stars, dispatch all police within this radius of the player (0 = no limit, use all).
-const DISPATCH_RADIUS_AT_TWO_STARS: float = 0.0
+const DISPATCH_RADIUS_AT_TWO_STARS: float = 3000.0

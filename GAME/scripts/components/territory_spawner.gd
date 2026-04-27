@@ -383,6 +383,12 @@ func _activate_queue_item(item: Dictionary) -> void:
 	var spawn_pos: Vector2 = spawn_result.get("position", parent_territory.global_position)
 
 	_configure_npc_for_activation(npc, item)
+	
+	# Set territory tracking metadata so components can find their context
+	npc.set_meta(&"territory", parent_territory)
+	if "territory_id" in npc:
+		npc.territory_id = parent_territory.get_territory_id()
+		
 	npc.activate_from_pool(spawn_pos, {
 		"path_markers": _get_path_markers(),
 		"debug_logging": debug_logging,
@@ -436,7 +442,11 @@ func _register_virtual_npc(role: NPC.Role, context: Dictionary = {}) -> void:
 			id.behavior_tree = police_bt
 			id.stats = police_stats
 		NPC.Role.DEALER:
-			id.metadata["dealer_kind"] = context.get("dealer_kind", &"ambient")
+			var kind: StringName = context.get("dealer_kind", &"ambient")
+			id.metadata["dealer_kind"] = kind
+			if kind == &"hired" and context.has("slot"):
+				id.metadata["slot"] = context["slot"]
+			
 			id.behavior_tree = dealer_bt
 			id.stats = dealer_stats
 			# Handle dealer tiering logic here for identity
@@ -448,42 +458,48 @@ func _register_virtual_npc(role: NPC.Role, context: Dictionary = {}) -> void:
 	# NavMesh Distribution logic: pick a marker OR a random nav point
 	var final_pos: Vector2 = parent_territory.global_position
 	var found_safe := false
-	var max_retries := 5
+	var max_retries := 8 # Slightly more retries
 	
 	for attempt in range(max_retries):
-		# For ghosts (warm pool), we prefer random scattering across the whole territory
-		# instead of just bunched up at markers.
 		var candidate_pos: Vector2
-		if role != NPC.Role.DEALER and parent_territory.has_method("get_random_point_inside"):
+		var is_from_marker := false
+		
+		# Try to use specific role markers first
+		var spawn_result: Dictionary = _get_spawn_position_for_item({"role": role})
+		if spawn_result.get("found", false) and spawn_result.get("marker_found", false):
+			candidate_pos = spawn_result.get("position")
+			is_from_marker = true
+		elif role != NPC.Role.DEALER and parent_territory.has_method("get_random_point_inside"):
+			# Only scatter if no marker is found (or if it's not a dealer)
 			candidate_pos = parent_territory.get_random_point_inside()
 		else:
-			var spawn_result: Dictionary = _get_spawn_position_for_item({"role": role})
-			candidate_pos = spawn_result.get("position", parent_territory.global_position)
+			candidate_pos = parent_territory.global_position
 		
 		var original_pos: Vector2 = candidate_pos
 		
-		# MANDATORY: Always snap to navmesh, even if it's a marker, to prevent spawning in buildings
+		# MANDATORY: Always snap to navmesh to prevent spawning in buildings
 		candidate_pos = _snap_to_navmesh(candidate_pos)
 		
-		# FAIL-SAFE: If the snap moved the position significantly (>50px), it means the 
-		# original candidate point was likely inside a building or off-map.
-		if candidate_pos.distance_to(original_pos) > 50.0:
+		# FAIL-SAFE distance check: 
+		# We relax this for markers because they are designer-placed and might be near walls.
+		var snap_dist: float = candidate_pos.distance_to(original_pos)
+		var max_dist: float = 250.0 if is_from_marker else 80.0
+		
+		if snap_dist > max_dist:
 			if attempt == 0:
-				_log("Warning: Initial spawn %s for %s was too far from navmesh (%.1fpx). Retrying with nudges..." % [original_pos, role, candidate_pos.distance_to(original_pos)])
+				_log("Warning: Initial spawn %s for %s was too far from navmesh (%.1fpx). Retrying..." % [original_pos, role, snap_dist])
 			continue
 		
-		# On subsequent attempts, apply a horizontal nudge as per user request (50-60px left or right)
+		# On subsequent attempts, apply a horizontal nudge
 		if attempt > 0:
 			var side = 1.0 if randf() > 0.5 else -1.0
 			candidate_pos.x += side * randf_range(50.0, 60.0)
-			# Re-snap after nudge to ensure we didn't push them off the walkway
 			candidate_pos = _snap_to_navmesh(candidate_pos)
 		
 		if _is_position_safe(candidate_pos):
 			if role == NPC.Role.DEALER:
 				var spaced_result := _find_spaced_dealer_spawn_position(candidate_pos, id.territory_id)
 				if not spaced_result.get("found", false):
-					_log("Warning: Dealer spawn attempt %d at %s had no spaced fallback, retrying..." % [attempt, candidate_pos])
 					continue
 				candidate_pos = spaced_result.get("position", candidate_pos)
 			final_pos = candidate_pos
@@ -491,6 +507,7 @@ func _register_virtual_npc(role: NPC.Role, context: Dictionary = {}) -> void:
 			break
 		else:
 			_log("Warning: Spawn attempt %d at %s was unsafe for %s, retrying..." % [attempt, candidate_pos, role])
+
 	
 	if not found_safe:
 		# SCRAPPED: Random safe point scattering is removed as it often overlaps buildings.
@@ -503,6 +520,8 @@ func _register_virtual_npc(role: NPC.Role, context: Dictionary = {}) -> void:
 	# Register with global manager
 	if NPCManager:
 		NPCManager.register_identity(id)
+		if role == NPC.Role.POLICE:
+			print("TerritorySpawner: Registered Police unit for %s at %s" % [parent_territory.get_territory_id(), id.global_position])
 
 func _snap_to_navmesh(pos: Vector2) -> Vector2:
 	var map = get_world_2d().get_navigation_map()

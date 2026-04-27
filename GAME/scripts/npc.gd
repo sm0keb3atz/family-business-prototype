@@ -52,6 +52,7 @@ var gf_request_timer: float = 0.0
 var gf_request_grace_timer: float = 0.0
 var _managed_by_pool: bool = false
 var _is_pooled: bool = false
+var _current_identity: NPCIdentity = null # Reference to the data that spawned this actor
 var _core_runtime_initialized: bool = false
 var _role_runtime_initialized: bool = false
 var _visual_state_initialized: bool = false
@@ -98,6 +99,20 @@ const DEALER_POLICE_COMBAT_BARKS: Array[String] = [
 	"They ain't takin' me today!"
 ]
 
+const HIRED_DEALER_APPROACH_BARKS: Array[String] = [
+	"Corner's held, boss.",
+	"On the clock.",
+	"Everything's movin' smooth.",
+	"Stayin' busy out here."
+]
+
+const HIRED_DEALER_SOLICITATION_BARKS: Array[String] = [
+	"Business is boomin'.",
+	"Stash is lookin' good.",
+	"Another sale for the books.",
+	"Workin' hard for the family."
+]
+
 
 # --- BT ---
 @onready var bt_player: BTPlayer = %BTPlayer
@@ -127,6 +142,8 @@ func _update_ui_icon() -> void:
 	
 	if role == Role.DEALER:
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Dealer_Icon.png"))
+		var is_hired: bool = get_meta(&"hired_dealer", false)
+		npc_ui.update_level(dealer_tier.tier_level if dealer_tier else 1, 1, is_hired)
 		npc_ui.hide_request_badge()
 	elif role == Role.CUSTOMER and blackboard and blackboard.get_var(&"is_solicited", false):
 		npc_ui.show_type_icon(preload("res://GAME/assets/icons/Customer_Icon.png"))
@@ -151,7 +168,16 @@ func _update_ui_icon() -> void:
 	# Proactive check: if we just became interactable and player is already here, register!
 	var is_dealer_customer: bool = blackboard and blackboard.has_var(&"is_dealer_customer") and blackboard.get_var(&"is_dealer_customer", false)
 	var solicited_ok: bool = blackboard and blackboard.get_var(&"is_solicited", false) and not is_dealer_customer
-	var can_interact = (role == Role.DEALER) or solicited_ok or is_potential_girlfriend
+	
+	var can_interact_dealer := false
+	if role == Role.DEALER:
+		var shop := get_node_or_null("DealerShopComponent")
+		if shop and shop.has_method("is_interactable"):
+			can_interact_dealer = shop.is_interactable()
+		else:
+			can_interact_dealer = true
+			
+	var can_interact = can_interact_dealer or solicited_ok or is_potential_girlfriend
 	if can_interact and interact_area and interact_area.monitoring:
 		for body in interact_area.get_overlapping_bodies():
 			if body.is_in_group("player"):
@@ -385,7 +411,8 @@ func _run_stuck_detection_fail_safe(delta: float) -> void:
 			# Check NavMesh proximity
 			var map = get_world_2d().get_navigation_map()
 			var closest = NavigationServer2D.map_get_closest_point(map, global_position)
-			if closest.distance_to(global_position) > 60.0:
+			var threshold: float = 250.0 if role == Role.POLICE else 60.0
+			if closest.distance_to(global_position) > threshold:
 				# We are too far from any valid navigation poly (likely inside a building)
 				if _managed_by_pool:
 					etherealize_to_pool()
@@ -485,6 +512,8 @@ func _setup_bt() -> void:
 		
 		blackboard = bt_player.get_blackboard()
 		if blackboard:
+			blackboard.set_var(&"is_in_combat", false)
+			blackboard.set_var(&"responding_to_gunshot", false)
 			blackboard.set_var(&"was_shot", false)
 			blackboard.set_var(&"damage_source_position", Vector2.ZERO)
 			blackboard.set_var(&"attacker", null)
@@ -529,6 +558,7 @@ func prepare_for_pool() -> void:
 	_ensure_core_runtime_initialized()
 	_is_pooled = true
 	_is_interacting = false
+	_current_identity = null
 	_reset_runtime_state_for_pool()
 	_set_detection_component_active(false)
 	_set_interact_area_active(false)
@@ -585,6 +615,7 @@ func activate_from_pool(spawn_pos: Vector2, role_context: Dictionary = {}) -> vo
 ##   Phase 2 (manager-budgeted): BT restart, detection, interaction — AI starts later.
 func realize_from_identity(identity: NPCIdentity) -> void:
 	_ensure_core_runtime_initialized()
+	_current_identity = identity
 	
 	# Mapping state from identity
 	self.role = identity.role
@@ -594,14 +625,45 @@ func realize_from_identity(identity: NPCIdentity) -> void:
 	self.appearance_data = identity.appearance_data
 	self.behavior_tree = identity.behavior_tree
 	self.stats = identity.stats.duplicate() if identity.stats else null
-	self.dealer_tier = identity.dealer_tier
+	var dealer_kind: StringName = identity.metadata.get("dealer_kind", &"ambient")
+	if role == Role.DEALER:
+		if identity.metadata.has("slot"):
+			var slot: HiredDealerSlot = identity.metadata["slot"]
+			if slot:
+				var tier_path: String = "res://GAME/resources/npc/dealers/dealer_lvl" + str(slot.tier_level) + ".tres"
+				if FileAccess.file_exists(tier_path):
+					self.dealer_tier = load(tier_path)
+	
 	self.territory_id = identity.territory_id
 	set_path_markers(identity.path_markers)
+	
+	# Apply metadata to NPC meta tags
+	set_meta(&"dealer_spawn_kind", dealer_kind)
+	set_meta(&"hired_dealer", dealer_kind == &"hired")
+	
+	if identity.territory_id != &"":
+		var t_node := TerritoryArea.get_territory_by_id(get_tree(), identity.territory_id)
+		if t_node:
+			set_meta(&"territory", t_node)
 	
 	_is_pooled = false
 	_is_interacting = false
 	velocity = Vector2.ZERO
 	blackboard = null
+	
+	# Reset Girlfriend State — critical for pool reuse
+	gf_resource = null
+	is_potential_girlfriend = false
+	gf_is_requesting = false
+	if is_in_group("girlfriend"):
+		remove_from_group("girlfriend")
+	
+	# Restore persistence state from metadata if it exists
+	if identity.metadata.get("is_girlfriend", false):
+		gf_resource = identity.metadata.get("gf_resource")
+		behavior_tree = identity.metadata.get("gf_behavior_tree", behavior_tree)
+		add_to_group("girlfriend")
+
 	# Ghosts bake outfit paths at registration so we do not load() textures during territory crossings.
 	if gf_resource and gf_resource.appearance:
 		_visual_state_initialized = false
@@ -739,7 +801,8 @@ func _apply_role_runtime_state() -> void:
 			if health_component:
 				health_component.setup(stats)
 		if npc_ui:
-			npc_ui.update_level(tier.tier_level, 1)
+			var is_hired: bool = get_meta(&"hired_dealer", false)
+			npc_ui.update_level(tier.tier_level, 1, is_hired)
 
 func _apply_activation_context(role_context: Dictionary) -> void:
 		set_path_markers(role_context["path_markers"])
@@ -765,6 +828,8 @@ func _reset_runtime_state_for_pool() -> void:
 	if weapon_holder_component:
 		weapon_holder_component.equip_weapon(null)
 	if blackboard:
+		blackboard.set_var(&"is_in_combat", false)
+		blackboard.set_var(&"responding_to_gunshot", false)
 		blackboard.set_var(&"was_shot", false)
 		blackboard.set_var(&"damage_source_position", Vector2.ZERO)
 		blackboard.set_var(&"attacker", null)
@@ -923,12 +988,13 @@ func bark_dealer_feedback(kind: String) -> void:
 	if now < ready_at:
 		return
 
+	var is_hired: bool = get_meta(&"hired_dealer", false)
 	var lines: Array[String] = []
 	match kind:
 		"approach":
-			lines = DEALER_APPROACH_BARKS
+			lines = HIRED_DEALER_APPROACH_BARKS if is_hired else DEALER_APPROACH_BARKS
 		"solicitation":
-			lines = DEALER_SOLICITATION_BARKS
+			lines = HIRED_DEALER_SOLICITATION_BARKS if is_hired else DEALER_SOLICITATION_BARKS
 		_:
 			return
 
@@ -976,6 +1042,7 @@ func take_damage(amount: int, source_position: Vector2 = Vector2.ZERO, hit_direc
 
 	# Write to blackboard so BT can react
 	if blackboard:
+		blackboard.set_var(&"is_in_combat", true)
 		blackboard.set_var(&"was_shot", true)
 		if shooter and is_instance_valid(shooter):
 			blackboard.set_var(&"attacker", shooter)
@@ -1231,6 +1298,12 @@ func _handle_girlfriend_recruitment(player: Node2D) -> void:
 	behavior_tree = load("res://GAME/resources/ai/girlfriend_bt.tres")
 	_setup_bt()
 	
+	# Sync to identity so this persists through ghosting/territory changes
+	if _current_identity:
+		_current_identity.metadata["is_girlfriend"] = true
+		_current_identity.metadata["gf_resource"] = gf_resource
+		_current_identity.metadata["gf_behavior_tree"] = behavior_tree
+
 	if player and player.get("inventory_component"):
 		player.get("inventory_component").add_girlfriend(gf_resource)
 	add_to_group("girlfriend")
@@ -1351,15 +1424,27 @@ func _on_interact_area_body_entered(body: Node2D) -> void:
 		# Only allow interaction if we are a dealer OR a solicited customer OR a potential GF OR requesting money
 		var is_dealer_customer: bool = blackboard and blackboard.has_var(&"is_dealer_customer") and blackboard.get_var(&"is_dealer_customer", false)
 		var solicited_enter: bool = blackboard and blackboard.get_var(&"is_solicited", false) and not is_dealer_customer
-		var can_interact = (role == Role.DEALER) or solicited_enter or is_potential_girlfriend or gf_is_requesting
+		
+		var can_interact_dealer := false
+		if role == Role.DEALER:
+			var shop := get_node_or_null("DealerShopComponent")
+			if shop and shop.has_method("is_interactable"):
+				can_interact_dealer = shop.is_interactable()
+			else:
+				can_interact_dealer = true
+				
+		var can_interact = can_interact_dealer or solicited_enter or is_potential_girlfriend or gf_is_requesting
 		if can_interact:
 			body.register_interactable(self)
-			if role == Role.DEALER:
-				bark_dealer_feedback("approach")
-			elif npc_ui and not is_potential_girlfriend and not gf_is_requesting:
-				npc_ui.hide_dialog_bubble()
-			if body.get("player_ui"):
-				body.player_ui.hide_dialog_bubble()
+		
+		# Feedback should still happen even if not interactable for players (hired dealers bark when boss is near)
+		if role == Role.DEALER:
+			bark_dealer_feedback("approach")
+		
+		if npc_ui and not is_potential_girlfriend and not gf_is_requesting:
+			npc_ui.hide_dialog_bubble()
+		if body.get("player_ui"):
+			body.player_ui.hide_dialog_bubble()
 
 func _on_interact_area_body_exited(body: Node2D) -> void:
 	if body.is_in_group("player"):
@@ -1395,6 +1480,17 @@ func _on_died() -> void:
 	if gf_resource:
 		_reset_girlfriend_request_state()
 		_clear_interaction_with_player()
+		
+		# Clear identity metadata so they don't persist as a girlfriend after death
+		if _current_identity:
+			_current_identity.metadata.erase("is_girlfriend")
+			_current_identity.metadata.erase("gf_resource")
+			_current_identity.metadata.erase("gf_behavior_tree")
+			
+			# Permanently remove the identity from the world so they don't "respawn"
+			if has_node("/root/NPCManager"):
+				get_node("/root/NPCManager").unregister_identity(_current_identity)
+		
 		var player = get_tree().get_first_node_in_group("player")
 		if player and player.get("inventory_component"):
 			player.inventory_component.remove_girlfriend(gf_resource)
@@ -1503,7 +1599,7 @@ func _apply_lod_tier(tier: int) -> void:
 				nav_agent.avoidance_enabled = false
 			if npc_ui:
 				npc_ui.show()
-			_set_detection_component_active(true)
+			_set_detection_component_active(false) # Reduced detection load for LOD1 (was true)
 		2: # DORMANT
 			set_physics_process(false)
 			visible = false

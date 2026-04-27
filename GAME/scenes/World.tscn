@@ -415,10 +415,10 @@ position = Vector2(-1389, -300)
 [node name="PolicePoints" type="Node2D" parent="Territories/DowntownEast" unique_id=202200005]
 
 [node name="Marker2D" type="Marker2D" parent="Territories/DowntownEast/PolicePoints" unique_id=202200006]
-position = Vector2(-1389, 722)
+position = Vector2(-1389, 797)
 
 [node name="Marker2D2" type="Marker2D" parent="Territories/DowntownEast/PolicePoints" unique_id=202200007]
-position = Vector2(266, 722)
+position = Vector2(272, 797)
 
 [node name="CustomerPoints" type="Node2D" parent="Territories/DowntownEast" unique_id=202200008]
 

@@ -71,14 +71,18 @@ texture = ExtResource("1_0v40e")
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1g5sb"]
 texture = ExtResource("2_nxi86")
-expand_margin_left = 5.0
-expand_margin_top = 6.0
-expand_margin_right = 5.0
-expand_margin_bottom = 6.0
+expand_margin_left = 17.0
+expand_margin_top = 12.0
+expand_margin_right = 17.0
+expand_margin_bottom = 15.0
 region_rect = Rect2(415, 321, 208, 14)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hc6lp"]
 texture = ExtResource("2_nxi86")
+texture_margin_left = 5.0
+texture_margin_top = 2.0
+texture_margin_right = 5.0
+texture_margin_bottom = 2.0
 region_rect = Rect2(414, 415, 206, 12)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_sjcy7"]

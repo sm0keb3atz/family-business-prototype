@@ -121,6 +121,7 @@ func set_stars(value: int) -> void:
 			var npcs = get_tree().get_nodes_in_group("npc")
 			for npc in npcs:
 				if npc is NPC and npc.role == NPC.Role.POLICE and npc.blackboard:
+					npc.blackboard.set_var(&"is_in_combat", false)
 					npc.blackboard.set_var(&"is_searching", false)
 					npc.blackboard.set_var(&"search_anchor", Vector2.ZERO)
 					npc.blackboard.set_var(&"last_known_position", Vector2.ZERO)
@@ -267,6 +268,7 @@ func reset() -> void:
 			continue
 			
 		var bb = npc.blackboard
+		bb.set_var(&"is_in_combat", false)
 		bb.set_var(&"was_shot", false)
 		bb.set_var(&"attacker", null)
 		bb.set_var(&"target", null)
@@ -293,28 +295,69 @@ func broadcast_player_position(pos: Vector2, vel: Vector2 = Vector2.ZERO) -> voi
 	# Emit event-driven signal for any listeners
 	player_sighted.emit(pos, vel)
 
+	# Ensure nearby police ghosts are realized into actors so they can respond
+	if NPCManager:
+		NPCManager.report_crime(pos, realization_radius_for_dispatch())
+
 	var npcs: Array[Node] = get_tree().get_nodes_in_group("npc")
+
 	var police_list: Array[NPC] = []
 	for npc in npcs:
 		if npc is NPC and npc.role == NPC.Role.POLICE and npc.blackboard:
 			police_list.append(npc)
 
-	# At 1 star only dispatch nearest N cops so the whole map doesn't swarm you
+	# At 1 star only dispatch nearest N cops so the whole map doesn't swarm you (avoid O(n log n) full sort).
 	var max_cops: int = police_list.size()
-	if wanted_stars == 1 and HeatConfig.MAX_DISPATCHED_AT_ONE_STAR > 0:
-		police_list.sort_custom(func(a: NPC, b: NPC) -> bool:
-			return a.global_position.distance_squared_to(pos) < b.global_position.distance_squared_to(pos)
-		)
-		max_cops = mini(HeatConfig.MAX_DISPATCHED_AT_ONE_STAR, police_list.size())
+	if wanted_stars == 1 and HeatConfig.MAX_DISPATCHED_AT_ONE_STAR > 0 and police_list.size() > HeatConfig.MAX_DISPATCHED_AT_ONE_STAR:
+		max_cops = HeatConfig.MAX_DISPATCHED_AT_ONE_STAR
+	elif wanted_stars >= 2 and HeatConfig.MAX_DISPATCHED_AT_TWO_STARS > 0 and police_list.size() > HeatConfig.MAX_DISPATCHED_AT_TWO_STARS:
+		max_cops = HeatConfig.MAX_DISPATCHED_AT_TWO_STARS
+
+	var dispatched: Dictionary = {}
+	if police_list.size() > max_cops:
+		var k: int = max_cops
+		var nearest: Array[NPC] = []
+		var nearest_d2: Array[float] = []
+		
+		var dispatch_radius_sq: float = INF
+		if wanted_stars >= 2 and HeatConfig.DISPATCH_RADIUS_AT_TWO_STARS > 0:
+			dispatch_radius_sq = HeatConfig.DISPATCH_RADIUS_AT_TWO_STARS * HeatConfig.DISPATCH_RADIUS_AT_TWO_STARS
+
+		for npc in police_list:
+			var d2: float = npc.global_position.distance_squared_to(pos)
+			
+			# Radius filter
+			if d2 > dispatch_radius_sq:
+				continue
+				
+			if nearest.size() < k:
+				nearest.append(npc)
+				nearest_d2.append(d2)
+				continue
+			var worst_i: int = 0
+			for j in range(1, nearest.size()):
+				if nearest_d2[j] > nearest_d2[worst_i]:
+					worst_i = j
+			if d2 < nearest_d2[worst_i]:
+				nearest[worst_i] = npc
+				nearest_d2[worst_i] = d2
+		for n in nearest:
+			dispatched[n] = true
+
+	var use_dispatch_set: bool = wanted_stars == 1 and HeatConfig.MAX_DISPATCHED_AT_ONE_STAR > 0 and police_list.size() > HeatConfig.MAX_DISPATCHED_AT_ONE_STAR
 
 	var role_index: int = 0
 	var roles: Array[String] = ["tracker", "cutoff", "sweeper"]
 	for i in range(police_list.size()):
-		if i >= max_cops:
-			# Clear responding_to_gunshot so they don't keep investigating; they just stay on patrol
-			police_list[i].blackboard.set_var(&"responding_to_gunshot", false)
-			continue
 		var npc: NPC = police_list[i]
+		if use_dispatch_set:
+			if not dispatched.has(npc):
+				npc.blackboard.set_var(&"responding_to_gunshot", false)
+				continue
+		elif i >= max_cops:
+			# Clear responding_to_gunshot so they don't keep investigating; they just stay on patrol
+			npc.blackboard.set_var(&"responding_to_gunshot", false)
+			continue
 		if not npc.blackboard:
 			continue
 		# Clear investigating flag once we're officially wanted
@@ -328,3 +371,9 @@ func broadcast_player_position(pos: Vector2, vel: Vector2 = Vector2.ZERO) -> voi
 		npc.blackboard.set_var(&"search_role", roles[role_index % roles.size()])
 		role_index += 1
 		npc.blackboard.set_var(&"is_searching", false)
+
+
+func realization_radius_for_dispatch() -> float:
+	# Keep the spawn radius tight (3000px) regardless of star level.
+	# We want a small, focused group of local police, not a global swarm.
+	return 3000.0

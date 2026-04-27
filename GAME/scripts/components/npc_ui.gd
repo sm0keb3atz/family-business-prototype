@@ -90,13 +90,17 @@ func hide_request_badge() -> void:
 	if request_quantity_label:
 		request_quantity_label.text = ""
 
-func update_level(level: int, role: int) -> void:
+func update_level(level: int, role: int, is_hired: bool = false) -> void:
 	var level_label = get_node_or_null("LevelLabel")
 	if not level_label: return
 	
 	if role == 1: # Role.DEALER
-		level_label.text = "LVL " + str(level)
-		level_label.modulate = Color.YELLOW
+		if is_hired:
+			level_label.text = "HIRED LVL " + str(level)
+			level_label.modulate = Color.SKY_BLUE
+		else:
+			level_label.text = "LVL " + str(level)
+			level_label.modulate = Color.YELLOW
 		level_label.show()
 	elif role == -1: # Special case for Girlfriend
 		level_label.text = "LVL " + str(level)
